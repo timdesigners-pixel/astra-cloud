@@ -14,7 +14,7 @@ import { hataMetni } from '../../veri/hata';
 import { AZAMI_DOSYA, bagTuru, boyutYaz, magazaOf, siteAdi, youtubeId } from './baglanti';
 import {
   BICIM, DILLER, EK, IKONLAR, RENK, baglam, baglantiKart, bloklarHTML, bloklarMetin, bloklarOf, butonHTML, dosyaKart, galeriHTML,
-  gorselEtiket, kaynaklariCoz, kolonlarOf, linkHTML, sayfaKart, urunKart, urunYenile, yeniBlok, youtubeHTML, type Blok,
+  gorselEtiket, kaynaklariCoz, kolonlarOf, linkHTML, sayfaKart, uid, urunKart, urunYenile, yeniBlok, youtubeHTML, type Blok,
 } from './bloklar';
 import { dosyaYukle, type Yuklenen } from './depo';
 import { renklendir } from './kod-renk';
@@ -346,6 +346,23 @@ export function editorAc(ayar: EditorAyar): Editor {
     }
   }
 
+  /* Çoğaltma: iç içe bloklar dâhil her blok yeni kimlik alır. */
+  function kopya(b: Blok): Blok {
+    const k = JSON.parse(JSON.stringify(b)) as Blok;
+    const yenile = (o: unknown) => {
+      if (Array.isArray(o)) o.forEach(yenile);
+      else if (o && typeof o === 'object') {
+        const r = o as Record<string, unknown>;
+        if (typeof r.id === 'string' && typeof r.tip === 'string') r.id = uid();
+        Object.values(r).forEach(yenile);
+      }
+    };
+    yenile(k);
+    return k;
+  }
+  const icindeMi = (b: Blok, id: string): boolean => JSON.stringify(b).includes(`"id":"${id}"`);
+  let surukleniyor = '';
+
   function bloklar(L: Blok[] = B(), ic = false): string {
     let sira = 0;
     return L.map((b, i) => {
@@ -354,8 +371,10 @@ export function editorAc(ayar: EditorAyar): Editor {
       return `<div class="tp-blok" data-blok="${esc(b.id)}">
         <div class="tp-tut">
           <button type="button" title="blok ekle" ${onTik(el => blokMenu(el, i + 1, L))}>＋</button>
+          <button type="button" class="tp-surukle" draggable="true" data-surukle="${esc(b.id)}" title="sürükleyip taşı" aria-label="bloğu sürükle">⠿</button>
           <button type="button" title="yukarı" ${i ? '' : 'disabled'} ${onTik(() => yapisal(() => { L.splice(i - 1, 0, L.splice(i, 1)[0]!); }))}>↑</button>
           <button type="button" title="aşağı" ${i < L.length - 1 ? '' : 'disabled'} ${onTik(() => yapisal(() => { L.splice(i + 1, 0, L.splice(i, 1)[0]!); }))}>↓</button>
+          <button type="button" title="bloğu çoğalt" ${onTik(() => yapisal(() => { L.splice(i + 1, 0, kopya(b)); }))}>⧉</button>
           ${metin ? `<select title="blok türü" aria-label="blok türü" ${onDegis(el => turDegis(b, el.value))}>${BLOK_TURU.filter(t => METIN.includes(t[0])).map(t => `<option value="${t[0]}" ${t[0] === b.tip ? 'selected' : ''}>${t[1]} ${t[2]}</option>`).join('')}</select>` : ''}
           <button type="button" title="bloğu sil" ${onTik(() => yapisal(() => { L.splice(i, 1); }, L[i - 1] && METIN.includes(L[i - 1]!.tip) ? { bid: L[i - 1]!.id, son: true } : null))}>×</button>
         </div>
@@ -805,6 +824,35 @@ export function editorAc(ayar: EditorAyar): Editor {
     ['input', girdiOlayi as EventListener], ['keydown', tusOlayi as EventListener], ['paste', yapistirOlayi as EventListener], ['click', tikOlayi as EventListener],
     ['mousedown', ((ev: MouseEvent) => { if ((ev.target as HTMLElement).closest('[data-bicim],[data-vurgu],[data-menu]')) ev.preventDefault(); }) as EventListener],
     ['focusin', ((ev: FocusEvent) => { const e = (ev.target as HTMLElement).closest?.('.zk-ed') as HTMLElement | null; if (e) sonEd = e; }) as EventListener],
+    ['dragstart', ((ev: DragEvent) => {
+      const s = (ev.target as HTMLElement).closest?.<HTMLElement>('[data-surukle]'); if (!s || !ev.dataTransfer) return;
+      surukleniyor = s.dataset.surukle!; ev.dataTransfer.setData('text/x-blok', surukleniyor); ev.dataTransfer.effectAllowed = 'move';
+      s.closest('.tp-blok')?.classList.add('tp-suruklenen');
+    }) as EventListener],
+    ['dragend', (() => { surukleniyor = ''; kok.querySelectorAll('.tp-suruklenen,.tp-uste,.tp-alta').forEach(e => e.classList.remove('tp-suruklenen', 'tp-uste', 'tp-alta')); }) as EventListener],
+    ['dragover', ((ev: DragEvent) => {
+      if (!surukleniyor) return;
+      const bl = (ev.target as HTMLElement).closest<HTMLElement>('.tp-blok'); if (!bl || bl.dataset.blok === surukleniyor) return;
+      ev.preventDefault();
+      const r = bl.getBoundingClientRect(), ust = ev.clientY < r.top + r.height / 2;
+      kok.querySelectorAll('.tp-uste,.tp-alta').forEach(e => e.classList.remove('tp-uste', 'tp-alta'));
+      bl.classList.add(ust ? 'tp-uste' : 'tp-alta');
+    }) as EventListener],
+    ['drop', ((ev: DragEvent) => {
+      if (!surukleniyor) return;
+      const bl = (ev.target as HTMLElement).closest<HTMLElement>('.tp-blok'); if (!bl) return;
+      ev.preventDefault();
+      const ust = bl.classList.contains('tp-uste'), kaynak = bul(surukleniyor), hedef = bul(bl.dataset.blok!);
+      surukleniyor = '';
+      if (!kaynak || !hedef || kaynak.L[kaynak.i] === hedef.L[hedef.i]) return;
+      const tasinan = kaynak.L[kaynak.i]!;
+      if (icindeMi(tasinan, hedef.L[hedef.i]!.id)) { bildir('Blok kendi içine taşınamaz', undefined, true); return; }
+      yapisal(() => {
+        const [b] = kaynak.L.splice(kaynak.i, 1);
+        let j = hedef.L.indexOf(hedef.L[hedef.i]!); if (j < 0) j = hedef.i;
+        hedef.L.splice(ust ? j : j + 1, 0, b!);
+      });
+    }) as EventListener],
     ['dragover', ((ev: DragEvent) => { const d = birak(ev); if (d && [...(ev.dataTransfer?.types || [])].includes('Files')) { ev.preventDefault(); d.classList.add('tp-birak'); } }) as EventListener],
     ['dragleave', ((ev: DragEvent) => { birak(ev)?.classList.remove('tp-birak'); }) as EventListener],
     ['drop', ((ev: DragEvent) => {

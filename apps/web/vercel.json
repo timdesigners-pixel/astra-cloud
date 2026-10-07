@@ -1,9 +1,9 @@
 {
   "rewrites": [
     { "source": "/apps/:app(oynatma-listelerim|pinterest-panolarim)/:dosya(hero|kucuk).json",
-      "destination": "https://fwjzgiorkkmwzohdgirh.supabase.co/storage/v1/object/public/apps/:app/:dosya.json" },
+      "destination": "https://mwrbfayhfyvttmhpfawz.supabase.co/storage/v1/object/public/apps/:app/:dosya.json" },
     { "source": "/apps/:app(oynatma-listelerim|pinterest-panolarim)/detay/:no.json",
-      "destination": "https://fwjzgiorkkmwzohdgirh.supabase.co/storage/v1/object/public/apps/:app/detay/:no.json" }
+      "destination": "https://mwrbfayhfyvttmhpfawz.supabase.co/storage/v1/object/public/apps/:app/detay/:no.json" }
   ],
   "headers": [
     { "source": "/(.*)", "headers": [

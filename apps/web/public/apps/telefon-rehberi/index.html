@@ -274,7 +274,7 @@ td.best b{color:var(--cyan)}
 /* İçerik önce Supabase'deki 'apps' kovasından (telefon-rehberi/veri.json ·
    gorseller.json), olmazsa uygulamayla gelen kopyadan okunur; son çekilen
    kopya çevrimdışı açılış için saklanır. */
-const KOVA='https://fwjzgiorkkmwzohdgirh.supabase.co/storage/v1/object/public/apps/telefon-rehberi/';
+const KOVA='https://mwrbfayhfyvttmhpfawz.supabase.co/storage/v1/object/public/apps/telefon-rehberi/';
 async function jsonAl(u){const r=await fetch(u,{cache:'no-cache'});if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
 async function icerikCek(ad){
  const k='tr-onbellek-'+ad;
