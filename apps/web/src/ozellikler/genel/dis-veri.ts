@@ -90,6 +90,13 @@ export const HABER_KAYNAKLARI: { kod: string; ad: string; kaynak: string; rss: s
   { kod: 'ekonomi', ad: 'Ekonomi', kaynak: 'Anadolu Ajansı', rss: 'https://www.aa.com.tr/tr/rss/default?cat=ekonomi' },
   { kod: 'gundem', ad: 'Gündem', kaynak: 'Anadolu Ajansı', rss: 'https://www.aa.com.tr/tr/rss/default?cat=guncel' },
   { kod: 'dunya', ad: 'Dünya', kaynak: 'BBC Türkçe', rss: 'https://feeds.bbci.co.uk/turkce/rss.xml' },
+  { kod: 'donanimhaber', ad: 'Donanım Haber', kaynak: 'Donanım Haber', rss: 'https://www.donanimhaber.com/rss/tum/' },
+  { kod: 'shiftdelete', ad: 'ShiftDelete', kaynak: 'ShiftDelete', rss: 'https://shiftdelete.net/feed' },
+  { kod: 'webrazzi', ad: 'Webrazzi', kaynak: 'Webrazzi', rss: 'https://webrazzi.com/feed/' },
+  { kod: 'ensonhaber', ad: 'En Son Haber', kaynak: 'En Son Haber', rss: 'https://www.ensonhaber.com/rss/ensonhaber.xml' },
+  { kod: 'log', ad: 'Log', kaynak: 'Log', rss: 'https://www.log.com.tr/feed/' },
+  { kod: 'webtekno', ad: 'Webtekno', kaynak: 'Webtekno', rss: 'https://www.webtekno.com/rss.xml' },
+  { kod: 'evrimagaci', ad: 'Evrim Ağacı', kaynak: 'Evrim Ağacı', rss: 'https://evrimagaci.org/rss.xml' },
 ];
 const https = (u: unknown) => (typeof u === 'string' && /^https:\/\//i.test(u) ? u : null);
 

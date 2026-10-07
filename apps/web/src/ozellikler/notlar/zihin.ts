@@ -9,7 +9,7 @@ import { bloklarOf } from '../zihin/bloklar';
 const SUTUN = ['baslik', 'ust_id', 'icerik', 'sira', 'ikon', 'bloklar', 'one', 'onemli', 'onemli_not', 'onemli_renk', 'alan', 'kategori', 'etiketler'];
 const BEKLEME_MS = 800;
 const KAYIT_ALANLARI = ['baslik', 'ikon', 'bloklar', 'icerik', 'one', 'onemli', 'onemli_not', 'onemli_renk', 'kategori', 'etiketler'] as const;
-export const KUTUPHANE_KATEGORILERI = ['AI Notları', 'Projeler', 'İlham', 'Recall Center'];
+export const KUTUPHANE_KATEGORILERI = ['AI Notları', 'Proje ve İşler', 'İlham Panosu', 'Recall Center'];
 
 export type NotAyar = { alan: 'zihin' | 'kutuphane'; ad: string; kategoriler?: string[] };
 
