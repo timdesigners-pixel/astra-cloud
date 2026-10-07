@@ -3,6 +3,7 @@ import { gun, gunFarki, tl } from '../../ortak/bicim';
 import { hataMetni } from '../../veri/hata';
 import { bakiyeGecerliMi, gecerliBakiye, icraDosyalariniGetir, type IcraDosyasi } from '../../veri/icra';
 import { kisileriGetir } from '../../veri/kisiler';
+import { dosyaKlasoruAc } from '../dosyalar/dosyalar';
 
 const ONCELIK: Record<number, string> = { 1: 'ACİL', 2: 'BÜYÜK', 3: 'KÜÇÜK', 4: 'BAĞLI' };
 /* Doğrulama tarihi bu günden eskiyse uyarı çıkar (sistem kuralı: 30 gün). */
@@ -142,9 +143,11 @@ export function icraBorclariSayfasi(kok: HTMLElement) {
       const b = el('section', 'bolum'); b.appendChild(el('h3', '', 'Son işlemler'));
       const ul = el('ul'); d.son_islemler.forEach(x => ul.appendChild(el('li', '', x))); b.appendChild(ul); dlg.appendChild(b);
     }
+    const belge = el('button', 'btn', '📂 Belgeler'); belge.type = 'button';
+    belge.addEventListener('click', () => { dlg.close(); void dosyaKlasoruAc('icra', d.id); });
     const kapat = el('button', 'btn ghost', 'Kapat'); kapat.type = 'button';
     kapat.addEventListener('click', () => dlg.close());
-    dlg.appendChild(kapat);
+    dlg.append(belge, kapat);
     dlg.addEventListener('close', () => dlg.remove());
     document.body.appendChild(dlg);
     dlg.showModal();
