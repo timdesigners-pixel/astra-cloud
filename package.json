@@ -1,0 +1,15 @@
+{
+  "name": "astra-cloud",
+  "version": "15.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "dev": "pnpm --filter @astra/web dev",
+    "build": "pnpm --filter @astra/web build",
+    "tip": "pnpm -r run tip"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}
