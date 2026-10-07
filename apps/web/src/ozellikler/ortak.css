@@ -25,3 +25,27 @@ dialog.kutu .form-dugmeler .danger { margin-left: auto; }
 #toast.toast.hata { border-color: var(--red); }
 #toast.toast button { all: unset; cursor: pointer; color: var(--gold); font-weight: 600; }
 #toast.toast button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* İcra Borçları */
+.icra .bos { margin: 18px 4px; color: var(--dim); }
+.icra .bos.hata { color: var(--red); }
+.icra .tablo-sarma { overflow-x: auto; }
+.icra tr.satir { cursor: pointer; }
+.icra tr.satir:hover td { background: var(--kb-3); }
+.icra td.sayi { text-align: right; white-space: nowrap; font-family: var(--f-mono); }
+.icra td.eski { color: var(--gold); }
+.icra small.takma { display: block; color: var(--dim); font-size: var(--fs-2); margin-top: 2px; }
+.icra-ozet { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.icra-hucre { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; background: var(--kb-2); border: 1px solid var(--line); border-radius: var(--r-sm); }
+.icra-hucre .et { font-family: var(--f-mono); font-size: var(--fs-1); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+.icra-hucre b { font-size: 20px; }
+.icra-hucre small { color: var(--dim); font-size: var(--fs-2); }
+.icra-hucre.vurgu b { color: var(--gold); }
+.icra-hucre.uyari b { color: var(--red); }
+dialog.kutu.genis { width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow-y: auto; }
+dialog.kutu .bolum { margin-bottom: 14px; }
+dialog.kutu .bolum h3 { margin: 0 0 6px; font-family: var(--f-mono); font-size: var(--fs-1); letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+dialog.kutu dl { display: grid; grid-template-columns: minmax(120px, 190px) 1fr; gap: 4px 12px; margin: 0; }
+dialog.kutu dt { color: var(--dim); }
+dialog.kutu dd { margin: 0; overflow-wrap: anywhere; }
+dialog.kutu .bolum ul { margin: 0; padding-left: 18px; color: var(--txt); }

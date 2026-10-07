@@ -9,7 +9,7 @@ function oku(): Kayit {
     const k = JSON.parse(localStorage.getItem(ANAHTAR) ?? 'null') as Kayit | null;
     if (k && typeof k.duz === 'boolean' && k.acik) return k;
   } catch { /* erişim yoksa varsayılan */ }
-  return { duz: false, acik: Object.fromEntries(HUBLAR.map(h => [h.id, h.id === 'dash' || h.id === 'fin'])) };
+  return { duz: false, acik: Object.fromEntries(HUBLAR.map(h => [h.id, false])) };
 }
 
 const durum = oku();

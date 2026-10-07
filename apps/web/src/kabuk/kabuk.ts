@@ -67,11 +67,6 @@ function menuCiz() {
     + '</div></div>';
 }
 
-/* Sayfaya gidince aktif satır görünür alana getirilir (menü sayfayla birlikte kayar). */
-function aktifGorunur() {
-  $('nav').querySelector<HTMLElement>('.sb-item.on')?.scrollIntoView({ block: 'center' });
-}
-
 /* ---------- üst çubuk ve mini şerit ---------- */
 function ustCiz() {
   const pk = donem();
@@ -222,13 +217,12 @@ function olaylariBagla() {
 export function kabuguBaslat() {
   temaUygula();
   yonlendiriciBaslat();
-  yonlendiriciDinle(k => { sekmeMerkeziniAc(k); hepsiniCiz(); aktifGorunur(); });
+  yonlendiriciDinle(k => { sekmeMerkeziniAc(k); hepsiniCiz(); });
   donemDinle(hepsiniCiz);
   document.addEventListener('astra:oturum', sayfaCiz);
   olaylariBagla();
   sekmeMerkeziniAc(aktifSekme());
   hepsiniCiz();
-  aktifGorunur();
   setInterval(saatTazele, 30000);
   if (typeof ResizeObserver === 'function') new ResizeObserver(() =>
     document.documentElement.style.setProperty('--ust', `${$('perbarwrap').getBoundingClientRect().height}px`)).observe($('perbarwrap'));
