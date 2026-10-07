@@ -38,6 +38,17 @@ function dosyaIndir(ad: string, veri: unknown) {
   window.setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
+/* Yedeği dosya olarak indirir ve son yedek tarihini yazar (Sistem Ayarları ve komut paleti kullanır). */
+export async function yedekIndir(): Promise<number> {
+  const { icerik, satir } = await yedekOlustur();
+  const bugun = bugunAnahtari();
+  dosyaIndir(`astra-yedek-${bugun}.json`, { surum: SURUM, tarih: new Date().toISOString(), tablolar: icerik });
+  await ayarYaz('son_yedek', { tarih: bugun });
+  panelSifirla();
+  bildir(`Yedek indirildi (${satir} kayıt)`);
+  return satir;
+}
+
 export function sistemSayfasi(kok: HTMLElement) {
   const kart = el('div', 'sistem');
   kok.replaceChildren(kart);
@@ -88,12 +99,8 @@ export function sistemSayfasi(kok: HTMLElement) {
   async function yedekAl() {
     indiriliyor = true; ciz();
     try {
-      const { icerik, satir } = await yedekOlustur();
-      const bugun = bugunAnahtari();
-      dosyaIndir(`astra-yedek-${bugun}.json`, { surum: SURUM, tarih: new Date().toISOString(), tablolar: icerik });
-      await ayarYaz('son_yedek', { tarih: bugun });
-      panelSifirla(); panel = await panelGetir(donem());
-      bildir(`Yedek indirildi (${satir} kayıt)`);
+      await yedekIndir();
+      panel = await panelGetir(donem());
     } catch (e) { bildir(hataMetni(e), undefined, true); }
     indiriliyor = false; ciz();
   }
