@@ -1,4 +1,5 @@
 import { genelBakisSayfasi } from './genel/genel';
+import { davaSayfasi } from './hukuk/davalar';
 import { listelerSayfasi } from './notlar/listeler';
 import { todoSayfasi } from './notlar/todo';
 import { zihinSayfasi } from './notlar/zihin';
@@ -25,6 +26,9 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   ...BIRIKIM_SAYFALARI,
   ...HEDEF_SAYFALARI,
   'a-ajanda': ajandaSayfasi,
+  'k-ceza': davaSayfasi('ceza'),
+  'k-hukuk': davaSayfasi('hukuk'),
+  'k-cbs': davaSayfasi('cbs'),
   'n-todo': todoSayfasi,
   'n-zihin': zihinSayfasi,
   'n-liste': listelerSayfasi,
