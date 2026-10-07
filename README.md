@@ -16,3 +16,13 @@ docs/                karar kaydı
 pnpm install
 pnpm dev
 ```
+
+## PIN kurulumu
+
+PIN kaynak kodda yoktur; sunucuda yalnız HMAC etiketi saklanır.
+
+1. `supabase/migrations/0001_kimlik.sql` dosyasını Supabase SQL Editor'de çalıştır.
+2. Supabase'de `Authentication → Users` altında tek bir sahip kullanıcı oluştur (e-posta ve uzun rastgele parola; parolayı kimse girmez).
+3. `pin-giris` fonksiyonunu dağıt ve şu sırları tanımla: `ASTRA_PIN_BIBER`, `ASTRA_SAHIP_EPOSTA`, `ASTRA_SAHIP_PAROLA`, `ASTRA_CORS_IZIN`.
+4. Kendi makinende `node tools/pin-kur.mjs` çalıştır; PIN gizli sorulur.
+5. Vercel'de `VITE_SUPABASE_URL` ve `VITE_SUPABASE_ANON_KEY` değişkenlerini tanımla.
