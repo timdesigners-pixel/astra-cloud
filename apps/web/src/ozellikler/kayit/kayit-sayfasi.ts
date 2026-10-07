@@ -4,6 +4,7 @@ import { CakismaHatasi, hataMetni } from '../../veri/hata';
 import { kayitEkle, kayitGuncelle, kayitlariGetir, type Filtre, type Kayit } from '../../veri/kayit';
 import { kisileriGetir } from '../../veri/kisiler';
 import { istemciAl } from '../../veri/istemci';
+import { onayla } from '../../ortak/uyari';
 
 export type Alan = {
   ad: string;
@@ -193,9 +194,9 @@ export function kayitSayfasi(a: KayitAyari) {
       alt.append(kaydet, vazgec);
       if (mevcut) {
         const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button'; sil.id = 'kf-sil';
-        let emin = false;
+       
         sil.addEventListener('click', async () => {
-          if (!emin) { emin = true; sil.textContent = 'Emin misin? Tekrar bas'; return; }
+          if (!(await onayla({ baslik: 'Silinsin mi?', metin: 'Bu kayıt silinecek.', evet: 'Sil' }))) return;
           sil.disabled = true;
           try {
             const silinen = await kayitGuncelle(a.tablo, sutunlar, mevcut.id, mevcut.surum, { silindi_at: new Date().toISOString() });

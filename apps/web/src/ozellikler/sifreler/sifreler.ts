@@ -3,6 +3,7 @@ import { bildir } from '../../ortak/bildirim';
 import { CakismaHatasi, hataMetni } from '../../veri/hata';
 import { sifreGeriAl, sifreGoster, sifreKaydet, sifreSil, sifreleriGetir, type SifreHesabi } from '../../veri/sifreler';
 import { girdi, guvenliBaglanti, kutu } from '../notlar/ortak';
+import { onayla } from '../../ortak/uyari';
 
 const KATEGORILER = ['Banka', 'E-devlet', 'Vergi / SGK', 'Alışveriş', 'Sosyal medya', 'E-posta', 'Diğer'];
 const GOSTERIM_SURESI = 15000;
@@ -108,9 +109,9 @@ export function sifrelerSayfasi(kok: HTMLElement) {
     d.alan('Hizmet', hizmet); d.alan('Kategori', kat); d.f.appendChild(dl); d.alan('Adres', adres);
     d.alan('Kullanıcı adı', kul, 'Şifreli saklanır'); d.alan('Şifre', sifre, 'Şifreli saklanır'); d.alan('Not', not, 'Güvenlik sorusu gibi bilgileri yazabilirsin; şifreli saklanır');
     if (m) {
-      const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button'; let emin = false;
+      const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button';
       sil.addEventListener('click', async () => {
-        if (!emin) { emin = true; sil.textContent = 'Emin misin? Tekrar bas'; return; }
+        if (!(await onayla({ baslik: 'Silinsin mi?', metin: 'Bu kayıt silinecek.', evet: 'Sil' }))) return;
         sil.disabled = true;
         try {
           const silinen = await sifreSil(m.id, m.surum);

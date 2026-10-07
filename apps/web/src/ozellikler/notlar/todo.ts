@@ -5,6 +5,7 @@ import { CakismaHatasi, hataMetni } from '../../veri/hata';
 import { kayitEkle, kayitGuncelle, kayitlariGetir, type Kayit } from '../../veri/kayit';
 import { ayEkle } from '../odemeler/odemeler';
 import { bugunStr, girdi, kutu, secim } from './ortak';
+import { onayla } from '../../ortak/uyari';
 
 const SUTUN = ['baslik', 'tarih', 'oncelik', 'etiket', 'tekrar', 'tamamlandi', 'tamamlanma', 'notlar'];
 const ONCELIK: [string, string][] = [['yuksek', 'Yüksek'], ['orta', 'Orta'], ['dusuk', 'Düşük']];
@@ -125,9 +126,9 @@ export function todoSayfasi(kok: HTMLElement) {
     const not = el('textarea'); not.id = 'tf-not'; not.rows = 3; not.value = k.notlar ? String(k.notlar) : '';
     d.alan('Görev', ad); d.alan('Tarih', tarih); d.alan('Öncelik', onc); d.alan('Etiket', et);
     d.alan('Tekrar', tek, 'Tarihi olan görev tamamlanınca bir sonrakisi açılır'); d.alan('Not', not);
-    const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button'; let emin = false;
+    const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button';
     sil.addEventListener('click', async () => {
-      if (!emin) { emin = true; sil.textContent = 'Emin misin? Tekrar bas'; return; }
+      if (!(await onayla({ baslik: 'Silinsin mi?', metin: 'Bu kayıt silinecek.', evet: 'Sil' }))) return;
       sil.disabled = true;
       try {
         const silinen = await kayitGuncelle('todolar', SUTUN, k.id, k.surum, { silindi_at: new Date().toISOString() });

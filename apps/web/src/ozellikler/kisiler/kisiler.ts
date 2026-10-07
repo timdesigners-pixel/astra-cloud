@@ -5,6 +5,7 @@ import {
   kisiEkle, kisiGeriAl, kisiGuncelle, kisiSil, kisileriGetir,
   type AltTur, type Kisi, type KisiGirdisi, type KisiTuru,
 } from '../../veri/kisiler';
+import { onayla } from '../../ortak/uyari';
 
 const TUR_AD: Record<KisiTuru, string> = { kisi: 'Kişi', kurum: 'Kurum', firma: 'Firma' };
 const ALT_TUR_AD: Record<AltTur, string> = {
@@ -164,9 +165,9 @@ export function kisilerSayfasi(kok: HTMLElement) {
     alt2.append(kaydet, vazgec);
     if (mevcut) {
       const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button'; sil.id = 'kf-sil';
-      let emin = false;
+     
       sil.addEventListener('click', async () => {
-        if (!emin) { emin = true; sil.textContent = 'Emin misin? Tekrar bas'; return; }
+        if (!(await onayla({ baslik: 'Silinsin mi?', metin: 'Bu kayıt silinecek.', evet: 'Sil' }))) return;
         sil.disabled = true;
         try {
           const silinen = await kisiSil(mevcut.id, mevcut.surum);

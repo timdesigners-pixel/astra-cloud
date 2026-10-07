@@ -2,6 +2,7 @@ import { el, katla } from '../../ortak/dom';
 import { bildir } from '../../ortak/bildirim';
 import { CakismaHatasi, hataMetni } from '../../veri/hata';
 import { kayitEkle, kayitGuncelle, kayitlariGetir, type Kayit } from '../../veri/kayit';
+import { onayla } from '../../ortak/uyari';
 
 const SUTUN = ['baslik', 'ust_id', 'icerik', 'sira'];
 const BEKLEME_MS = 800;
@@ -95,10 +96,10 @@ export function zihinSayfasi(kok: HTMLElement) {
     ad.addEventListener('input', () => { if (ad.value.trim()) planla(k.id, { baslik: ad.value.trim() }); });
     metin.addEventListener('input', () => planla(k.id, { icerik: metin.value }));
     alt.addEventListener('click', () => void sayfaAc(k.id));
-    let emin = false;
+   
     sil.addEventListener('click', async () => {
       if (s.liste.some(x => x.ust_id === k.id)) { bildir('Önce alt sayfaları sil ya da taşı', undefined, true); return; }
-      if (!emin) { emin = true; sil.textContent = 'Emin misin? Tekrar bas'; return; }
+      if (!(await onayla({ baslik: 'Silinsin mi?', metin: 'Bu kayıt silinecek.', evet: 'Sil' }))) return;
       await bosalt();
       const son = s.liste.find(x => x.id === k.id)!;
       try {
