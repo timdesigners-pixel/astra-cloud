@@ -1,0 +1,57 @@
+.sg { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.sg h2, .sg h3, .sg h4 { margin: 0; }
+.sg-ust { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sg-aralik { display: flex; gap: 4px; }
+.sg-serit { display: flex; gap: 8px; flex-wrap: wrap; }
+.sg-chip { background: var(--surface); border: 1px solid var(--line); color: var(--txt); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+.sg-chip:hover { border-color: var(--gold); }
+.sg-chip.uyari { border-color: var(--red-line); color: var(--red); }
+.sg-izgara-kartlar { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.sg-kart { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; color: var(--txt); font: inherit; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+.sg-kart:hover { border-color: var(--gold); }
+.sg-kart-ust { color: var(--dim); font-size: 13px; }
+.sg-kart-deger { display: flex; align-items: baseline; gap: 6px; font-size: 26px; font-weight: 700; font-family: var(--f-num); }
+.sg-kart-deger small { font-size: 12px; color: var(--dim); font-weight: 500; }
+.sg-kart-deger.disarida { color: var(--red); }
+.sg-kart-alt { color: var(--dim); font-size: 12px; }
+.sg-hedef-cubuk { height: 6px; border-radius: 3px; background: var(--yuva); overflow: hidden; margin-top: 2px; }
+.sg-hedef-cubuk i { display: block; height: 100%; background: var(--green); }
+.sg-minik { width: 100%; height: 32px; margin-top: 4px; overflow: visible; }
+.sg-not { color: var(--dim); font-size: 12.5px; margin: 0; }
+.sg-uyari { background: var(--red-soft); border: 1px solid var(--red-line); color: var(--txt); border-radius: 8px; padding: 8px 12px; margin: 0; font-size: 13px; }
+.sg-bos-kutu { text-align: center; padding: 24px 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.sg-grafik { display: block; margin: 8px 0; }
+.sg-izgara { stroke: var(--line); stroke-width: 1; }
+.sg-eksen, .sg-bos { fill: var(--dim); font-size: 11px; font-family: var(--f-num); }
+.sg-band { fill: var(--green); opacity: 0.12; }
+.sg-hedef { stroke: var(--gold); stroke-dasharray: 4 4; }
+.sg-cizgi { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.sg-dolgu { opacity: 0.1; }
+.sg-nokta { stroke: var(--bg); stroke-width: 1.5; }
+.sg-cubuk { opacity: 0.85; }
+.sg-tablo-kisa { max-height: 260px; overflow: auto; }
+.sg-bolum { border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.sg-rehber { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
+.sg-rehber summary { cursor: pointer; font-weight: 600; }
+.sg-rehber-govde { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; font-size: 13.5px; }
+.sg-rehber-govde p, .sg-rehber-govde ol { margin: 0; }
+.sg-rehber-govde ol { padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.sg-kod { display: flex; gap: 8px; align-items: flex-start; background: var(--yuva); border-radius: 8px; padding: 8px 10px; }
+.sg-kod pre { margin: 0; flex: 1; min-width: 0; white-space: pre-wrap; word-break: break-all; font-family: var(--f-mono); font-size: 12px; }
+.sg-satir { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sg-onizleme { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.sg-ozet-liste { margin: 0; padding-left: 18px; font-size: 13px; }
+.sg-durum { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--yuva); color: var(--dim); }
+.sg-durum.normal { color: var(--green); }
+.sg-durum.yuksek { color: var(--red); background: var(--red-soft); }
+.sg-durum.dusuk { color: var(--orange); background: rgba(240, 151, 64, 0.12); }
+.sg-disari { color: var(--red); font-weight: 700; }
+.sg-arac { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0; }
+.sg-baslik { margin: 12px 0 0; }
+.sg-deger-kap { max-height: 46vh; overflow: auto; }
+.sg-deger-tablo td { padding: 3px 4px; }
+.sg-deger-tablo input { width: 100%; min-width: 64px; }
+.sg-deger-tablo td:first-child input { min-width: 170px; }
+.sg-editor { width: min(960px, 96vw); }
+.sg-test-tablo .sg-minik { width: 110px; }
+@media (max-width: 640px) { .sg-izgara-kartlar { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
