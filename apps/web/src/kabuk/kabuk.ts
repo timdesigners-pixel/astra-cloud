@@ -48,7 +48,7 @@ function menuCiz() {
       }).join('');
 
   $('nav').innerHTML = `<div class="sb-header"><div class="sb-brand" data-tab="genel" style="cursor:pointer" title="Genel Bakış'a Dön">`
-    + `<div class="sb-logo-box">${menuIkon('karar')}</div><div class="sb-brand-info"><h2>ASTRA</h2><p>Finans komuta merkezi</p></div></div></div>`
+    + `<div class="sb-logo-box"><img class="sb-logo-img" src="/logo-isaret.png" alt=""></div><div class="sb-brand-info"><h2>ASTRA</h2><p>Finans komuta merkezi</p></div></div></div>`
     + `<div class="sb-donem${pk !== buAy() ? ' uzak' : ''}"><span class="sb-donem-et">DÖNEM</span>`
     + `<div class="sb-donem-sat"><button class="sb-donem-ok" data-donem="-1" aria-label="Önceki ay" title="önceki ay">‹</button>`
     + `<b class="mono">${donemEtiketi(pk)}</b>`

@@ -74,7 +74,7 @@ dialog.kutu .bolum ul { margin: 0; padding-left: 18px; color: var(--txt); }
 .ajanda-chip.bitti { opacity: .5; text-decoration: line-through; }
 .ajanda-diger { font-size: 11px; color: var(--dim); }
 .t-odeme { --c: var(--red); } .t-gelir { --c: var(--green); } .t-gider { --c: var(--gold); }
-.t-alinacak { --c: var(--cyan); } .t-hedef { --c: var(--cyan2, var(--cyan)); } .t-etkinlik { --c: var(--txt); }
+.t-alinacak { --c: var(--cyan); } .t-todo { --c: var(--green2, var(--green)); } .t-hedef { --c: var(--cyan2, var(--cyan)); } .t-etkinlik { --c: var(--txt); }
 .ajanda-detay { margin-top: 16px; }
 .ajanda-detay h3 { margin: 0 0 8px; }
 .ajanda-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
@@ -87,3 +87,33 @@ dialog.kutu .bolum ul { margin: 0; padding-left: 18px; color: var(--txt); }
   .ajanda-chip { font-size: 0; padding: 0; height: 5px; border-left-width: 0; border-radius: 3px; background: var(--c); }
   .ajanda-diger { display: none; }
 }
+
+/* Notlar ve Yapılacaklar */
+.todo-hizli { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.todo-hizli input:first-child { flex: 1 1 220px; min-width: 0; }
+.todo-bolum { margin-bottom: 14px; }
+.todo-bolum h3, .todo-bolum summary { margin: 0 0 6px; font-family: var(--f-mono); font-size: var(--fs-1); letter-spacing: .1em; text-transform: uppercase; color: var(--dim); cursor: default; }
+.todo-bolum summary { cursor: pointer; }
+.todo-bolum.gecikmis h3 { color: var(--red); }
+.todo-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.todo-satir { display: flex; align-items: center; gap: 8px; padding: 6px 4px; border-bottom: 1px solid var(--line-soft, var(--line)); }
+.todo-satir.bitti .todo-baslik { text-decoration: line-through; color: var(--dim); }
+.todo-baslik { all: unset; flex: 1; min-width: 0; cursor: pointer; overflow-wrap: anywhere; color: var(--txt); }
+a.todo-baslik { color: var(--cyan); }
+.todo-baslik:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.zihin { display: grid; grid-template-columns: minmax(200px, 280px) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 800px) { .zihin { grid-template-columns: minmax(0, 1fr); } }
+.zihin-agac { display: flex; flex-direction: column; gap: 2px; max-height: 60vh; overflow-y: auto; }
+.zihin-oge { all: unset; display: flex; flex-direction: column; gap: 2px; padding: 7px 10px; border-radius: var(--r-sm); cursor: pointer; color: var(--txt); overflow-wrap: anywhere; }
+.zihin-oge:hover { background: var(--kb-3); }
+.zihin-oge.secili { background: var(--kb-3); outline: 1px solid var(--cyan); }
+.zihin-oge:focus-visible { outline: 2px solid var(--focus); }
+.zihin-sag { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.zihin-baslik { font-size: 20px; font-weight: 600; background: transparent; border: 0; border-bottom: 1px solid var(--line); color: var(--txt); padding: 6px 2px; }
+.zihin-metin { min-height: 52vh; resize: vertical; background: var(--kb-2); border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--txt); padding: 12px; font: inherit; line-height: 1.6; }
+
+/* Marka logosu */
+.g-logo { display: block; width: 168px; max-width: 46vw; height: auto; margin: 0 0 18px; }
+.sb-logo-box { display: grid; place-items: center; }
+.sb-logo-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+#nav .sb-brand .sb-logo-box { background: #111822; border: 1px solid rgba(224, 185, 104, .35); padding: 4px; }
