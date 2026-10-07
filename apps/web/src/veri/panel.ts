@@ -32,7 +32,8 @@ export function panelHesapla(g: Girdi, ay: string, bugun: string): Panel {
   const bekleyen = g.odemeler.filter(o => o.durum === 'bekliyor');
   const geciken = bekleyen.filter(o => String(o.vade_tarihi) < bugun);
   const yedigun = bekleyen.filter(o => String(o.vade_tarihi) >= bugun && gunFarki(String(o.vade_tarihi), bugun) <= 7);
-  const sonBorcVadesi = bekleyen.filter(o => o.borc_id).map(o => String(o.vade_tarihi)).sort().pop() ?? null;
+  const acikBorclar = new Set(g.borclar.filter(b => b.durum !== 'kapandi' && b.yon !== 'alacakli' && sayi(b.guncel_borc) > 0).map(b => String(b.id)));
+  const sonBorcVadesi = bekleyen.filter(o => o.borc_id && acikBorclar.has(String(o.borc_id)) && String(o.vade_tarihi) >= bugun).map(o => String(o.vade_tarihi)).sort().pop() ?? null;
   const borcBitis = sonBorcVadesi
     ? new Date(sonBorcVadesi.slice(0, 7) + '-01').toLocaleDateString('tr-TR', { month: 'short', year: 'numeric' }) : null;
 
