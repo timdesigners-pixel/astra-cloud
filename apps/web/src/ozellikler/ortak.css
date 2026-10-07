@@ -105,8 +105,9 @@ a.todo-baslik { color: var(--cyan); }
 .zihin-oge.secili { background: var(--kb-3); outline: 1px solid var(--cyan); }
 .zihin-oge:focus-visible { outline: 2px solid var(--focus); }
 .zihin-sag { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.zihin-baslik { font-size: 20px; font-weight: 600; background: transparent; border: 0; border-bottom: 1px solid var(--line); color: var(--txt); padding: 6px 2px; }
-.zihin-metin { min-height: 52vh; resize: vertical; background: var(--kb-2); border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--txt); padding: 12px; font: inherit; line-height: 1.6; }
+.zihin-editor { min-width: 0; }
+.zihin-durum { align-self: flex-end; color: var(--dim); }
+.zihin-oge-ad { overflow-wrap: anywhere; }
 
 /* Marka logosu */
 .g-logo { display: block; width: 168px; max-width: 46vw; height: auto; margin: 0 0 18px; }

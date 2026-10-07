@@ -3,11 +3,15 @@ import { bildir } from '../../ortak/bildirim';
 import { CakismaHatasi, hataMetni } from '../../veri/hata';
 import { kayitEkle, kayitGuncelle, kayitlariGetir, type Kayit } from '../../veri/kayit';
 import { onayla } from '../../ortak/uyari';
+import { editorAc, type Editor, type Sayfa } from '../zihin/editor';
+import { bloklarOf } from '../zihin/bloklar';
 
-const SUTUN = ['baslik', 'ust_id', 'icerik', 'sira'];
+const SUTUN = ['baslik', 'ust_id', 'icerik', 'sira', 'ikon', 'bloklar', 'one', 'onemli', 'onemli_not', 'onemli_renk'];
 const BEKLEME_MS = 800;
+const KAYIT_ALANLARI = ['baslik', 'ikon', 'bloklar', 'icerik', 'one', 'onemli', 'onemli_not', 'onemli_renk'] as const;
 
-/* Sayfaları üst–alt sırasıyla, girinti derinliğiyle düzleştirir. Döngü olursa kopan kayıtlar en sona kök olarak eklenir. */
+/* Sayfaları üst–alt sırasıyla, girinti derinliğiyle düzleştirir. Döngü olursa kopan kayıtlar en sona kök olarak eklenir.
+   Aynı düzeyde öne çıkarılanlar en üsttedir. */
 export function agacSirala(liste: Kayit[]): { k: Kayit; derinlik: number }[] {
   const cocuklar = new Map<string | null, Kayit[]>();
   const idler = new Set(liste.map(k => k.id));
@@ -18,7 +22,7 @@ export function agacSirala(liste: Kayit[]): { k: Kayit; derinlik: number }[] {
   const sonuc: { k: Kayit; derinlik: number }[] = [];
   const gorulen = new Set<string>();
   const gez = (u: string | null, d: number) => {
-    [...(cocuklar.get(u) ?? [])].sort((a, b) => Number(a.sira) - Number(b.sira) || String(a.baslik).localeCompare(String(b.baslik), 'tr'))
+    [...(cocuklar.get(u) ?? [])].sort((a, b) => Number(!!b.one) - Number(!!a.one) || Number(a.sira) - Number(b.sira) || String(a.baslik).localeCompare(String(b.baslik), 'tr'))
       .forEach(k => { if (gorulen.has(k.id)) return; gorulen.add(k.id); sonuc.push({ k, derinlik: d }); gez(k.id, d + 1); });
   };
   gez(null, 0);
@@ -38,30 +42,53 @@ export function zihinSayfasi(kok: HTMLElement) {
   const agac = el('div', 'zihin-agac');
   sol.append(ust, agac);
 
+  let editor: Editor | null = null;
+  let icerde = false;
   let zaman: number | undefined;
-  let bekleyen: { id: string; g: Record<string, unknown> } | null = null;
-  let durumYazi: HTMLElement | null = null;
-  const yerles = (k: Kayit) => { const i = s.liste.findIndex(x => x.id === k.id); if (i >= 0) s.liste[i] = k; else s.liste.push(k); };
+  let kuyruk: Promise<void> = Promise.resolve();
+  /* Son kaydedilen değerler: yalnız değişen alanlar sunucuya yazılır (içerik büyük olabilir). */
+  const sonKayit = new Map<string, Record<string, string>>();
+  const imza = (k: Kayit): Record<string, string> => Object.fromEntries(KAYIT_ALANLARI.map(a => [a, JSON.stringify(k[a] ?? null)]));
+  const hatirla = (k: Kayit) => sonKayit.set(k.id, imza(k));
+  const yerles = (k: Kayit) => { const i = s.liste.findIndex(x => x.id === k.id); if (i >= 0) s.liste[i] = k; else s.liste.push(k); hatirla(k); };
   const mevcut = () => s.liste.find(k => k.id === s.secili);
+  let durumYazi: HTMLElement | null = null;
+  const yaz = (m: string) => { if (durumYazi) durumYazi.textContent = m; };
 
-  async function bosalt() {
+  /* Kayıtlar tek tek, sırayla yazılır; sürüm yalnız sayı olarak güncellenir (düzenleyicinin elindeki içerik ezilmez). */
+  function bosalt(): Promise<void> {
     clearTimeout(zaman);
-    const b = bekleyen; bekleyen = null;
-    if (!b) return;
-    const k = s.liste.find(x => x.id === b.id);
-    if (!k) return;
-    if (durumYazi) durumYazi.textContent = 'Kaydediliyor…';
-    try { yerles(await kayitGuncelle('zihin_sayfalari', SUTUN, k.id, k.surum, b.g)); if (durumYazi) durumYazi.textContent = 'Kaydedildi'; agacCiz(); }
-    catch (e) {
-      if (durumYazi) durumYazi.textContent = e instanceof CakismaHatasi ? 'Başka yerde değişmiş, sayfayı yenile' : 'Kaydedilemedi';
-      bildir(hataMetni(e), undefined, true);
-    }
+    icerde = true; editor?.bosalt(); icerde = false;
+    kuyruk = kuyruk.then(async () => {
+      for (const k of s.liste) {
+        const eski = sonKayit.get(k.id); if (!eski) continue;
+        const simdi = imza(k);
+        const g: Record<string, unknown> = {};
+        let fark = false;
+        for (const a of KAYIT_ALANLARI) if (simdi[a] !== eski[a]) { g[a] = k[a] ?? null; fark = true; }
+        if (!fark) continue;
+        if ('baslik' in g && !String(g.baslik ?? '').trim()) continue;
+        yaz('Kaydediliyor…');
+        try {
+          const y = await kayitGuncelle('zihin_sayfalari', ['baslik'], k.id, k.surum, g);
+          k.surum = y.surum; sonKayit.set(k.id, { ...(sonKayit.get(k.id) ?? {}), ...Object.fromEntries(Object.keys(g).map(a => [a, simdi[a]!])) });
+          yaz('Kaydedildi');
+        } catch (e) {
+          yaz(e instanceof CakismaHatasi ? 'Başka yerde değişmiş, sayfayı yenile' : 'Kaydedilemedi');
+          bildir(hataMetni(e), undefined, true);
+        }
+      }
+    });
+    return kuyruk;
   }
-  const planla = (id: string, g: Record<string, unknown>) => {
-    bekleyen = { id, g: { ...(bekleyen?.id === id ? bekleyen.g : {}), ...g } };
-    if (durumYazi) durumYazi.textContent = 'Yazıyor…';
-    clearTimeout(zaman); zaman = window.setTimeout(() => void bosalt(), BEKLEME_MS);
-  };
+  const planla = () => { yaz('Yazıyor…'); clearTimeout(zaman); zaman = window.setTimeout(() => void bosalt(), BEKLEME_MS); };
+
+  function yolMetni(k: Kayit): string {
+    const parcalar: string[] = [];
+    let u = k.ust_id ? s.liste.find(x => x.id === k.ust_id) : undefined;
+    for (let n = 0; u && n < 20; n++) { parcalar.unshift(String(u.baslik)); u = u.ust_id ? s.liste.find(x => x.id === u!.ust_id) : undefined; }
+    return ['Zihin Sarayı', ...parcalar].join(' / ');
+  }
 
   function agacCiz() {
     agac.replaceChildren();
@@ -74,60 +101,77 @@ export function zihinSayfasi(kok: HTMLElement) {
     const sirali = agacSirala(s.liste).filter(({ k }) => !q || katla(`${k.baslik} ${k.icerik}`).includes(q));
     if (!sirali.length) { agac.appendChild(el('p', 'bos', s.liste.length ? 'Aramana uyan sayfa yok.' : 'Henüz sayfa yok. "+ Sayfa" ile ilkini aç.')); return; }
     sirali.forEach(({ k, derinlik }) => {
-      const b = el('button', 'zihin-oge' + (k.id === s.secili ? ' secili' : ''), String(k.baslik));
+      const b = el('button', 'zihin-oge' + (k.id === s.secili ? ' secili' : ''));
       b.type = 'button'; b.style.paddingLeft = 10 + derinlik * 16 + 'px'; b.dataset.id = k.id;
-      b.addEventListener('click', async () => { await bosalt(); s.secili = k.id; agacCiz(); editorCiz(); });
+      b.append(el('span', 'zihin-oge-ad', `${k.ikon ? k.ikon + ' ' : ''}${k.one ? '★ ' : ''}${k.onemli ? '‼︎ ' : ''}${k.baslik}`));
+      b.addEventListener('click', () => void sec(k.id));
       agac.appendChild(b);
     });
   }
 
+  async function sec(id: string) {
+    await bosalt();
+    s.secili = id; agacCiz(); editorCiz();
+  }
+
   function editorCiz() {
-    sag.replaceChildren(); durumYazi = null;
+    editor?.kapat(); editor = null; durumYazi = null;
+    sag.replaceChildren();
     const k = mevcut();
     if (!k) { sag.appendChild(el('p', 'bos', 'Soldan bir sayfa seç ya da yeni sayfa aç.')); return; }
-    const ad = el('input', 'zihin-baslik'); ad.id = 'zihin-baslik'; ad.value = String(k.baslik); ad.maxLength = 200; ad.setAttribute('aria-label', 'Sayfa başlığı');
-    const metin = el('textarea', 'zihin-metin'); metin.id = 'zihin-metin'; metin.value = String(k.icerik ?? ''); metin.setAttribute('aria-label', 'Sayfa içeriği');
-    metin.placeholder = 'Yazmaya başla…';
-    const araclar = el('div', 'tbar');
-    const alt = el('button', 'btn ghost sm', '+ Alt sayfa'); alt.type = 'button'; alt.id = 'zihin-alt';
-    const sil = el('button', 'btn danger sm', 'Sil'); sil.type = 'button'; sil.id = 'zihin-sil';
-    const yazi = el('span', 'tbar-count'); durumYazi = yazi;
-    araclar.append(alt, sil, el('span', 'tbar-sp'), yazi);
-    ad.addEventListener('input', () => { if (ad.value.trim()) planla(k.id, { baslik: ad.value.trim() }); });
-    metin.addEventListener('input', () => planla(k.id, { icerik: metin.value }));
-    alt.addEventListener('click', () => void sayfaAc(k.id));
-   
-    sil.addEventListener('click', async () => {
-      if (s.liste.some(x => x.ust_id === k.id)) { bildir('Önce alt sayfaları sil ya da taşı', undefined, true); return; }
-      if (!(await onayla({ baslik: 'Silinsin mi?', metin: 'Bu kayıt silinecek.', evet: 'Sil' }))) return;
-      await bosalt();
-      const son = s.liste.find(x => x.id === k.id)!;
-      try {
-        const silinen = await kayitGuncelle('zihin_sayfalari', SUTUN, son.id, son.surum, { silindi_at: new Date().toISOString() });
-        s.liste = s.liste.filter(x => x.id !== k.id); s.secili = ''; agacCiz(); editorCiz();
-        bildir('Sayfa silindi', async () => { try { yerles(await kayitGuncelle('zihin_sayfalari', SUTUN, silinen.id, silinen.surum, { silindi_at: null })); s.secili = silinen.id; agacCiz(); editorCiz(); bildir('Geri alındı'); } catch (e) { bildir(hataMetni(e), undefined, true); void yukle(); } });
-      } catch (e) { bildir(hataMetni(e), undefined, true); }
+    const kap = el('div', 'zihin-editor');
+    const yazi = el('span', 'tbar-count zihin-durum'); durumYazi = yazi;
+    sag.append(kap, yazi);
+    editor = editorAc({
+      kok: kap,
+      al: () => (mevcut() as unknown as Sayfa | undefined),
+      degisti: () => { if (!icerde) planla(); agacCiz(); },
+      yol: g => yolMetni(g as unknown as Kayit),
+      sayfalar: () => s.liste.map(x => ({ id: x.id, ad: String(x.baslik), ikon: String(x.ikon || '▤'), yol: yolMetni(x) })),
+      sayfaAc: id => { if (s.liste.some(x => x.id === id)) void sec(id); else bildir('Bağlanan sayfa bulunamadı.', undefined, true); },
+      eylemler: () => [
+        { etiket: '+ Alt sayfa', id: 'zihin-alt', tikla: () => void sayfaAc(k.id) },
+        { etiket: 'Sil', id: 'zihin-sil', sinif: 'danger sm', tikla: () => void sil(k) },
+      ],
     });
-    sag.append(ad, araclar, metin);
+  }
+
+  async function sil(k: Kayit) {
+    if (s.liste.some(x => x.ust_id === k.id)) { bildir('Önce alt sayfaları sil ya da taşı', undefined, true); return; }
+    if (!(await onayla({ baslik: 'Sayfa silinsin mi?', metin: String(k.baslik), evet: 'Sil' }))) return;
+    await bosalt();
+    try {
+      const silinen = await kayitGuncelle('zihin_sayfalari', SUTUN, k.id, k.surum, { silindi_at: new Date().toISOString() });
+      s.liste = s.liste.filter(x => x.id !== k.id); sonKayit.delete(k.id); s.secili = ''; agacCiz(); editorCiz();
+      bildir('Sayfa silindi', async () => {
+        try { yerles(await kayitGuncelle('zihin_sayfalari', SUTUN, silinen.id, silinen.surum, { silindi_at: null })); s.secili = silinen.id; agacCiz(); editorCiz(); bildir('Geri alındı'); }
+        catch (e) { bildir(hataMetni(e), undefined, true); void yukle(); }
+      });
+    } catch (e) { bildir(hataMetni(e), undefined, true); }
   }
 
   async function sayfaAc(ustId: string | null) {
     try {
       await bosalt();
-      const k = await kayitEkle('zihin_sayfalari', SUTUN, { baslik: 'Adsız sayfa', ust_id: ustId, icerik: '', sira: s.liste.filter(x => (x.ust_id ?? null) === ustId).length });
+      const k = await kayitEkle('zihin_sayfalari', SUTUN, { baslik: 'Adsız sayfa', ust_id: ustId, icerik: '', bloklar: [], sira: s.liste.filter(x => (x.ust_id ?? null) === ustId).length });
       yerles(k); s.secili = k.id; agacCiz(); editorCiz();
-      const a = document.getElementById('zihin-baslik') as HTMLInputElement | null; a?.focus(); a?.select();
+      const a = document.getElementById('ze-baslik') as HTMLInputElement | null; a?.focus(); a?.select();
     } catch (e) { bildir(hataMetni(e), undefined, true); }
   }
 
   async function yukle() {
     s.yukleniyor = true; s.hata = ''; agacCiz();
-    try { s.liste = await kayitlariGetir('zihin_sayfalari', SUTUN, {}, 'sira'); if (!mevcut()) s.secili = ''; } catch (e) { s.hata = hataMetni(e); }
+    try {
+      s.liste = await kayitlariGetir('zihin_sayfalari', SUTUN, {}, 'sira');
+      s.liste.forEach(k => { if (!Array.isArray(k.bloklar)) k.bloklar = []; hatirla(k); });
+      if (!mevcut()) s.secili = '';
+    } catch (e) { s.hata = hataMetni(e); }
     s.yukleniyor = false; agacCiz(); editorCiz();
   }
 
   ara.addEventListener('input', () => { s.ara = ara.value; agacCiz(); });
   yeni.addEventListener('click', () => void sayfaAc(null));
   addEventListener('pagehide', () => void bosalt());
+  void bloklarOf;
   void yukle();
 }
