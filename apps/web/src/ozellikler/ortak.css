@@ -134,3 +134,8 @@ a.todo-baslik { color: var(--cyan); }
 .fis-satir input { min-width: 0; }
 dialog.kutu:has(.fis-satirlar) { width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow-y: auto; }
 @media (max-width: 600px) { .fis-satir { grid-template-columns: 1fr 1fr; } }
+
+.sifre-not{margin:0 0 10px;font-size:var(--fs-2);color:var(--dim)}
+.sifre-hucre{white-space:nowrap}
+.sifre-nokta{letter-spacing:2px;color:var(--dim);margin-right:8px}
+.sifre-metin{font-family:var(--f-mono);margin-right:8px;word-break:break-all}
