@@ -8,6 +8,7 @@ import { temaAd, temaCevir, temaSimge, temaUygula } from './tema';
 import { bildirimMerkeziAc } from '../ozellikler/sistem/bildirim-merkezi';
 import { panelGetir, panelSifirla, type Panel } from '../veri/panel';
 import { tl } from '../ortak/bicim';
+import { pencereKapatmaKur } from '../ortak/pencere';
 import { aktifSekme, git, kisayolHedefi, yonlendiriciBaslat, yonlendiriciDinle } from './yonlendirici';
 
 const $ = (id: string) => document.getElementById(id) as HTMLElement;
@@ -250,6 +251,7 @@ function olaylariBagla() {
 
 export function kabuguBaslat() {
   temaUygula();
+  pencereKapatmaKur();
   yonlendiriciBaslat();
   yonlendiriciDinle(k => { sekmeMerkeziniAc(k); hepsiniCiz(); });
   donemDinle(hepsiniCiz);
