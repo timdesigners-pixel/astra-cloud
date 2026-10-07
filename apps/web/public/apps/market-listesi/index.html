@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<script src="../_ortak/kopru.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Market Listesi</title>
+<style>
+:root{
+  --bg:#0a0e18; --panel:#101624; --panel2:#141c2e; --yuva:#070a10;
+  --line:#1e293b; --txt:#f1f5f9; --dim:#7f8ea3;
+  --gold:#e0b968; --gold-soft:rgba(224,185,104,.14);
+  --green:#54c398; --red:#ed8c84; --blue:#7aacf6; --cyan:#2abfd4;
+  --on-accent:#1a1406;
+  --f-ui:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-num:ui-monospace,Menlo,Consolas,monospace;
+  --r:14px; --r-sm:10px;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#f6f7fb; --panel:#fff; --panel2:#f3f5f9; --yuva:#eceff5; --line:#e3e7ef; --txt:#0f172a; --dim:#64748b;
+  --gold:#a8792e; --gold-soft:rgba(168,121,46,.12); --green:#059669; --red:#dc2626; --blue:#2563eb; --cyan:#0e8fa3;
+  --on-accent:#fff; color-scheme:light;
+}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 var(--f-ui)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.dim{color:var(--dim)}
+.kap{max-width:1100px;margin:0 auto;padding:22px 16px 48px;display:flex;flex-direction:column;gap:16px}
+.bas{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between}
+.bas h1{margin:0;font-size:clamp(22px,3vw,28px);font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.bas h1 svg{width:26px;height:26px;color:var(--gold)}
+.bas p{margin:4px 0 0;color:var(--dim);font-size:13.5px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.panel h2{margin:0;font-size:15px;display:flex;align-items:center;gap:8px}
+.panel h2 svg{width:18px;height:18px;color:var(--gold)}
+.sira{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input,select{background:var(--yuva);border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 11px;min-width:0}
+input[type=checkbox]{width:18px;height:18px;padding:0;accent-color:var(--green)}
+.dugme{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel2);border-radius:var(--r-sm);padding:9px 14px;font-weight:700;cursor:pointer}
+.dugme svg{width:17px;height:17px}
+.dugme.ana{background:var(--gold);border-color:var(--gold);color:var(--on-accent)}
+.dugme:disabled{opacity:.55;cursor:progress}
+.dugme.kucuk{padding:5px 10px;font-size:13px}
+.ikon{border:0;background:none;cursor:pointer;color:var(--dim);display:grid;place-items:center;padding:6px;border-radius:8px}
+.ikon:hover{color:var(--red);background:var(--panel2)}
+.ikon svg{width:17px;height:17px}
+.durum{font-size:13px;color:var(--dim)}
+.durum.hata{color:var(--red)}
+.durum.iyi{color:var(--green)}
+.ekle{display:grid;grid-template-columns:minmax(0,1fr) 88px auto;gap:8px}
+.liste{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.kalem{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px 12px;align-items:start}
+.kalem.alindi{opacity:.55}
+.kalem .ad{font-weight:700;font-size:15px}
+.kalem .adet{font-size:12.5px;color:var(--dim);margin-left:6px}
+.teklif{grid-column:2 / -1;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
+.tk{border-radius:var(--r-sm);padding:9px 11px;background:var(--yuva);display:flex;flex-direction:column;gap:2px;min-width:0;border-left:3px solid var(--line)}
+.tk.en{border-left-color:var(--green)}
+.tk.iki{border-left-color:var(--gold)}
+.tk .et{font-size:10.5px;font-weight:700;letter-spacing:.1em;color:var(--dim)}
+.tk .urun{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tk .satir{display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:13px}
+.tk .fiyat{font-family:var(--f-num);font-weight:700;font-size:15px}
+.tk.en .fiyat{color:var(--green)}
+.tk small{color:var(--dim);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cip{display:inline-flex;align-items:center;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--gold-soft);color:var(--gold);white-space:nowrap}
+.ozet{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.oz{background:var(--panel2);border-radius:var(--r-sm);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.oz span{font-size:12px;color:var(--dim)}
+.oz b{font-family:var(--f-num);font-size:17px}
+.bos{color:var(--dim);text-align:center;padding:22px 10px;font-size:14px}
+@media (max-width:560px){ .ekle{grid-template-columns:minmax(0,1fr) 70px} .ekle .dugme{grid-column:1 / -1;justify-content:center} }
+</style>
+</head>
+<body>
+<div class="kap">
+  <header class="bas">
+    <div>
+      <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.5 12h11L21 7H6"/></svg>Market Listesi</h1>
+      <p>Listedeki her ürün için yakındaki marketlerde en uygun fiyat ve ikinci seçenek · kaynak: marketfiyati.org.tr</p>
+    </div>
+    <button class="dugme ana" id="bul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Fiyatları Bul</button>
+  </header>
+
+  <section class="panel" aria-labelledby="konumBas">
+    <h2 id="konumBas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Konum</h2>
+    <div class="sira">
+      <button class="dugme" id="gps">Konumumu kullan</button>
+      <select id="sehir" aria-label="Şehir merkezi">
+        <option value="">Şehir merkezi seç…</option>
+      </select>
+      <label class="sira" for="km"><span class="dim">Mesafe</span>
+        <select id="km"><option>2</option><option>3</option><option selected>5</option><option>10</option><option>15</option></select><span class="dim">km</span></label>
+    </div>
+    <div class="durum" id="konumDurum" role="status" aria-live="polite">Konum seçilmedi.</div>
+  </section>
+
+  <section class="panel" aria-labelledby="listeBas">
+    <h2 id="listeBas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Liste <span class="cip" id="sayac">0</span></h2>
+    <div class="sira" style="margin-bottom:8px">
+      <button class="dugme" id="marketGetir" type="button" title="Astra › Market Harcamaları'ndaki alışveriş listesini (biten stoklar + elle eklenenler) bu listeye ekler">Market harcamalarından getir</button>
+    </div>
+    <form class="ekle" id="ekleForm">
+      <input id="yeniAd" placeholder="Ürün (örn. süt 1 lt, yumurta 30'lu)" aria-label="Ürün adı" autocomplete="off" required maxlength="120">
+      <input id="yeniAdet" type="number" min="1" max="99" value="1" aria-label="Adet">
+      <button class="dugme" type="submit">Ekle</button>
+    </form>
+    <div class="durum" id="aramaDurum" role="status" aria-live="polite"></div>
+    <ul class="liste" id="liste"></ul>
+    <div class="sira" id="listeAlt" hidden>
+      <button class="dugme kucuk" id="alinanlariSil">Alınanları sil</button>
+      <button class="dugme kucuk" id="tumunuSil">Listeyi temizle</button>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="ozetBas" id="ozetPanel" hidden>
+    <h2 id="ozetBas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><rect x="5" y="11" width="3" height="7"/><rect x="10.5" y="7" width="3" height="11"/><rect x="16" y="4" width="3" height="14"/></svg>Market bazında sepet</h2>
+    <div class="ozet" id="ozet"></div>
+  </section>
+</div>
+
+<script>
+/* Durum bu kaynağın localStorage'ında; Astra bu anahtarları şifreli kasaya
+   eşitler (src/features/apps/apps-durum.js). */
+const ANAHTAR = 'market-listesi-v1', AYAR = 'market-listesi-ayar';
+const SEHIR = {
+  'Adana':[37.0,35.3213],'Ankara':[39.9208,32.8541],'Antalya':[36.8969,30.7133],'Bursa':[40.1885,29.061],
+  'Diyarbakır':[37.9144,40.2306],'Eskişehir':[39.7767,30.5206],'Gaziantep':[37.0662,37.3833],'İstanbul (Avrupa)':[41.0369,28.985],
+  'İstanbul (Anadolu)':[40.9906,29.0276],'İzmir':[38.4237,27.1428],'Kayseri':[38.7205,35.4826],'Kocaeli':[40.7654,29.9408],
+  'Konya':[37.8746,32.4932],'Mersin':[36.8121,34.6415],'Samsun':[41.2867,36.33],'Trabzon':[41.0015,39.7178]
+};
+const MARKET = {bim:'BİM', a101:'A101', sok:'ŞOK', migros:'Migros', carrefour:'CarrefourSA', tarim_kredi:'Tarım Kredi', hakmar:'Hakmar', hakmar_express:'Hakmar Express', file:'File', onur:'Onur Market', macro:'Macrocenter'};
+const marketAd = m => MARKET[String(m || '').toLowerCase()] || String(m || '—');
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const tl = n => Number(n).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ₺';
+const oku = (k, v) => { try{ const x = JSON.parse(localStorage.getItem(k) || 'null'); return x == null ? v : x; }catch(e){ return v; } };
+const yaz = (k, v) => { try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+const kimlik = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+let L = oku(ANAHTAR, []); if(!Array.isArray(L)) L = [];
+let A = oku(AYAR, {}); if(!A || typeof A !== 'object') A = {};
+let subeOnbellek = null;
+
+function kaydet(){ yaz(ANAHTAR, L); }
+function ayarKaydet(){ yaz(AYAR, A); }
+
+/* ---------- konum ---------- */
+Object.keys(SEHIR).forEach(ad => { const o = document.createElement('option'); o.value = ad; o.textContent = ad; $('#sehir').appendChild(o); });
+function konumYaz(){
+  if(A.km) $('#km').value = String(A.km);
+  if(A.sehir) $('#sehir').value = A.sehir;
+  const d = $('#konumDurum');
+  if(Number.isFinite(A.lat) && Number.isFinite(A.lon)){
+    d.className = 'durum iyi';
+    d.textContent = (A.sehir ? A.sehir + ' merkezi' : 'Cihaz konumu') + ' · ' + (A.km || 5) + ' km içindeki şubeler';
+  }else{ d.className = 'durum'; d.textContent = 'Konum seçilmedi — fiyat aramak için konumunu kullan ya da bir şehir merkezi seç.'; }
+}
+$('#gps').addEventListener('click', () => {
+  const d = $('#konumDurum');
+  if(!navigator.geolocation){ d.className = 'durum hata'; d.textContent = 'Bu tarayıcı konum vermiyor; şehir merkezi seç.'; return; }
+  d.className = 'durum'; d.textContent = 'Konum alınıyor…';
+  navigator.geolocation.getCurrentPosition(p => {
+    A.lat = Math.round(p.coords.latitude * 1e4) / 1e4; A.lon = Math.round(p.coords.longitude * 1e4) / 1e4; A.sehir = '';
+    subeOnbellek = null; ayarKaydet(); konumYaz();
+  }, () => { d.className = 'durum hata'; d.textContent = 'Konum izni verilmedi; şehir merkezi seç.'; }, {enableHighAccuracy: false, timeout: 10000, maximumAge: 600000});
+});
+$('#sehir').addEventListener('change', e => {
+  const k = SEHIR[e.target.value]; if(!k) return;
+  A.lat = k[0]; A.lon = k[1]; A.sehir = e.target.value; subeOnbellek = null; ayarKaydet(); konumYaz();
+});
+$('#km').addEventListener('change', e => { A.km = Number(e.target.value) || 5; subeOnbellek = null; ayarKaydet(); konumYaz(); });
+
+/* ---------- servis ---------- */
+async function api(parametre){
+  const r = await fetch('/api/market?' + new URLSearchParams(parametre), {headers: {Accept: 'application/json'}});
+  let j = {}; try{ j = await r.json(); }catch(e){}
+  if(!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+  return j;
+}
+async function subeler(){
+  if(subeOnbellek) return subeOnbellek;
+  const j = await api({islem: 'yakin', lat: A.lat, lon: A.lon, km: A.km || 5});
+  subeOnbellek = (j.subeler || []).map(s => s.id);
+  return subeOnbellek;
+}
+
+/* Eşleştirme kurallı: servisin alaka sırasındaki ilk 12 ürünün bütün
+   teklifleri fiyata göre sıralanır. En ucuz teklif birinci; ikinci seçenek
+   farklı bir marketin en ucuz teklifi (yoksa aynı marketteki sonraki). */
+/* Gramaj / hacim / adet ayıklama: "Söke Un 1 Kg" → {tur:'agirlik', deger:1000 (g)}.
+   Aranan ürünle aynı türde ve payı yakın olanlar karşılaştırılır:
+   ağırlık ±300 g, hacim ±0,5 L, adet ±6. */
+const MIKTAR_RE = /(\d+(?:[.,]\d+)?)\s*(kg|kilo|gr|gram|g|lt|litre|l|ml|cl|adet|'?l[ıiuü])(?![\p{L}\d])/iu;
+const PAY = {agirlik: 300, hacim: 500, adet: 6};
+function miktarCoz(s){
+  const m = MIKTAR_RE.exec(String(s || '').replace(/[×x]\s*\d+/gi, ''));
+  if(!m) return null;
+  const v = Number(m[1].replace(',', '.')), b = m[2].toLocaleLowerCase('tr').replace("'", '');
+  if(!Number.isFinite(v) || v <= 0) return null;
+  if(b === 'kg' || b === 'kilo') return {tur: 'agirlik', deger: v * 1000};
+  if(b === 'g' || b === 'gr' || b === 'gram') return {tur: 'agirlik', deger: v};
+  if(b === 'lt' || b === 'litre' || b === 'l') return {tur: 'hacim', deger: v * 1000};
+  if(b === 'ml') return {tur: 'hacim', deger: v};
+  if(b === 'cl') return {tur: 'hacim', deger: v * 10};
+  return {tur: 'adet', deger: v};
+}
+const miktarsizAd = s => String(s || '').replace(new RegExp(MIKTAR_RE.source, 'giu'), ' ').replace(/[·•|]+/g, ' ').replace(/\s+/g, ' ').trim();
+function miktarUyar(aranan, u){
+  if(!aranan) return true;                       // aranan ürünün gramajı yazılmamışsa süzme yok
+  const c = miktarCoz([u.miktar].filter(Boolean).join(' ')) || miktarCoz(u.ad);
+  if(!c) return true;                            // servis gramaj vermemişse dışlama
+  return c.tur === aranan.tur && Math.abs(c.deger - aranan.deger) <= PAY[c.tur];
+}
+function secenekler(urunler, ad){
+  const t = [];
+  const aranan = miktarCoz(ad);
+  const uygun = (urunler || []).filter(u => miktarUyar(aranan, u));
+  uygun.slice(0, 12).forEach(u => (u.teklifler || []).forEach(o => t.push({
+    urun: u.ad, marka: u.marka, miktar: u.miktar, market: o.market, sube: o.sube, fiyat: o.fiyat, birim: o.birim})));
+  t.sort((a, b) => a.fiyat - b.fiyat);
+  const en = t[0] || null;
+  const iki = en ? (t.find(x => x.market && x.market !== en.market) || t[1] || null) : null;
+  return {en, iki, elenen: (urunler || []).length - uygun.length};
+}
+async function fiyatlariBul(){
+  const d = $('#aramaDurum');
+  if(!Number.isFinite(A.lat) || !Number.isFinite(A.lon)){ d.className = 'durum hata'; d.textContent = 'Önce konum seç.'; return; }
+  const bekleyen = L.filter(x => !x.alindi);
+  if(!bekleyen.length){ d.className = 'durum'; d.textContent = 'Listede aranacak ürün yok.'; return; }
+  const btn = $('#bul'); btn.disabled = true;
+  try{
+    d.className = 'durum'; d.textContent = 'Yakındaki şubeler bulunuyor…';
+    const s = await subeler();
+    if(!s.length){ d.className = 'durum hata'; d.textContent = 'Bu mesafede kayıtlı şube bulunamadı; mesafeyi artır.'; return; }
+    let bulunan = 0, elenen = 0;
+    for(let i = 0; i < bekleyen.length; i++){
+      const k = bekleyen[i];
+      d.textContent = `${i + 1}/${bekleyen.length} · ${k.ad} aranıyor… (${s.length} şube)`;
+      try{
+        /* Gramaj arama kelimesinden çıkarılır (servis tam gramaj eşleşmesine kilitlenmesin);
+           yakın gramajlar sonuçlardan süzülür. */
+        const j = await api({islem: 'ara', q: miktarsizAd(k.ad) || k.ad, lat: A.lat, lon: A.lon, km: A.km || 5, s: s.join(',')});
+        const sec = secenekler(j.urunler, k.ad);
+        k.en = sec.en; k.iki = sec.iki; k.tarih = new Date().toISOString();
+        k.hata = sec.en ? '' : (miktarCoz(k.ad) ? 'yakında benzer gramajda bulunamadı' : 'yakında bulunamadı');
+        elenen += sec.elenen || 0;
+        if(sec.en) bulunan++;
+      }catch(e){ k.hata = e.message; }
+      kaydet(); ciz();
+    }
+    d.className = 'durum iyi'; d.textContent = `${bulunan}/${bekleyen.length} ürün için fiyat bulundu${elenen ? ` · ${elenen} farklı gramajlı sonuç elendi` : ''} · ${new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'})}`;
+  }catch(e){ d.className = 'durum hata'; d.textContent = 'Fiyatlar alınamadı: ' + e.message; }
+  finally{ btn.disabled = false; }
+}
+$('#bul').addEventListener('click', fiyatlariBul);
+
+/* ---------- liste ---------- */
+$('#ekleForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const ad = $('#yeniAd').value.trim(); if(!ad) return;
+  const adet = Math.max(1, Math.min(99, parseInt($('#yeniAdet').value, 10) || 1));
+  L.push({id: kimlik(), ad, adet, alindi: false});
+  $('#yeniAd').value = ''; $('#yeniAdet').value = '1'; kaydet(); ciz(); $('#yeniAd').focus();
+});
+/* Astra'nın Market Harcamaları alışveriş listesi: üst sayfaya (Astra) istek gider, yanıt aynı
+   kaynaktan mesajla gelir. Yalnız Astra içinde (iframe) açıkken çalışır. */
+const adAnahtar = s => String(s || '').toLocaleLowerCase('tr').replace(/[^a-z0-9çğıöşü]+/g, ' ').trim();
+$('#marketGetir').addEventListener('click', () => {
+  const d = $('#aramaDurum');
+  if(window.parent === window){ d.className = 'durum hata'; d.textContent = 'Bu düğme yalnızca Astra içinde açıkken çalışır.'; return; }
+  d.className = 'durum'; d.textContent = 'Market harcamalarındaki liste isteniyor…';
+  window.parent.postMessage({astra: 'market-liste-iste'}, location.origin);
+});
+window.addEventListener('message', e => {
+  if(e.origin !== location.origin || !e.data || e.data.astra !== 'market-liste') return;
+  const d = $('#aramaDurum');
+  const gelen = Array.isArray(e.data.urunler) ? e.data.urunler : [];
+  const var_ = new Set(L.map(x => adAnahtar(x.ad)));
+  let eklenen = 0, zatenVar = 0;
+  gelen.forEach(u => {
+    const ad = String(u && u.ad || '').trim().slice(0, 120); if(!ad) return;
+    if(var_.has(adAnahtar(ad))){ zatenVar++; return; }
+    L.push({id: kimlik(), ad, adet: Math.max(1, Math.min(99, Math.ceil(Number(u.adet) || 1))), alindi: false});
+    var_.add(adAnahtar(ad)); eklenen++;
+  });
+  if(eklenen){ kaydet(); ciz(); }
+  d.className = eklenen ? 'durum iyi' : 'durum';
+  d.textContent = !gelen.length ? 'Market harcamalarında alışveriş listesi boş (biten stok ya da elle eklenen ürün yok).'
+    : `${eklenen} ürün eklendi${zatenVar ? ' · ' + zatenVar + ' ürün zaten listede' : ''}.`;
+});
+$('#alinanlariSil').addEventListener('click', () => { L = L.filter(x => !x.alindi); kaydet(); ciz(); });
+$('#tumunuSil').addEventListener('click', () => { if(confirm('Listedeki bütün ürünler silinsin mi?')){ L = []; kaydet(); ciz(); } });
+$('#liste').addEventListener('change', e => {
+  const li = e.target.closest('[data-id]'); if(!li || e.target.type !== 'checkbox') return;
+  const k = L.find(x => x.id === li.dataset.id); if(k){ k.alindi = e.target.checked; kaydet(); ciz(); }
+});
+$('#liste').addEventListener('click', e => {
+  const b = e.target.closest('[data-sil]'); if(!b) return;
+  L = L.filter(x => x.id !== b.dataset.sil); kaydet(); ciz();
+});
+
+const SIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>';
+function teklifHTML(o, sinif, et){
+  if(!o) return '';
+  return `<div class="tk ${sinif}"><span class="et">${et}</span>
+    <span class="urun" title="${esc(o.urun)}">${esc(o.marka ? o.marka + ' · ' : '')}${esc(o.urun)}</span>
+    <span class="satir"><b>${esc(marketAd(o.market))}</b><span class="fiyat">${tl(o.fiyat)}</span></span>
+    <small>${esc([o.sube, o.miktar, o.birim].filter(Boolean).join(' · '))}</small></div>`;
+}
+function ciz(){
+  $('#sayac').textContent = L.length;
+  $('#listeAlt').hidden = !L.length;
+  $('#liste').innerHTML = L.length ? L.map(k => `<li class="kalem${k.alindi ? ' alindi' : ''}" data-id="${esc(k.id)}">
+      <input type="checkbox" ${k.alindi ? 'checked' : ''} aria-label="${esc(k.ad)} alındı">
+      <div><span class="ad">${esc(k.ad)}</span><span class="adet">× ${k.adet || 1}</span>
+        ${k.hata ? `<div class="durum hata">${esc(k.hata)}</div>` : ''}
+        ${!k.en && !k.hata ? '<div class="durum">Fiyat için “Fiyatları Bul”.</div>' : ''}</div>
+      <button class="ikon" data-sil="${esc(k.id)}" aria-label="${esc(k.ad)} sil">${SIL}</button>
+      ${k.en ? `<div class="teklif">${teklifHTML(k.en, 'en', 'EN UYGUN')}${teklifHTML(k.iki, 'iki', 'İKİNCİ SEÇENEK')}</div>` : ''}
+    </li>`).join('') : '<li class="bos">Liste boş. Ürün ekle, konumu seç, “Fiyatları Bul”a bas.</li>';
+  const grup = {};
+  L.filter(k => !k.alindi && k.en).forEach(k => {
+    const g = grup[k.en.market] || (grup[k.en.market] = {tutar: 0, adet: 0});
+    g.tutar += k.en.fiyat * (k.adet || 1); g.adet++;
+  });
+  const anahtar = Object.keys(grup).sort((a, b) => grup[b].tutar - grup[a].tutar);
+  $('#ozetPanel').hidden = !anahtar.length;
+  const top = anahtar.reduce((a, m) => a + grup[m].tutar, 0);
+  $('#ozet').innerHTML = anahtar.map(m => `<div class="oz"><span>${esc(marketAd(m))} · ${grup[m].adet} ürün</span><b>${tl(grup[m].tutar)}</b></div>`).join('')
+    + (anahtar.length ? `<div class="oz"><span>Toplam (en uygun fiyatlarla)</span><b>${tl(top)}</b></div>` : '');
+}
+/* Başka cihazdan eşitlenen durum Astra'dan 'storage' olayıyla gelir. */
+addEventListener('storage', e => {
+  if(e.key === ANAHTAR){ L = oku(ANAHTAR, []); if(!Array.isArray(L)) L = []; ciz(); }
+  if(e.key === AYAR){ A = oku(AYAR, {}) || {}; subeOnbellek = null; konumYaz(); }
+});
+konumYaz(); ciz();
+</script>
+</body>
+</html>

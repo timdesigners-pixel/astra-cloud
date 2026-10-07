@@ -35,11 +35,12 @@ const YOL: Record<string, string> = {
   takvim:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>',
   kalp:'<path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 0 0-7.1 7.1L12 21.5l8.8-8.8a5 5 0 0 0 0-7.1z"/>',
   telefon:'<rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/>',
+  uygulama:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M17.5 14v7M14 17.5h7"/>',
   simsek:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',};
 const KATEGORI: Record<string, string> = { apps: 'genel', finans: 'cuzdan', plan: 'takvim', saglik: 'kalp', envanter: 'telefon', araclar: 'simsek' };
 
 export function menuIkon(ad: string): string {
-  const y = YOL[ad] ?? YOL[KATEGORI[ad] ?? ''];
+  const y = YOL[ad] ?? YOL[KATEGORI[ad] ?? ''] ?? (ad.startsWith('app-') ? YOL.uygulama : undefined);
   return y
     ? `<svg class="lu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${y}</svg>`
     : '';

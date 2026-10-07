@@ -42,3 +42,11 @@
 | Saklanan | Ad, şehir, sağlık hedefi (`ayarlar`), günlük sağlık (`saglik_gunluk`), hızlı notlar (`hizli_notlar`); hepsi satır düzeyi güvenlikli, silme yumuşak |
 | Bağlanmayanlar | Günün puanı, görevler, tarihte bugün: ilgili sayfalar yapılınca bağlanır |
 | Eski veri aktarımı | icra dosyaları, alacaklılar ve avukatlar eski projeden tek seferlik aktarıldı; dosya numaraları şifreli; sayı ve tutar kontrol toplamları eşleşti |
+
+## Modül Merkezi ve uygulamalar
+- "AI & Teknoloji Üssü" kaldırıldı; AI Danışman & Ses, Dashboard merkezine taşındı.
+- Modül Merkezi üst menü merkezidir: Tüm Uygulamalar sayfası ve 12 uygulama sayfası. Eski `?tab=karsilama` gibi adresler yeni adlara yönlenir.
+- Uygulamalar `public/apps/` altında, kaynak dosyalar değiştirilmeden; her biri sandbox çerçevede çalışır (allow-same-origin yok).
+- Uygulama kayıtları `uygulama_durumu` tablosunda şifreli tutulur; istemci tabloya değil yalnız `uygulama_durumu_oku/yaz/sil` işlevlerine erişir.
+- Servis uçları (market fiyatı, Gemini) yeni sunucuda henüz yok; köprü "servis bağlı değil" yanıtı verir.
+- Geçici bağımlılıklar: oynatma/pinterest verisi, dosya yöneticisi, telefon rehberi ve ilgi ürünleri eski projenin depolamasından okur.

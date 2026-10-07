@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8"><meta name="robots" content="noindex">
+<title>Önizleme</title></head><body>
+<script>
+/* Sandbox'lı önizleme aktarıcısı. Üretilen / yüklenen HTML bu belgeye postMessage ile gelir ve olduğu gibi
+   yazılır. Bu belge KENDİ içerik güvenlik politikasıyla sunulur (config/csp.mjs › ONIZLEME: önizlenen içerik
+   satır içi betik, CDN ve görsel kullanabilsin; gezinme, form ve çerçeveleme kapalı). Çerçeve
+   sandbox="allow-scripts" ile açıldığı için belge opak kökendedir; uygulamanın depolamasına ve çerezlerine
+   erişemez. Eşleşme: üst sayfa adrese #kimlik koyar, bu belge hazır olunca aynı kimlikle haber verir;
+   içerik yalnız o haber gelince gönderilir (aktarıcı engellenmişse üst sayfa blob: yoluna düşer). */
+(function(){
+  var kimlik = String(location.hash || '').slice(1);
+  addEventListener('message', function(e){
+    if(e.source !== parent || !e.data || e.data.tur !== 'astra-onizleme') return;
+    document.open(); document.write(String(e.data.html || '')); document.close();
+  });
+  parent.postMessage({tur: 'astra-onizleme-hazir', kimlik: kimlik}, '*');
+})();
+</script>
+</body></html>

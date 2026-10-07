@@ -49,3 +49,9 @@ dialog.kutu dl { display: grid; grid-template-columns: minmax(120px, 190px) 1fr;
 dialog.kutu dt { color: var(--dim); }
 dialog.kutu dd { margin: 0; overflow-wrap: anywhere; }
 dialog.kutu .bolum ul { margin: 0; padding-left: 18px; color: var(--txt); }
+
+.app-kap .app-ust { display: flex; justify-content: space-between; margin: 0 0 10px; color: var(--dim); font-size: 12px; }
+.modul-izgara { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-top: 16px; }
+.modul-kart { text-align: left; display: flex; flex-direction: column; gap: 6px; padding: 14px; border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); color: inherit; cursor: pointer; font: inherit; }
+.modul-kart:hover { border-color: var(--acc, currentColor); }
+.modul-kart small { color: var(--dim); line-height: 1.4; }

@@ -8,7 +8,7 @@ const s = (anahtar: string, glif: string, ad: string): Sekme => ({ anahtar, glif
 /* Notion düzeninde merkezler: menü, çekmece, komut paleti, alt çubuk, 1–9 kısayolları ve rozetler bu tek tanımı okur. */
 export const HUBLAR: Hub[] = [
   { id: 'dash', glif: '◈', ad: 'Dashboard', gruplar: [
-    { sekmeler: [s('genel', '◈', 'Genel Bakış'), s('sirada', '⇥', 'Sırada Ne Var'), s('todo', '✓', 'Yapılacaklar')] },
+    { sekmeler: [s('genel', '◈', 'Genel Bakış'), s('sirada', '⇥', 'Sırada Ne Var'), s('todo', '✓', 'Yapılacaklar'), s('asistan', '✦', 'AI Danışman & Ses')] },
   ] },
   { id: 'fin', glif: '₺', ad: 'Muhasebe & Finans', gruplar: [
     { ad: 'Nakit Akışı', sekmeler: [
@@ -35,8 +35,18 @@ export const HUBLAR: Hub[] = [
   { id: 'my', glif: '☰', ad: 'My Space', gruplar: [
     { sekmeler: [s('plan', '☰', 'Alınacaklar'), s('odemeplan', '▤', 'Alım Planı'), s('market', '⊞', 'Market Harcamaları')] },
   ] },
-  { id: 'ai', glif: '✦', ad: 'AI & Teknoloji Üssü', gruplar: [
-    { sekmeler: [s('asistan', '✦', 'AI Danışman & Ses'), s('hub', '⌘', 'Modül Merkezi')] },
+  { id: 'modul', glif: '⌘', ad: 'Modül Merkezi', gruplar: [
+    { sekmeler: [s('hub', '⌘', 'Tüm Uygulamalar')] },
+    { ad: 'Finans & Takip', sekmeler: [
+      s('app-odeme', '▤', 'Ödeme Raporu'), s('app-hesapyon', '▩', 'Hesap Yöneticisi'),
+      s('app-bahis', '♠', 'Bahis Dünyası'), s('app-marketliste', '⊞', 'Market Listesi'),
+    ] },
+    { ad: 'Günlük', sekmeler: [s('app-karsilama', '☀', 'Günlük Karşılama'), s('app-ilgi', '★', 'İlgi Çekici Ürünler')] },
+    { ad: 'Araçlar', sekmeler: [
+      s('app-tasarim', '✎', 'Tasarım Atölyesi'), s('app-dosya', '▦', 'Dosya Yöneticisi'),
+      s('app-telrehber', '☎', 'Telefon Rehberi'), s('app-kutuphane', '❏', 'Bilgi Kütüphanesi'),
+    ] },
+    { ad: 'Arşivler', sekmeler: [s('app-oynatma', '▶', 'Oynatma Listelerim'), s('app-pinterest', '✧', 'Pinterest Panolarım')] },
   ] },
   { id: 'sis', glif: '⚙︎', ad: 'Sistem', gruplar: [
     { sekmeler: [s('veri', '⊕', 'Veri Girişi'), s('sistem', '⚙︎', 'Sistem Ayarları')] },
@@ -56,7 +66,8 @@ export const OBEKLER: Obek[] = [
   { ad: 'BORÇLAR & HUKUK', sekmeler: al('borc', 'kisi', 'vergisgk', 'icraborc', 'hesaplar', 'limit', 'kisiler', 'iban', 'taksit', 'sim', 'tahmin', 'hukuk') },
   { ad: 'VARLIK & BÜYÜME', sekmeler: al('mevduat', 'yatirim') },
   { ad: 'STRATEJİ & RAPOR', sekmeler: al('karar', 'strateji', 'sirada', 'todo', 'rapor', 'aylik') },
-  { ad: 'SİSTEM', sekmeler: al('veri', 'sistem', 'hub') },
+  { ad: 'MODÜL MERKEZİ', sekmeler: al('hub', 'app-odeme', 'app-hesapyon', 'app-bahis', 'app-marketliste', 'app-karsilama', 'app-ilgi', 'app-tasarim', 'app-dosya', 'app-telrehber', 'app-kutuphane', 'app-oynatma', 'app-pinterest') },
+  { ad: 'SİSTEM', sekmeler: al('veri', 'sistem') },
 ];
 
 export const kisayolNo = (k: string) => {
