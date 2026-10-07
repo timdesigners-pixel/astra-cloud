@@ -1,0 +1,57 @@
+/* Veri sayfalarının ortak parçaları: kutu (dialog), form, boş durum, bildirim. */
+.kisiler .bos { margin: 18px 4px; color: var(--dim); }
+.kisiler .bos.hata { color: var(--red); }
+.kisiler .tablo-sarma { overflow-x: auto; }
+.kisiler tr.satir { cursor: pointer; }
+.kisiler tr.satir:hover td { background: var(--kb-3); }
+.kisiler td.islem { text-align: right; white-space: nowrap; }
+.kisiler small.takma { display: block; color: var(--dim); font-size: var(--fs-2); margin-top: 2px; }
+body.gizli .gz { filter: blur(6px); user-select: none; }
+
+dialog.kutu { background: var(--bg2); color: var(--txt); border: 1px solid var(--line2); border-radius: var(--r);
+  padding: 22px; width: min(460px, calc(100vw - 32px)); }
+dialog.kutu::backdrop { background: rgba(3, 5, 9, .75); }
+dialog.kutu h2 { margin: 0 0 14px; font-size: var(--fs-5, 18px); }
+dialog.kutu .alan { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+dialog.kutu .alan > span { font-family: var(--f-mono); font-size: var(--fs-1); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+dialog.kutu .alan small { color: var(--dim); font-size: var(--fs-2); }
+dialog.kutu .form-hata { color: var(--red); margin: 0 0 10px; }
+dialog.kutu .form-dugmeler { display: flex; gap: 8px; flex-wrap: wrap; }
+dialog.kutu .form-dugmeler .danger { margin-left: auto; }
+
+#toast.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: var(--z-kiptik, 90);
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--r-sm);
+  background: var(--surface-2); border: 1px solid var(--line2); color: var(--txt); font-size: var(--fs-3); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+#toast.toast.hata { border-color: var(--red); }
+#toast.toast button { all: unset; cursor: pointer; color: var(--gold); font-weight: 600; }
+#toast.toast button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* İcra Borçları */
+.icra .bos { margin: 18px 4px; color: var(--dim); }
+.icra .bos.hata { color: var(--red); }
+.icra .tablo-sarma { overflow-x: auto; }
+.icra tr.satir { cursor: pointer; }
+.icra tr.satir:hover td { background: var(--kb-3); }
+.icra td.sayi { text-align: right; white-space: nowrap; font-family: var(--f-mono); }
+.icra td.eski { color: var(--gold); }
+.icra small.takma { display: block; color: var(--dim); font-size: var(--fs-2); margin-top: 2px; }
+.icra-ozet { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.icra-hucre { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; background: var(--kb-2); border: 1px solid var(--line); border-radius: var(--r-sm); }
+.icra-hucre .et { font-family: var(--f-mono); font-size: var(--fs-1); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+.icra-hucre b { font-size: 20px; }
+.icra-hucre small { color: var(--dim); font-size: var(--fs-2); }
+.icra-hucre.vurgu b { color: var(--gold); }
+.icra-hucre.uyari b { color: var(--red); }
+dialog.kutu.genis { width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow-y: auto; }
+dialog.kutu .bolum { margin-bottom: 14px; }
+dialog.kutu .bolum h3 { margin: 0 0 6px; font-family: var(--f-mono); font-size: var(--fs-1); letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+dialog.kutu dl { display: grid; grid-template-columns: minmax(120px, 190px) 1fr; gap: 4px 12px; margin: 0; }
+dialog.kutu dt { color: var(--dim); }
+dialog.kutu dd { margin: 0; overflow-wrap: anywhere; }
+dialog.kutu .bolum ul { margin: 0; padding-left: 18px; color: var(--txt); }
+
+.app-kap .app-ust { display: flex; justify-content: space-between; margin: 0 0 10px; color: var(--dim); font-size: 12px; }
+.modul-izgara { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-top: 16px; }
+.modul-kart { text-align: left; display: flex; flex-direction: column; gap: 6px; padding: 14px; border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); color: inherit; cursor: pointer; font: inherit; }
+.modul-kart:hover { border-color: var(--acc, currentColor); }
+.modul-kart small { color: var(--dim); line-height: 1.4; }

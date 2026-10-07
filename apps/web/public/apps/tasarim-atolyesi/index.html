@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="tr" class="dark">
+<head>
+  <meta charset="UTF-8">
+<script src="../_ortak/kopru.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasarım Atölyesi Pro</title>
+  <meta name="description" content="Tasarım görsellerini Gemini ile HTML + Tailwind bileşenlerine dönüştüren atölye: bölge analizi, mobil sürüm, varyasyonlar, kütüphane ve site şablonu.">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <style>
+    body { background-color: #0a0c10; overflow-x: hidden; font-family: 'Plus Jakarta Sans', sans-serif; }
+    @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+    .animate-shimmer { background: linear-gradient(90deg, #0f172a 25%, #1e293b 50%, #0f172a 75%); background-size: 1000px 100%; animation: shimmer 2s infinite linear; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+    .suruklenen { opacity: .4; }
+    .birak-hedef { outline: 2px dashed #6366f1; outline-offset: 6px; border-radius: 14px; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#0a0c10] text-slate-200 selection:bg-indigo-500/30">
+  <div class="fixed inset-0 pointer-events-none opacity-40 z-0">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,#4f46e522,transparent_50%)]"></div>
+    <div class="absolute inset-0 opacity-[0.03]" style="background-image:radial-gradient(white 1px,transparent 0);background-size:40px 40px"></div>
+  </div>
+  <div id="kok" class="relative z-10"></div>
+  <div id="katman"></div>
+  <input id="dosya" type="file" accept="image/*" multiple hidden>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

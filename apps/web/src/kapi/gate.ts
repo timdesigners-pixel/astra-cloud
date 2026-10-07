@@ -1,4 +1,5 @@
 import { SURUM } from './surum';
+import { oturumKur } from '../veri/istemci';
 
 const MIN = 6;
 const MAX = 8;
@@ -109,6 +110,8 @@ export async function kapiyiBaslat() {
     mesgul = false;
     if (s && s.durum === 200) {
       oturum = { access_token: s.govde.access_token, refresh_token: s.govde.refresh_token };
+      try { await oturumKur(oturum); }
+      catch (e) { console.warn('oturum kurulamadı', e); oturum = null; ilkPin = ''; inp.value = ''; yenile(); salla(); mesaj('oturum kurulamadı — sunucuya ulaşılamadı', 'err'); return; }
       kod.value = '';
       mesaj(kurulum ? 'PIN kuruldu — açılıyor' : 'açılıyor', 'ok');
       ac();

@@ -1,20 +1,21 @@
-import { SEKMELER, sekmeBul } from './sekmeler';
+import { SEKMELER, sekmeCoz } from './sekmeler';
 
 type Dinleyici = (k: string) => void;
 const dinleyiciler = new Set<Dinleyici>();
 const VARSAYILAN = 'genel';
 
 function adrestenOku(): string {
-  const k = new URLSearchParams(location.search).get('tab') ?? '';
-  return sekmeBul(k) ? k : VARSAYILAN;
+  const ham = new URLSearchParams(location.search).get('tab') ?? '';
+  return sekmeCoz(ham) ?? VARSAYILAN;
 }
 
 let aktif = adrestenOku();
 
 export const aktifSekme = () => aktif;
 
-export function git(k: string, adresYaz = true) {
-  if (!sekmeBul(k)) return;
+export function git(ham: string, adresYaz = true) {
+  const k = sekmeCoz(ham);
+  if (!k) return;
   aktif = k;
   if (adresYaz) {
     const u = new URL(location.href);

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+<script src="../_ortak/kopru.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ödeme Raporu</title>
+  <meta name="description" content="Ödeme kartları, kısmi ödeme, to-do, karar diyagramı, bütçe simülasyonu ve rapor — Astra APPS.">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+  <div id="kok"></div>
+  <div id="katman"></div>
+  <input id="csvDosya" type="file" accept=".csv,text/csv" hidden>
+  <input id="pdfDosya" type="file" accept="application/pdf" hidden>
+  <input id="jsonDosya" type="file" accept="application/json,.json" hidden>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

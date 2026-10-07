@@ -8,6 +8,12 @@
     "build": "vite build",
     "tip": "tsc -p ."
   },
-  "dependencies": { "@astra/alan": "workspace:*", "@astra/sema": "workspace:*" },
-  "devDependencies": { "vite": "^7.0.0" }
+  "dependencies": {
+    "@astra/alan": "workspace:*",
+    "@astra/sema": "workspace:*",
+    "@supabase/supabase-js": "^2"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0"
+  }
 }

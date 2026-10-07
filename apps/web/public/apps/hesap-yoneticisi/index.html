@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<script src="../_ortak/kopru.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Hesap Yöneticisi</title>
+<style>
+:root{
+  --bg:#0a0e18; --panel:#101624; --panel2:#141c2e; --yuva:#070a10;
+  --line:#1e293b; --txt:#f1f5f9; --dim:#7f8ea3;
+  --gold:#e0b968; --gold-soft:rgba(224,185,104,.14);
+  --green:#54c398; --red:#ed8c84; --blue:#7aacf6;
+  --on-accent:#1a1406;
+  --f-ui:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-num:ui-monospace,Menlo,Consolas,monospace;
+  --r:14px; --r-sm:10px;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#f6f7fb; --panel:#fff; --panel2:#f3f5f9; --yuva:#eceff5; --line:#e3e7ef; --txt:#0f172a; --dim:#64748b;
+  --gold:#a8792e; --gold-soft:rgba(168,121,46,.12); --green:#059669; --red:#dc2626; --blue:#2563eb;
+  --on-accent:#fff; color-scheme:light;
+}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 var(--f-ui)}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.dim{color:var(--dim)}
+.kap{max-width:1200px;margin:0 auto;padding:22px 16px 48px;display:flex;flex-direction:column;gap:16px}
+.bas{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between}
+.bas h1{margin:0;font-size:clamp(22px,3vw,28px);font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.bas h1 svg{width:26px;height:26px;color:var(--gold)}
+.bas p{margin:4px 0 0;color:var(--dim);font-size:13.5px}
+.sira{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input,textarea,select{background:var(--yuva);border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 11px;min-width:0;width:100%}
+select{width:auto}
+textarea{resize:vertical;min-height:84px}
+.dugme{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 14px;cursor:pointer;font-weight:600;white-space:nowrap}
+.dugme:hover{border-color:var(--gold)}
+.dugme.ana{background:var(--gold);border-color:var(--gold);color:var(--on-accent)}
+.dugme.tehlike{color:var(--red)}
+.dugme.kucuk{padding:5px 10px;font-size:13px}
+.rozet{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--gold-soft);color:var(--gold);font-size:12.5px;font-weight:700}
+.ara{flex:1 1 280px}
+.tablo-sar{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+thead th{position:sticky;top:0;background:var(--panel2);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);white-space:nowrap;z-index:1}
+thead th button{all:unset;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+thead th button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+tbody tr:hover{background:var(--gold-soft)}
+td.s{width:64px;text-align:right;color:var(--dim)}
+td.say{width:120px;text-align:right}
+td.isl{width:170px}
+th.say{text-align:right}
+td.ad{font-weight:700;overflow-wrap:anywhere}
+td.giris{font-family:var(--f-num);font-size:13px;overflow-wrap:anywhere}
+td.giris a{color:var(--blue);text-decoration:none}
+td.giris a:hover{text-decoration:underline}
+.sayfa{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;color:var(--dim);font-size:13.5px}
+.bos{padding:36px;text-align:center;color:var(--dim)}
+dialog{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:var(--r);padding:18px;width:min(640px,94vw);max-height:90vh}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog form,.mod{display:flex;flex-direction:column;gap:12px}
+dialog label{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--dim)}
+dialog h2{margin:0;font-size:17px;overflow-wrap:anywhere}
+.eylem{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.hs-liste{display:flex;flex-direction:column;gap:6px;max-height:52vh;overflow:auto}
+.hs-baslik,.hs-satir{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center}
+.hs-baslik{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);padding:0 2px}
+.hs-satir .ikili{display:flex;gap:4px;align-items:center}
+.hs-satir .ikili input{flex:1}
+.mini{background:none;border:1px solid var(--line);border-radius:8px;cursor:pointer;color:var(--dim);padding:6px 9px;font-size:12.5px;white-space:nowrap}
+.mini:hover{color:var(--gold);border-color:var(--gold)}
+tr.secili{background:var(--gold-soft)}
+.toplu{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:8px 12px}
+.sag-grup{border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 12px}
+.sag-grup h3{margin:0 0 6px;font-size:14px}
+.sag-grup ul{margin:0;padding-left:18px;font-size:13px}
+td.et{width:190px}
+.et-hucre{display:flex;align-items:center;gap:8px}
+.nokta{width:12px;height:12px;border-radius:50%;flex:none;border:1px solid rgba(127,127,127,.4)}
+.et-hucre select{width:100%;padding:5px 8px;font-size:13px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:700}
+.et-satir{display:grid;grid-template-columns:44px 1fr auto auto;gap:8px;align-items:center}
+.et-satir input[type=color]{padding:2px;height:38px;width:44px;cursor:pointer}
+.et-liste{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow:auto}
+.durum{font-size:13px;color:var(--dim)}
+.durum.iyi{color:var(--green)}
+</style>
+</head>
+<body>
+<div class="kap">
+  <div class="bas">
+    <div>
+      <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="11" r="2.5"/><path d="M5.5 17c.6-2 2-3 3.5-3s2.9 1 3.5 3M15 9.5h3.5M15 13h3.5"/></svg>Hesap Yöneticisi</h1>
+      <p>Platformlar, güncel giriş adresleri ve kayıtlı hesaplar. Kullanıcı adı ve parolalar "Hesapları göster" penceresinde; kayıtlar şifreli kasaya eşitlenir.</p>
+    </div>
+    <div class="sira">
+      <span class="rozet num" id="sayGrup">0 platform</span>
+      <span class="rozet num" id="sayHesap">0 hesap</span>
+      <button class="dugme ana" id="yeni" type="button">Platform ekle</button>
+      <button class="dugme" id="oto" type="button" title="Etiketi olmayan platformları ad ve adresine göre etiketler; var olan etiketlere dokunmaz">Otomatik etiketle</button>
+      <button class="dugme" id="sagBtn" type="button" title="Yinelenen, zayıf ve boş parolaları listeler">Parola sağlığı</button>
+      <button class="dugme" id="etiketler" type="button">Etiketler</button>
+      <button class="dugme" id="disa" type="button">JSON indir</button>
+    </div>
+  </div>
+
+  <div class="sira">
+    <div class="ara"><input id="ara" type="search" placeholder="Platform, adres ya da kullanıcı adı ara…" aria-label="ara"></div>
+    <label class="dim" style="font-size:13px">Etiket <select id="etFiltre" aria-label="etikete göre süz"></select></label>
+    <label class="dim" style="font-size:13px">Sayfa başına <select id="boy" aria-label="sayfa başına satır"><option>25</option><option selected>50</option><option>100</option><option>250</option></select></label>
+    <span class="durum" id="durum" role="status"></span>
+  </div>
+
+  <div class="sira toplu" id="topluBar" hidden>
+    <b id="topluSay" class="num"></b>
+    <select id="topluEt" aria-label="toplu etiket"></select>
+    <button class="dugme kucuk ana" id="topluUygula" type="button">Etiketi ata</button>
+    <button class="dugme kucuk tehlike" id="topluSil" type="button">Seçilenleri sil</button>
+    <button class="dugme kucuk" id="topluIptal" type="button">Seçimi temizle</button>
+  </div>
+
+  <div class="tablo-sar">
+    <table>
+      <thead><tr>
+        <th scope="col" style="width:34px"><input type="checkbox" id="secHepsi" aria-label="sayfadakileri seç" style="width:auto"></th>
+        <th scope="col" class="say"><button type="button" data-sirala="no" aria-label="sıra no">Sıra no</button></th>
+        <th scope="col"><button type="button" data-sirala="marka">Site adı <span data-ok="marka"></span></button></th>
+        <th scope="col"><button type="button" data-sirala="giris">Güncel giriş <span data-ok="giris"></span></button></th>
+        <th scope="col"><button type="button" data-sirala="etiket">Etiket <span data-ok="etiket"></span></button></th>
+        <th scope="col" class="say"><button type="button" data-sirala="sayi">Hesap sayısı <span data-ok="sayi"></span></button></th>
+        <th scope="col">Hesapları göster</th>
+      </tr></thead>
+      <tbody id="govde"></tbody>
+    </table>
+  </div>
+  <div class="sayfa">
+    <span id="aralik" class="num"></span>
+    <span class="sira"><button class="dugme kucuk" id="onceki" type="button">Önceki</button><span id="sayfaNo" class="num"></span><button class="dugme kucuk" id="sonraki" type="button">Sonraki</button></span>
+  </div>
+</div>
+
+<!-- Hesapları göster -->
+<dialog id="dlgHesap" aria-labelledby="hBaslik">
+  <div class="mod">
+    <h2 id="hBaslik">Hesaplar</h2>
+    <div class="dim" id="hAlt" style="font-size:13px"></div>
+    <div class="hs-baslik"><span>Kullanıcı adı</span><span>Parola</span><span></span></div>
+    <div class="hs-liste" id="hListe"></div>
+    <div class="eylem" style="justify-content:space-between">
+      <span class="sira"><button class="dugme kucuk" id="hEkle" type="button">Hesap ekle</button><button class="dugme kucuk" id="hDuzenle" type="button">Platformu düzenle</button><button class="dugme kucuk tehlike" id="hSil" type="button">Platformu sil</button></span>
+      <span class="sira"><button class="dugme" id="hKapat" type="button">Kapat</button><button class="dugme ana" id="hKaydet" type="button">Kaydet</button></span>
+    </div>
+  </div>
+</dialog>
+
+<!-- Parola sağlığı -->
+<dialog id="dlgSag" aria-labelledby="sagBaslik">
+  <div class="mod">
+    <h2 id="sagBaslik">Parola sağlığı</h2>
+    <div class="dim" style="font-size:13px">Parolalar bu pencerede gösterilmez; yalnız hangi platformların etkilendiği listelenir.</div>
+    <div class="et-liste" id="sagIcerik"></div>
+    <div class="eylem"><button class="dugme ana" id="sagKapat" type="button">Kapat</button></div>
+  </div>
+</dialog>
+
+<!-- Etiketler -->
+<dialog id="dlgEt" aria-labelledby="etBaslik">
+  <div class="mod">
+    <h2 id="etBaslik">Etiketler</h2>
+    <div class="dim" style="font-size:13px">Adı ve rengi değiştir, yeni etiket ekle ya da sil. Silinen etiketin platformları etiketsiz kalır.</div>
+    <div class="et-liste" id="etListe"></div>
+    <div class="eylem" style="justify-content:space-between">
+      <button class="dugme kucuk" id="etEkle" type="button">Etiket ekle</button>
+      <span class="sira"><button class="dugme" id="etKapat" type="button">Vazgeç</button><button class="dugme ana" id="etKaydet" type="button">Kaydet</button></span>
+    </div>
+  </div>
+</dialog>
+
+<!-- Platform ekle / düzenle -->
+<dialog id="dlg">
+  <form method="dialog" id="form">
+    <h2 id="dlgBaslik">Platform</h2>
+    <label>Site adı<input id="fMarka" required maxlength="120"></label>
+    <label>Güncel giriş adresi (boşsa adreslerden en yenisi seçilir)<input id="fGiris" maxlength="200" placeholder="ornek123.com"></label>
+    <label>Tüm adresler (her satıra bir tane)<textarea id="fAdres"></textarea></label>
+    <label>Not<input id="fNot" maxlength="300"></label>
+    <div class="eylem">
+      <button class="dugme" type="button" id="iptal">Vazgeç</button>
+      <button class="dugme ana" type="submit">Kaydet</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const ANAHTAR = 'hesap-yoneticisi-v1';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+const kimlik = () => 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const tr = s => String(s || '').toLocaleLowerCase('tr');
+
+/* Hesap = {k: kullanıcı adı, p: parola}. Kasadan gelen paketlerde hesaplar düz metin
+   olabilir; okurken biçime çevrilir. */
+const BASLANGIC_ETIKETLER = [
+  {id: 'e-devlet', ad: 'e-Devlet', renk: '#ef4444'},
+  {id: 'banka', ad: 'Banka & Finans', renk: '#22c55e'},
+  {id: 'bahis', ad: 'Bahis', renk: '#f59e0b'},
+  {id: 'e-ticaret', ad: 'E-ticaret', renk: '#a855f7'},
+  {id: 'google', ad: 'Google', renk: '#3b82f6'},
+  {id: 'sosyal', ad: 'Sosyal medya', renk: '#ec4899'}
+];
+function duzelt(j){
+  const etiketler = Array.isArray(j && j.etiketler) ? j.etiketler.filter(e => e && e.id).map(e => ({id: String(e.id), ad: String(e.ad || ''), renk: /^#[0-9a-f]{6}$/i.test(e.renk) ? e.renk : '#64748b'})) : BASLANGIC_ETIKETLER.map(e => ({...e}));
+  const siteler = (j && Array.isArray(j.siteler) ? j.siteler : []).filter(x => x && x.id).map(x => ({
+    ...x, marka: String(x.marka || ''), adresler: Array.isArray(x.adresler) ? x.adresler : [],
+    hesaplar: (Array.isArray(x.hesaplar) ? x.hesaplar : []).map(h => typeof h === 'string' ? {k: h, p: ''} : {k: String(h && h.k || ''), p: String(h && h.p || '')})
+  }));
+  return {siteler, etiketler, otoYapildi: !!(j && j.otoYapildi)};
+}
+let D = {siteler: [], etiketler: BASLANGIC_ETIKETLER.map(e => ({...e}))};
+try{ D = duzelt(JSON.parse(localStorage.getItem(ANAHTAR) || '{}')); }catch(e){}
+const kaydet = () => { try{ localStorage.setItem(ANAHTAR, JSON.stringify(D)); }catch(e){ durum('Kayıt yazılamadı (depo dolu).', false); } };
+function durum(m, iyi){ const d = $('#durum'); d.textContent = m || ''; d.className = 'durum' + (iyi ? ' iyi' : ''); }
+addEventListener('storage', e => { if(e.key === ANAHTAR && !$('#dlgHesap').open){ try{ D = duzelt(JSON.parse(e.newValue || '{}')); sec.clear(); filtreYaz(); ciz(); if(!D.otoYapildi && D.siteler.length > 20) otoCalistir(true); }catch(err){} } });
+
+/* Güncel giriş: elle girilmişse o; değilse alan adı (IP değil) adreslerinden, sayı uzantısı
+   en büyük (en yeni) olan; eşitlikte listedeki son. */
+const ipMi = a => /^\d{1,3}(\.\d{1,3}){3}(:\d+)?$/.test(a);
+function guncel(x){
+  if(x.giris) return x.giris;
+  const l = x.adresler || [];
+  if(!l.length) return '';
+  const alan = l.filter(a => !ipMi(a)), havuz = alan.length ? alan : l;
+  const puan = a => Math.max(0, ...(a.match(/\d+/g) || []).map(Number));
+  let en = havuz[0], ep = puan(en);
+  havuz.forEach(a => { const p = puan(a); if(p >= ep){ en = a; ep = p; } });
+  return en;
+}
+
+let sirala = {alan: 'marka', yon: 1}, sayfa = 0;
+const sec = new Set();
+function suz(){
+  const t = tr($('#ara').value).trim();
+  const ef = $('#etFiltre').value;
+  let s = D.siteler.filter(x => (!ef || (ef === '-' ? !etOf(x) : x.etiket === ef)) && (!t || tr(x.marka).includes(t) || (x.adresler || []).some(a => tr(a).includes(t)) || tr(x.giris).includes(t)
+    || x.hesaplar.some(h => tr(h.k).includes(t)) || tr(x.not).includes(t) || tr((etOf(x) || {}).ad).includes(t)));
+  const ka = {marka: x => x.marka, giris: x => guncel(x), etiket: x => (etOf(x) || {ad: '\uffff'}).ad, sayi: x => x.hesaplar.length}[sirala.alan];
+  if(ka) s = s.slice().sort((a, b) => {
+    const u = ka(a), v = ka(b);
+    return (typeof u === 'number' ? u - v : String(u).localeCompare(String(v), 'tr', {numeric: true, sensitivity: 'base'})) * sirala.yon;
+  });
+  else if(sirala.yon < 0) s = s.slice().reverse();
+  return s;
+}
+const etOf = x => D.etiketler.find(e => e.id === x.etiket) || null;
+function yaziRengi(hex){
+  const n = parseInt(String(hex).slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? '#0f172a' : '#ffffff';
+}
+function etiketSecenekleri(sec){
+  return '<option value="">—</option>' + D.etiketler.map(e => `<option value="${esc(e.id)}"${e.id === sec ? ' selected' : ''}>${esc(e.ad)}</option>`).join('');
+}
+function filtreYaz(){
+  const f = $('#etFiltre'), onceki = f.value;
+  f.innerHTML = '<option value="">Tümü</option><option value="-">Etiketsiz</option>' + D.etiketler.map(e => `<option value="${esc(e.id)}">${esc(e.ad)}</option>`).join('');
+  f.value = [...f.options].some(o => o.value === onceki) ? onceki : '';
+}
+function girisHTML(g){
+  if(!g) return '<span class="dim">—</span>';
+  return ipMi(g) ? esc(g) : `<a href="https://${esc(g)}" target="_blank" rel="noopener noreferrer">${esc(g)}</a>`;
+}
+function ciz(){
+  const s = suz(), boy = Number($('#boy').value) || 50, son = Math.max(0, Math.ceil(s.length / boy) - 1);
+  if(sayfa > son) sayfa = son;
+  const bas = sayfa * boy, dilim = s.slice(bas, bas + boy);
+  $('#sayGrup').textContent = D.siteler.length + ' platform';
+  $('#sayHesap').textContent = D.siteler.reduce((a, x) => a + x.hesaplar.length, 0) + ' hesap';
+  $('#govde').innerHTML = dilim.length ? dilim.map((x, i) => `<tr${sec.has(x.id) ? ' class="secili"' : ''}>
+      <td><input type="checkbox" data-sec="${esc(x.id)}" ${sec.has(x.id) ? 'checked' : ''} aria-label="${esc(x.marka)} seç" style="width:auto"></td>
+      <td class="s num">${bas + i + 1}</td>
+      <td class="ad">${esc(x.marka)}</td>
+      <td class="giris">${girisHTML(guncel(x))}</td>
+      <td class="et"><div class="et-hucre"><span class="nokta" style="background:${etOf(x) ? esc(etOf(x).renk) : 'transparent'}"></span><select data-et="${esc(x.id)}" aria-label="${esc(x.marka)} etiketi">${etiketSecenekleri(x.etiket)}</select></div></td>
+      <td class="say num">${x.hesaplar.length}</td>
+      <td class="isl"><button class="dugme kucuk" type="button" data-goster="${esc(x.id)}" aria-label="${esc(x.marka)} hesaplarını göster">Hesapları göster</button></td>
+    </tr>`).join('') : '<tr><td colspan="7" class="bos">Eşleşen kayıt yok.</td></tr>';
+  document.querySelectorAll('[data-ok]').forEach(o => { o.textContent = sirala.alan === o.dataset.ok ? (sirala.yon > 0 ? '▲' : '▼') : ''; });
+  $('#aralik').textContent = s.length ? `${bas + 1}–${bas + dilim.length} / ${s.length}` : '0 kayıt';
+  $('#sayfaNo').textContent = `${sayfa + 1} / ${son + 1}`;
+  $('#onceki').disabled = sayfa <= 0; $('#sonraki').disabled = sayfa >= son;
+  topluGuncelle(dilim);
+}
+$('#govde').addEventListener('change', e => {
+  const s = e.target.closest('[data-et]'); if(!s) return;
+  const x = D.siteler.find(y => y.id === s.dataset.et); if(!x) return;
+  x.etiket = s.value; x._ts = Date.now(); kaydet(); ciz();
+});
+$('#etFiltre').addEventListener('change', () => { sayfa = 0; ciz(); });
+/* ---- toplu işlem ---- */
+let gorunenId = [];
+function topluGuncelle(dilim){
+  gorunenId = dilim.map(x => x.id);
+  const bar = $('#topluBar'); bar.hidden = sec.size === 0;
+  $('#topluSay').textContent = sec.size + ' platform seçili';
+  $('#topluEt').innerHTML = '<option value="">Etiketsiz yap</option>' + D.etiketler.map(e => `<option value="${esc(e.id)}">${esc(e.ad)}</option>`).join('');
+  const hepsi = $('#secHepsi');
+  hepsi.checked = gorunenId.length > 0 && gorunenId.every(i => sec.has(i));
+  hepsi.indeterminate = !hepsi.checked && gorunenId.some(i => sec.has(i));
+}
+$('#govde').addEventListener('change', e => {
+  const c = e.target.closest('[data-sec]'); if(!c) return;
+  if(c.checked) sec.add(c.dataset.sec); else sec.delete(c.dataset.sec);
+  ciz();
+});
+$('#secHepsi').addEventListener('change', e => { gorunenId.forEach(i => { if(e.target.checked) sec.add(i); else sec.delete(i); }); ciz(); });
+$('#topluIptal').addEventListener('click', () => { sec.clear(); ciz(); });
+$('#topluUygula').addEventListener('click', () => {
+  const et = $('#topluEt').value, t = Date.now();
+  D.siteler.forEach(x => { if(sec.has(x.id)){ x.etiket = et; x._ts = t; } });
+  const say = sec.size; sec.clear(); kaydet(); ciz(); durum(say + ' platformun etiketi güncellendi.', true);
+});
+$('#topluSil').addEventListener('click', () => {
+  if(!sec.size || !confirm(sec.size + ' platform ve hesapları silinsin mi? Bu işlem geri alınamaz.')) return;
+  const say = sec.size;
+  D.siteler = D.siteler.filter(x => !sec.has(x.id)); sec.clear(); kaydet(); ciz(); durum(say + ' platform silindi.', true);
+});
+
+/* ---- parola sağlığı ---- */
+const YAYGIN = new Set(['1234', '12345', '123456', '1234567', '12345678', 'admin', 'password', 'parola', 'qwerty', 'sifre', 'şifre', '111111', '000000', 'abc123']);
+function zayifMi(k, p){
+  if(!p) return false;
+  const t = p.toLowerCase();
+  return p.length < 8 || YAYGIN.has(t) || t === String(k).toLowerCase() || /^\d+$/.test(p);
+}
+function sagRaporu(){
+  const pMap = new Map(), bos = [], zayif = [];
+  D.siteler.forEach(x => x.hesaplar.forEach(h => {
+    if(!h.p){ bos.push(x.marka); return; }
+    if(!pMap.has(h.p)) pMap.set(h.p, new Set());
+    pMap.get(h.p).add(x.marka);
+    if(zayifMi(h.k, h.p)) zayif.push(x.marka + ' — ' + h.k);
+  }));
+  const tekrar = [...pMap.values()].filter(s => s.size > 1).sort((a, b) => b.size - a.size);
+  const toplamHesap = D.siteler.reduce((a, x) => a + x.hesaplar.length, 0);
+  return {toplamHesap, bos: [...new Set(bos)], zayif, tekrar};
+}
+$('#sagBtn').addEventListener('click', () => {
+  const r = sagRaporu();
+  const liste = (a, ust) => a.length ? `<ul>${a.slice(0, ust || 30).map(x => `<li>${esc(x)}</li>`).join('')}</ul>${a.length > (ust || 30) ? `<div class="dim" style="font-size:12px;margin-top:4px">… ve ${a.length - (ust || 30)} kayıt daha</div>` : ''}` : '<div class="dim" style="font-size:13px">Sorun yok.</div>';
+  $('#sagIcerik').innerHTML = `
+    <div class="sag-grup"><h3>Genel</h3><div style="font-size:13px">${r.toplamHesap} hesap · parolası girilmemiş: ${r.bos.length} platform · zayıf: ${r.zayif.length} hesap · yinelenen parola grubu: ${r.tekrar.length}</div></div>
+    <div class="sag-grup"><h3>Aynı parola birden çok platformda (${r.tekrar.length})</h3>${liste(r.tekrar.map(s => s.size + ' platform: ' + [...s].slice(0, 6).join(', ') + (s.size > 6 ? '…' : '')))}</div>
+    <div class="sag-grup"><h3>Zayıf parola (${r.zayif.length})</h3><div class="dim" style="font-size:12px;margin-bottom:4px">8 karakterden kısa, yaygın (1234, admin…), kullanıcı adıyla aynı ya da yalnız rakam.</div>${liste(r.zayif)}</div>
+    <div class="sag-grup"><h3>Parolası girilmemiş platformlar (${r.bos.length})</h3>${liste(r.bos)}</div>`;
+  $('#dlgSag').showModal();
+});
+$('#sagKapat').addEventListener('click', () => $('#dlgSag').close());
+
+$('#ara').addEventListener('input', () => { sayfa = 0; ciz(); });
+$('#boy').addEventListener('change', () => { sayfa = 0; ciz(); });
+$('#onceki').addEventListener('click', () => { sayfa--; ciz(); });
+$('#sonraki').addEventListener('click', () => { sayfa++; ciz(); });
+document.querySelectorAll('[data-sirala]').forEach(b => b.addEventListener('click', () => {
+  const a = b.dataset.sirala;
+  sirala = sirala.alan === a ? {alan: a, yon: -sirala.yon} : {alan: a, yon: 1};
+  sayfa = 0; ciz();
+}));
+
+/* ---- hesapları göster ---- */
+let acik = null, taslak = [];
+function hesapSatirlari(){
+  $('#hListe').innerHTML = taslak.length ? taslak.map((h, i) => `<div class="hs-satir">
+      <input data-k="${i}" value="${esc(h.k)}" aria-label="kullanıcı adı ${i + 1}" autocomplete="off" spellcheck="false">
+      <div class="ikili"><input data-p="${i}" type="password" value="${esc(h.p)}" aria-label="parola ${i + 1}" autocomplete="off" spellcheck="false">
+        <button class="mini" type="button" data-gor="${i}" aria-label="parolayı göster">Göster</button></div>
+      <span class="sira"><button class="mini" type="button" data-kopk="${i}">Kullanıcı</button><button class="mini" type="button" data-kopp="${i}">Parola</button><button class="mini" type="button" data-hsil="${i}" aria-label="hesabı sil">Sil</button></span>
+    </div>`).join('') : '<div class="bos">Kayıtlı hesap yok. "Hesap ekle" ile ekleyebilirsin.</div>';
+}
+function goster(x){
+  acik = x; taslak = x.hesaplar.map(h => ({...h}));
+  $('#hBaslik').textContent = x.marka + ' — ' + x.hesaplar.length + ' hesap';
+  $('#hAlt').textContent = guncel(x) ? 'Güncel giriş: ' + guncel(x) : '';
+  hesapSatirlari(); $('#dlgHesap').showModal(); bosBekle();
+}
+$('#govde').addEventListener('click', e => { const b = e.target.closest('[data-goster]'); if(b) goster(D.siteler.find(x => x.id === b.dataset.goster)); });
+/* Parola kopyalanınca pano 30 sn sonra boşaltılır (başka bir şey kopyalanmışsa dokunulmaz);
+   parola penceresi 2 dk hareketsizlikte kendiliğinden kapanır. */
+let panoZamani = null, panoParola = '';
+function kopyala(metin, b, gizli){
+  navigator.clipboard.writeText(metin).then(() => {
+    const o = b.textContent; b.textContent = 'Kopyalandı'; setTimeout(() => { b.textContent = o; }, 1200);
+    if(gizli && metin){
+      clearTimeout(panoZamani); panoParola = metin;
+      panoZamani = setTimeout(async () => {
+        try{ if(await navigator.clipboard.readText() === panoParola) await navigator.clipboard.writeText(''); }catch(e){ /* okuma izni yoksa yine de temizle */ try{ await navigator.clipboard.writeText(''); }catch(e2){} }
+        panoParola = '';
+      }, 30000);
+    }
+  }).catch(() => durum('Kopyalanamadı.', false));
+}
+let bosZaman = null;
+function bosBekle(){
+  clearTimeout(bosZaman);
+  if($('#dlgHesap').open) bosZaman = setTimeout(() => { if($('#dlgHesap').open){ $('#dlgHesap').close(); durum('Hesap penceresi hareketsizlik nedeniyle kapatıldı.', false); } }, 120000);
+}
+['click', 'keydown', 'input'].forEach(o => $('#dlgHesap').addEventListener(o, bosBekle));
+$('#dlgHesap').addEventListener('close', () => clearTimeout(bosZaman));
+$('#hListe').addEventListener('input', e => {
+  const k = e.target.dataset.k, p = e.target.dataset.p;
+  if(k !== undefined) taslak[+k].k = e.target.value; else if(p !== undefined) taslak[+p].p = e.target.value;
+});
+$('#hListe').addEventListener('click', e => {
+  const g = e.target.closest('[data-gor]');
+  if(g){ const i = $('#hListe').querySelector(`[data-p="${g.dataset.gor}"]`); const ac = i.type === 'password'; i.type = ac ? 'text' : 'password'; g.textContent = ac ? 'Gizle' : 'Göster'; return; }
+  const k = e.target.closest('[data-kopk]'); if(k){ kopyala(taslak[+k.dataset.kopk].k, k); return; }
+  const p = e.target.closest('[data-kopp]'); if(p){ kopyala(taslak[+p.dataset.kopp].p, p, true); return; }
+  const s = e.target.closest('[data-hsil]'); if(s){ taslak.splice(+s.dataset.hsil, 1); hesapSatirlari(); }
+});
+$('#hEkle').addEventListener('click', () => { taslak.push({k: '', p: ''}); hesapSatirlari(); const l = $('#hListe').querySelectorAll('[data-k]'); l[l.length - 1].focus(); });
+$('#hKapat').addEventListener('click', () => $('#dlgHesap').close());
+$('#hKaydet').addEventListener('click', () => {
+  acik.hesaplar = taslak.filter(h => h.k.trim() || h.p).map(h => ({k: h.k.trim(), p: h.p}));
+  acik._ts = Date.now(); acik.duzenlendi = true; kaydet(); ciz(); $('#dlgHesap').close(); durum('Hesaplar kaydedildi.', true);
+});
+$('#hDuzenle').addEventListener('click', () => { const x = acik; $('#dlgHesap').close(); ac(x); });
+$('#hSil').addEventListener('click', () => {
+  if(!confirm(`"${acik.marka}" platformu ve ${acik.hesaplar.length} hesabı silinsin mi?`)) return;
+  D.siteler = D.siteler.filter(y => y.id !== acik.id); kaydet(); ciz(); $('#dlgHesap').close(); durum('Silindi.', true);
+});
+
+/* ---- platform ekle / düzenle ---- */
+const satirlar = t => [...new Set(String(t || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean))];
+let duzenlenen = null;
+function ac(x){
+  duzenlenen = x || null;
+  $('#dlgBaslik').textContent = x ? 'Platformu düzenle' : 'Platform ekle';
+  $('#fMarka').value = x ? x.marka : ''; $('#fGiris').value = x ? (x.giris || '') : '';
+  $('#fAdres').value = x ? x.adresler.join('\n') : ''; $('#fNot').value = x ? (x.not || '') : '';
+  $('#dlg').showModal(); $('#fMarka').focus();
+}
+$('#yeni').addEventListener('click', () => ac(null));
+$('#iptal').addEventListener('click', () => $('#dlg').close());
+$('#form').addEventListener('submit', e => {
+  e.preventDefault();
+  const marka = $('#fMarka').value.trim(); if(!marka) return;
+  const v = {marka, giris: $('#fGiris').value.trim(), adresler: satirlar($('#fAdres').value), not: $('#fNot').value.trim(), _ts: Date.now()};
+  if(duzenlenen) Object.assign(duzenlenen, v); else D.siteler.push({id: kimlik(), hesaplar: [], ...v});
+  kaydet(); ciz(); $('#dlg').close(); durum('Kaydedildi.', true);
+});
+let etTaslak = [];
+const etKimlik = () => 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+function etSatirlari(){
+  const kullanim = id => D.siteler.filter(x => x.etiket === id).length;
+  $('#etListe').innerHTML = etTaslak.length ? etTaslak.map((e, i) => `<div class="et-satir">
+      <input type="color" data-r="${i}" value="${esc(e.renk)}" aria-label="renk ${i + 1}">
+      <input data-a="${i}" value="${esc(e.ad)}" maxlength="40" aria-label="etiket adı ${i + 1}">
+      <span class="chip" style="background:${esc(e.renk)};color:${yaziRengi(e.renk)}">${esc(e.ad || 'Etiket')}</span>
+      <span class="sira"><span class="dim num" style="font-size:12px">${kullanim(e.id)} platform</span><button class="mini" type="button" data-esil="${i}" aria-label="etiketi sil">Sil</button></span>
+    </div>`).join('') : '<div class="bos">Etiket yok.</div>';
+}
+$('#etiketler').addEventListener('click', () => { etTaslak = D.etiketler.map(e => ({...e})); etSatirlari(); $('#dlgEt').showModal(); });
+$('#etListe').addEventListener('input', e => {
+  const r = e.target.dataset.r, a = e.target.dataset.a;
+  if(r !== undefined) etTaslak[+r].renk = e.target.value; else if(a !== undefined) etTaslak[+a].ad = e.target.value;
+  /* yazarken odak kaybolmasın: yalnız önizleme çipi güncellenir */
+  const satir = e.target.closest('.et-satir'), i = +(r ?? a), c = satir.querySelector('.chip');
+  c.textContent = etTaslak[i].ad || 'Etiket'; c.style.background = etTaslak[i].renk; c.style.color = yaziRengi(etTaslak[i].renk);
+});
+$('#etListe').addEventListener('click', e => {
+  const s = e.target.closest('[data-esil]'); if(!s) return;
+  const t = etTaslak[+s.dataset.esil], n = D.siteler.filter(x => x.etiket === t.id).length;
+  if(n && !confirm(`"${t.ad}" etiketi ${n} platformda kullanılıyor; silinirse bu platformlar etiketsiz kalır. Silinsin mi?`)) return;
+  etTaslak.splice(+s.dataset.esil, 1); etSatirlari();
+});
+$('#etEkle').addEventListener('click', () => { etTaslak.push({id: etKimlik(), ad: '', renk: '#64748b'}); etSatirlari(); const l = $('#etListe').querySelectorAll('[data-a]'); l[l.length - 1].focus(); });
+$('#etKapat').addEventListener('click', () => $('#dlgEt').close());
+$('#etKaydet').addEventListener('click', () => {
+  const temiz = etTaslak.map(e => ({...e, ad: e.ad.trim()})).filter(e => e.ad);
+  const adlar = temiz.map(e => tr(e.ad));
+  if(new Set(adlar).size !== adlar.length){ alert('Aynı ada sahip iki etiket var; adları farklı yap.'); return; }
+  const kalan = new Set(temiz.map(e => e.id));
+  D.siteler.forEach(x => { if(x.etiket && !kalan.has(x.etiket)){ x.etiket = ''; x._ts = Date.now(); } });
+  D.etiketler = temiz; kaydet(); filtreYaz(); ciz(); $('#dlgEt').close(); durum('Etiketler kaydedildi.', true);
+});
+/* Otomatik etiket: platform adı ve adreslerinde anahtar sözcük / bilinen marka aranır. Sıra önemli:
+   ilk eşleşen kazanır. Yalnız etiketi olmayan (elle seçilmemiş) platformlara uygulanır. */
+const OTO_KURAL = [
+  ['e-devlet', /gov\.tr|turkiye\.gov|e-?devlet|uyap|\bkep\b|kep\.tr|mernis|\bebys\b|osym/i],
+  ['google', /google|gmail|youtube|blogger|blogspot|firebase|gstatic/i],
+  ['sosyal', /facebook|instagram|twitter|tiktok|snapchat|linkedin|pinterest|telegram|whatsapp|discord|reddit|twitch|tumblr|eksisozluk|\bx\.com\b|^x$/i],
+  ['bahis', /bet|bahis|casino|kazino|slot|poker|jackpot|rulet|loto|spin|bwin|baywin|bilyoner|nesine|misli|iddaa|toto/i],
+  ['banka', /ziraat|halkbank|vakifbank|garanti|isbank|akbank|yapikredi|denizbank|qnb|enpara|kuveyt|albaraka|fibabanka|odeabank|sekerbank|hsbc|binance|btcturk|paribu|midas|iyzico|paytr|paypal|payoneer|revolut|riskmerkezi|ofisfinans|papara/i],
+  ['e-ticaret', /trendyol|hepsiburada|amazon|\bn11\b|ciceksepeti|sahibinden|gittigidiyor|aliexpress|temu|shein|migros|getir|yemeksepeti|\ba101\b|teknosa|mediamarkt|vatan|decathlon|lcw|defacto|boyner|letgo|dolap|pazarama|ebay|etsy|itopya|incehesap|gratis|watsons|ikea|kitapyurdu|akakce|cimri/i],
+  ['#ayna'],
+  ['banka', /banka|bank|finans|kredi|sigorta|coin|crypto|kripto|borsa|forex|yatirim|deposit|payment/i],
+  ['e-ticaret', /shop|store|magaza|market|alisveris|outlet|satis|emlak|yedekparca|otomotiv/i]
+];
+/* Ad + 2-4 haneli sayı uzantılı alan adları (acarbet122.com…) bahis ayna adresleridir. */
+const AYNA = /^(www\.|m\.)?[a-z][a-z-]*\d{2,4}\.(com|net|org|club|live|vip|xyz|info|bet|pro|top|site|online|life)$/i;
+function otoEtiket(x){
+  const m = [x.marka, ...(x.adresler || [])].join(' ');
+  for(const [id, re] of OTO_KURAL){
+    if(id === '#ayna'){ if((x.adresler || []).some(a => AYNA.test(a))) return 'bahis'; continue; }
+    if(re.test(m)) return id;
+  }
+  return '';
+}
+function otoCalistir(sessiz){
+  const var_ = new Set(D.etiketler.map(e => e.id));
+  const say = {}; let toplam = 0;
+  D.siteler.forEach(x => {
+    if(x.etiket && var_.has(x.etiket)) return;
+    const id = otoEtiket(x);
+    if(id && var_.has(id)){ x.etiket = id; x._ts = Date.now(); say[id] = (say[id] || 0) + 1; toplam++; }
+  });
+  D.otoYapildi = true; kaydet(); ciz();
+  if(!sessiz || toplam) durum(toplam ? toplam + ' platform etiketlendi: ' + Object.entries(say).map(([k, v]) => (D.etiketler.find(e => e.id === k) || {ad: k}).ad + ' ' + v).join(' · ') : 'Etiketlenecek yeni platform bulunamadı.', true);
+  return toplam;
+}
+$('#oto').addEventListener('click', () => otoCalistir(false));
+$('#disa').addEventListener('click', () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(D, null, 1)], {type: 'application/json'}));
+  a.download = 'hesap-yoneticisi-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+});
+filtreYaz(); ciz();
+if(!D.otoYapildi && D.siteler.length > 20) otoCalistir(true);
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "rewrites": [
+    { "source": "/apps/:app(oynatma-listelerim|pinterest-panolarim)/:dosya(hero|kucuk).json",
+      "destination": "https://fwjzgiorkkmwzohdgirh.supabase.co/storage/v1/object/public/apps/:app/:dosya.json" },
+    { "source": "/apps/:app(oynatma-listelerim|pinterest-panolarim)/detay/:no.json",
+      "destination": "https://fwjzgiorkkmwzohdgirh.supabase.co/storage/v1/object/public/apps/:app/detay/:no.json" }
+  ],
+  "headers": [
+    { "source": "/(.*)", "headers": [
+      { "key": "X-Content-Type-Options", "value": "nosniff" },
+      { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+      { "key": "Permissions-Policy", "value": "camera=(), payment=(), usb=(), microphone=(self), geolocation=*" },
+      { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive, nosnippet" }
+    ] },
+    { "source": "/apps/:app/(.*)", "headers": [
+      { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https://*.supabase.co https://open.er-api.com https://api.gold-api.com https://api.open-meteo.com https://cdn.jsdelivr.net; frame-src 'self' blob: https://www.youtube-nocookie.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'" },
+      { "key": "Access-Control-Allow-Origin", "value": "*" },
+      { "key": "Cross-Origin-Resource-Policy", "value": "cross-origin" }
+    ] }
+  ]
+}

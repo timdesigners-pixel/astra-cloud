@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dosya Yöneticisi</title>
+  <meta name="description" content="Astra Bulut ve bu bilgisayardaki klasörlerde dosya ve klasör gezintisi — Astra APPS.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+  <div class="duzen">
+    <aside class="yan" aria-label="Kaynaklar">
+      <div class="marka"><span class="ms">folder_open</span><div><b>Dosya Yöneticisi</b><small>ASTRA APPS</small></div></div>
+      <div class="yan-baslik">Kaynaklar</div>
+      <nav id="kaynaklar" class="kaynaklar"></nav>
+      <div class="yan-baslik">Sık kullanılanlar</div>
+      <nav id="yildizlar" class="kaynaklar"></nav>
+      <div class="yan-not" id="yanNot"></div>
+    </aside>
+    <main class="ana">
+      <header class="ust">
+        <div class="yol-satiri">
+          <button class="ikon-dugme" id="geri" title="Üst klasör (Backspace)" aria-label="Üst klasör"><span class="ms">arrow_upward</span></button>
+          <nav id="yol" class="yol" aria-label="Konum"></nav>
+        </div>
+        <div class="arac-satiri">
+          <label class="ara"><span class="ms">search</span><input id="ara" type="search" placeholder="Bu klasörde ve alt klasörlerde ara…" aria-label="Ara"></label>
+          <select id="sirala" aria-label="Sırala">
+            <option value="ad">Ada göre</option>
+            <option value="tarih">Tarihe göre</option>
+            <option value="boyut">Boyuta göre</option>
+            <option value="tur">Türe göre</option>
+          </select>
+          <div class="gorunum" role="group" aria-label="Görünüm">
+            <button data-gorunum="izgara" title="Izgara"><span class="ms">grid_view</span></button>
+            <button data-gorunum="liste" title="Liste"><span class="ms">view_list</span></button>
+          </div>
+        </div>
+      </header>
+      <section id="ozet" class="ozet"></section>
+      <section id="icerik" class="icerik" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <div id="onizleme" class="onizleme" hidden>
+    <div class="oz-kutu" role="dialog" aria-modal="true" aria-labelledby="ozBaslik">
+      <header class="oz-ust">
+        <span class="ms" id="ozIkon">description</span>
+        <div class="oz-ad"><b id="ozBaslik"></b><small id="ozAlt"></small></div>
+        <div class="oz-eylem" id="ozEylem"></div>
+        <button class="ikon-dugme" id="ozKapat" aria-label="Kapat" title="Kapat (Esc)"><span class="ms">close</span></button>
+      </header>
+      <div class="oz-sekme" id="ozSekme"></div>
+      <div class="oz-govde" id="ozGovde"></div>
+    </div>
+  </div>
+  <div id="bildirim" class="bildirim" role="status"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
