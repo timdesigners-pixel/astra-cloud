@@ -308,3 +308,7 @@ mark[data-renk="mor"]{background:color-mix(in srgb, var(--violet) 32%, transpare
   .tp-tut{position:static; opacity:1; pointer-events:auto; align-self:flex-end; flex-direction:row; padding:0; border:0; background:none; box-shadow:none}
   .tp-tut select{display:none}
 }
+.tp-surukle{cursor:grab}
+.tp-suruklenen{opacity:.4}
+.tp-uste{box-shadow:0 -2px 0 0 var(--ac, #d4a72c)}
+.tp-alta{box-shadow:0 2px 0 0 var(--ac, #d4a72c)}
