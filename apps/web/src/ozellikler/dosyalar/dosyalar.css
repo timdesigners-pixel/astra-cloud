@@ -39,3 +39,6 @@
   .dy-isl { white-space: normal; }
   .dy-tablo th:nth-child(4), .dy-tablo td:nth-child(4) { display: none; }
 }
+.ht-pencere { width: min(900px, 96vw); }
+.ht-kap { max-height: 50vh; overflow: auto; }
+.ht-tablo select { max-width: 100%; }

@@ -5,8 +5,8 @@ import { onayla } from '../../ortak/uyari';
 import { bugunAnahtari } from '../../ortak/zaman';
 import { hataMetni } from '../../veri/hata';
 import {
-  AZAMI_DOSYA, degerDurumu, degerleriGetir, degerleriKaydet, dosyaYukle, imzaliAdres, raporEkle, raporGuncelle, raporlariGetir, raporuSil, testlereAyir,
-  yapayZekaylaOku, type Deger, type DegerGirdisi, type Rapor, type TestOzeti,
+  AZAMI_DOSYA, degerDurumu, degerleriGetir, degerleriKaydet, dosyaYukle, egilimMetni, farkHesapla, imzaliAdres, istatistik, raporEkle, raporGuncelle, raporlariGetir,
+  raporuSil, testGrubu, testlereAyir, yapayZekaylaOku, type Deger, type DegerGirdisi, type Fark, type Rapor, type TestOzeti,
 } from '../../veri/tahlil';
 import { DURUM_ADI, KATALOG, durumHesapla, serbestAnahtar, testBul, type Durum } from '../../veri/tahlil-katalog';
 import { metindenAyikla } from '../../veri/tahlil-ayikla';
@@ -19,13 +19,15 @@ const sayiYaz = (n: number | null) => (n === null ? '—' : n.toLocaleString('tr
 const sayiOku = (s: string): number | null => { const n = Number(s.trim().replace(',', '.').replace(/^[<>]=?\s*/, '')); return s.trim() && Number.isFinite(n) ? n : null; };
 const referans = (alt: number | null, ust: number | null) => (alt === null && ust === null ? '—' : alt !== null && ust !== null ? `${sayiYaz(alt)} – ${sayiYaz(ust)}` : alt !== null ? `≥ ${sayiYaz(alt)}` : `≤ ${sayiYaz(ust)}`);
 const durumRozeti = (d: Durum) => el('span', `sg-durum ${d}`, DURUM_ADI[d]);
+const farkMetni = (f: Fark | null) => (f === null ? '—' : Math.abs(f.fark) < 1e-9 ? 'değişmedi' : `${f.fark > 0 ? '↑ +' : '↓ −'}${sayiYaz(Math.abs(f.fark))}${f.yuzde === null ? '' : ` (%${Math.abs(Math.round(f.yuzde))})`}`);
+const kisaTarih = (s: string) => `${s.slice(8, 10)}.${s.slice(5, 7)}.${s.slice(2, 4)}`;
 const degerMetni = (d: Pick<Deger, 'deger' | 'metin'>) => (d.metin && d.deger === null ? d.metin : d.metin && /^[<>]/.test(d.metin) ? d.metin : sayiYaz(d.deger));
 
 type Satir = DegerGirdisi & { id?: string };
 
 export function tahlilSayfasi(kok: HTMLElement) {
   const s = {
-    raporlar: [] as Rapor[], degerler: [] as Deger[], gorunum: 'degerler' as 'degerler' | 'raporlar', ara: '', sadeceDisi: false,
+    raporlar: [] as Rapor[], degerler: [] as Deger[], gorunum: 'degerler' as 'degerler' | 'karsilastirma' | 'raporlar', ara: '', sadeceDisi: false, grup: '', matrisSon: 6,
     yukleniyor: true, hata: '', aiOnay: false,
   };
   const kart = el('section', 'card sg');
@@ -44,24 +46,64 @@ export function tahlilSayfasi(kok: HTMLElement) {
     try { window.open(await imzaliAdres(r.dosya_yol, undefined, 120), '_blank', 'noopener'); } catch (e) { bildir(hataMetni(e), undefined, true); }
   };
 
-  /* ——— Test ayrıntısı ——— */
+  /* ——— Test ayrıntısı: istatistik, önceki sonuçlarla karşılaştırma, grafik ve geçmiş tablosu ——— */
   function testDetay(t: TestOzeti) {
     const dlg = el('dialog', 'kutu genis'); dlg.setAttribute('aria-label', t.ad);
-    dlg.appendChild(el('h2', '', t.ad));
-    dlg.appendChild(el('p', 'sg-not', `Son değer: ${degerMetni(t.son)} ${t.birim ?? ''} · ${tarihYaz(t.son.tarih)} · Referans ${referans(t.son.ref_alt, t.son.ref_ust)}`));
+    const bas = el('div', 'sg-ust');
+    bas.append(el('h2', '', t.ad), el('small', 'pill', testGrubu(t.test)));
+    dlg.appendChild(bas);
+    const ist = istatistik(t.seri);
+    const birim = t.birim ?? '';
+    if (ist) {
+      const kutular = el('div', 'sg-istat');
+      const kutu_ = (et: string, deger: string, alt = '', sinif = '') => { const k = el('div', 'sg-istat-k ' + sinif); k.append(el('span', 'et', et), el('b', '', deger), el('small', '', alt)); kutular.appendChild(k); };
+      const sayisalSeri = t.seri.filter(d => d.deger !== null);
+      const onceki = sayisalSeri.length > 1 ? sayisalSeri[sayisalSeri.length - 2]! : null;
+      kutu_('Son sonuç', `${degerMetni(t.son)} ${birim}`, `${tarihYaz(t.son.tarih)} · ${DURUM_ADI[t.durum]}`, t.durum === 'dusuk' || t.durum === 'yuksek' ? 'disari' : '');
+      kutu_('Önceki sonuç', onceki ? `${degerMetni(onceki)} ${birim}` : '—', onceki ? tarihYaz(onceki.tarih) : '');
+      kutu_('Fark', farkMetni(farkHesapla(onceki, t.son)), onceki ? `${tarihYaz(onceki.tarih)} → ${tarihYaz(t.son.tarih)}` : '');
+      kutu_('İlk sonuca göre', farkMetni(farkHesapla(ist.ilk, t.son)), `${tarihYaz(ist.ilk.tarih)}'den beri`);
+      kutu_('En düşük', `${sayiYaz(ist.en_dusuk.deger)} ${birim}`, tarihYaz(ist.en_dusuk.tarih));
+      kutu_('En yüksek', `${sayiYaz(ist.en_yuksek.deger)} ${birim}`, tarihYaz(ist.en_yuksek.tarih));
+      kutu_('Ortalama', `${sayiYaz(Math.round(ist.ortalama * 100) / 100)} ${birim}`, `${ist.n} sonuç`);
+      kutu_('Referans dışı', `${ist.disinda} / ${ist.n}`, `Referans ${referans(t.son.ref_alt, t.son.ref_ust)}`);
+      dlg.appendChild(kutular);
+      dlg.appendChild(el('p', 'sg-trend', egilimMetni(t.seri)));
+    }
     const sayisal = t.seri.filter(d => d.deger !== null);
     if (sayisal.length) {
       dlg.appendChild(grafikCiz(sayisal.map(d => ({ x: d.tarih, y: d.deger!, disarida: ['dusuk', 'yuksek'].includes(degerDurumu(d)), etiket: `${tarihYaz(d.tarih)}: ${degerMetni(d)} ${d.birim ?? ''}` })),
         { ondalik: 1, alt: t.son.ref_alt, ust: t.son.ref_ust, aralikAdi: 'Referans aralığı', yukseklik: 220 }));
     }
+    // iki sonucu seçip karşılaştır
+    if (sayisal.length > 1) {
+      const kar = el('div', 'sg-karsi');
+      const sec = (id: string, varsayilan: Deger) => {
+        const x = el('select'); x.id = id; x.setAttribute('aria-label', 'Tarih seç');
+        t.seri.filter(d => d.deger !== null).forEach(d => { const o = el('option', '', `${tarihYaz(d.tarih)} · ${degerMetni(d)}`); o.value = d.id; x.appendChild(o); });
+        x.value = varsayilan.id; return x;
+      };
+      const A = sec('th-kar-a', sayisal[0]!), B = sec('th-kar-b', sayisal[sayisal.length - 1]!);
+      const sonuc = el('span', 'sg-karsi-sonuc');
+      const hesapla = () => {
+        const da = t.seri.find(d => d.id === A.value)!, db = t.seri.find(d => d.id === B.value)!;
+        sonuc.textContent = `${farkMetni(farkHesapla(da, db))} · ${DURUM_ADI[degerDurumu(da)]} → ${DURUM_ADI[degerDurumu(db)]}`;
+      };
+      A.addEventListener('change', hesapla); B.addEventListener('change', hesapla); hesapla();
+      kar.append(el('span', 'et', 'İki sonucu karşılaştır:'), A, el('span', '', '→'), B, sonuc);
+      dlg.appendChild(kar);
+    }
     const sarma = el('div', 'tablo-sarma sg-tablo-kisa'), tablo = el('table'), bs = el('tr');
-    ['Tarih', 'Değer', 'Referans', 'Durum', 'Rapor'].forEach(x => bs.appendChild(el('th', '', x)));
+    ['Tarih', 'Değer', 'Önceki sonuca göre', 'Referans', 'Durum', 'Rapor'].forEach(x => bs.appendChild(el('th', '', x)));
     tablo.appendChild(el('thead')).appendChild(bs);
     const g = el('tbody');
-    [...t.seri].reverse().forEach(d => {
+    const sirali = t.seri;
+    [...sirali].reverse().forEach((d, ri) => {
+      const idx = sirali.length - 1 - ri;
+      const onceki = sirali.slice(0, idx).reverse().find(x => x.deger !== null) ?? null;
       const tr = el('tr');
       const r = raporBul(d.rapor_id);
-      tr.append(el('td', '', tarihYaz(d.tarih)), el('td', 'sayi', `${degerMetni(d)} ${d.birim ?? ''}`), el('td', '', referans(d.ref_alt, d.ref_ust)));
+      tr.append(el('td', '', tarihYaz(d.tarih)), el('td', 'sayi', `${degerMetni(d)} ${d.birim ?? ''}`), el('td', '', farkMetni(farkHesapla(onceki, d))), el('td', '', referans(d.ref_alt, d.ref_ust)));
       const td = el('td'); td.appendChild(durumRozeti(degerDurumu(d)));
       const tdr = el('td');
       if (r) { const b = el('button', 'btn ghost sm', r.ad); b.type = 'button'; b.addEventListener('click', () => { dlg.close(); raporEditoru(r); }); tdr.appendChild(b); }
@@ -99,6 +141,8 @@ export function tahlilSayfasi(kok: HTMLElement) {
     const liste = el('datalist'); liste.id = 'th-testler';
     KATALOG.forEach(t => liste.appendChild(Object.assign(el('option'), { value: t.ad })));
 
+    /* Aynı testin bu rapor dışındaki en son sonucu: değer girerken karşılaştırma için yanında gösterilir. */
+    const oncekiBul = (test: string): Deger | undefined => s.degerler.filter(x => x.test === test && x.rapor_id !== mevcut?.id && x.tarih <= tarih.value).sort((a, b) => b.tarih.localeCompare(a.tarih))[0];
     function tabloCiz() {
       tabloKap.replaceChildren();
       if (!satirlar.length) { tabloKap.appendChild(el('p', 'bos', 'Henüz değer yok. Aşağıdan ekle, metinden ayıkla ya da dosyayı yapay zekâyla okut.')); return; }
@@ -123,6 +167,12 @@ export function tahlilSayfasi(kok: HTMLElement) {
           st.birim = bG.value.trim() || null; st.ref_alt = sayiOku(aG.value); st.ref_ust = sayiOku(uG.value);
           durumTd.replaceChildren(durumRozeti(durumHesapla(st.deger, st.ref_alt, st.ref_ust)));
         };
+        const ipucu = el('small', 'takma');
+        const ipucuGuncelle = () => {
+          const o = oncekiBul(st.test);
+          ipucu.textContent = o ? `önceki: ${degerMetni(o)} ${o.birim ?? ''} (${tarihYaz(o.tarih)})` : '';
+        };
+        ipucuGuncelle();
         adG.addEventListener('change', () => {
           const b = testBul(adG.value);
           if (b) {
@@ -130,13 +180,13 @@ export function tahlilSayfasi(kok: HTMLElement) {
             if (!bG.value) bG.value = b.birim;
             if (!aG.value && !uG.value) { aG.value = b.alt === undefined ? '' : String(b.alt); uG.value = b.ust === undefined ? '' : String(b.ust); }
           } else st.test = serbestAnahtar(adG.value);
-          guncelle();
+          guncelle(); ipucuGuncelle();
         });
         [dG, bG, aG, uG].forEach(x => x.addEventListener('input', guncelle));
         guncelle();
         const sil = el('button', 'dy-i tehlike', '✕'); sil.type = 'button'; sil.title = 'Satırı sil'; sil.setAttribute('aria-label', 'Satırı sil');
         sil.addEventListener('click', () => { satirlar.splice(i, 1); tabloCiz(); });
-        [adG, dG, bG, aG, uG].forEach(x => { const td = el('td'); td.appendChild(x); tr.appendChild(td); });
+        [adG, dG, bG, aG, uG].forEach(x => { const td = el('td'); td.appendChild(x); if (x === adG) td.appendChild(ipucu); tr.appendChild(td); });
         const sd = el('td'); sd.appendChild(sil);
         tr.append(durumTd, sd); g.appendChild(tr);
       });
@@ -243,35 +293,88 @@ export function tahlilSayfasi(kok: HTMLElement) {
   }
 
   /* ——— Listeler ——— */
-  function degerlerCiz(kap: HTMLElement) {
-    const testler = testlereAyir(s.degerler);
+  function suzulmus(): TestOzeti[] {
     const q = katla(s.ara.trim());
-    const l = testler.filter(t => (!q || katla(t.ad).includes(q)) && (!s.sadeceDisi || t.durum === 'dusuk' || t.durum === 'yuksek'));
-    if (!testler.length) { kap.appendChild(el('p', 'bos', 'Henüz tahlil değeri yok. "＋ Tahlil ekle" ile ilk raporunu yükle.')); return; }
-    if (!l.length) { kap.appendChild(el('p', 'bos', s.sadeceDisi ? 'Referans dışı değer yok.' : 'Aramana uyan test yok.')); return; }
+    return testlereAyir(s.degerler).filter(t => (!q || katla(t.ad).includes(q)) && (!s.grup || testGrubu(t.test) === s.grup) && (!s.sadeceDisi || t.durum === 'dusuk' || t.durum === 'yuksek'));
+  }
+  const bosMesaj = (kap: HTMLElement, hepsi: number, l: number) => {
+    if (!hepsi) { kap.appendChild(el('p', 'bos', 'Henüz tahlil değeri yok. "＋ Tahlil ekle" ile ilk raporunu yükle.')); return true; }
+    if (!l) { kap.appendChild(el('p', 'bos', s.sadeceDisi ? 'Referans dışı değer yok.' : 'Aramana uyan test yok.')); return true; }
+    return false;
+  };
+
+  function degerlerCiz(kap: HTMLElement) {
+    const l = suzulmus();
+    if (bosMesaj(kap, s.degerler.length, l.length)) return;
     const sarma = el('div', 'tablo-sarma'), tablo = el('table', 'sg-test-tablo'), bs = el('tr');
-    ['Test', 'Son değer', 'Referans', 'Durum', 'Değişim', 'Eğilim', 'Tarih'].forEach(x => bs.appendChild(el('th', '', x)));
+    ['Test', 'Son değer', 'Önceki', 'Fark', 'Referans', 'Durum', 'Eğilim', 'Tarih'].forEach(x => bs.appendChild(el('th', '', x)));
     tablo.appendChild(el('thead')).appendChild(bs);
     const g = el('tbody');
     l.forEach(t => {
       const tr = el('tr', 'satir'); tr.tabIndex = 0;
-      const ad = el('td'); ad.append(el('b', '', t.ad), el('small', 'takma', `${t.seri.length} kayıt`));
+      const ad = el('td'); ad.append(el('b', '', t.ad), el('small', 'takma', `${testGrubu(t.test)} · ${t.seri.length} kayıt`));
       const deger = el('td', 'sayi' + (t.durum === 'dusuk' || t.durum === 'yuksek' ? ' sg-disari' : ''), `${degerMetni(t.son)} ${t.birim ?? ''}`);
+      const onceki = el('td', 'sayi');
+      if (t.onceki) { onceki.append(`${degerMetni(t.onceki)} `, el('small', 'takma', tarihYaz(t.onceki.tarih))); } else onceki.textContent = '—';
       const dur = el('td'); dur.appendChild(durumRozeti(t.durum));
-      let degisim = '—';
-      if (t.onceki && t.onceki.deger !== null && t.son.deger !== null && t.onceki.deger !== 0) {
-        const f = ((t.son.deger - t.onceki.deger) / t.onceki.deger) * 100;
-        degisim = Math.abs(f) < 0.5 ? '≈ aynı' : `${f > 0 ? '↑' : '↓'} %${Math.abs(Math.round(f))}`;
-      }
       const egilim = el('td');
       const sayisal = t.seri.filter(x => x.deger !== null).map(x => ({ x: x.tarih, y: x.deger! }));
       if (sayisal.length > 1) egilim.appendChild(minikCiz(sayisal, t.durum === 'normal' ? 'var(--cyan)' : 'var(--red)'));
-      tr.append(ad, deger, el('td', '', referans(t.son.ref_alt, t.son.ref_ust)), dur, el('td', '', degisim), egilim, el('td', '', tarihYaz(t.son.tarih)));
+      tr.append(ad, deger, onceki, el('td', '', farkMetni(farkHesapla(t.onceki, t.son))), el('td', '', referans(t.son.ref_alt, t.son.ref_ust)), dur, egilim, el('td', '', tarihYaz(t.son.tarih)));
       const ac = () => testDetay(t);
       tr.addEventListener('click', ac); tr.addEventListener('keydown', e => { if (e.key === 'Enter') ac(); });
       g.appendChild(tr);
     });
     tablo.appendChild(g); sarma.appendChild(tablo); kap.appendChild(sarma);
+  }
+
+  /* Karşılaştırma tablosu: satırlar testler, sütunlar tahlil tarihleri; her hücre o tarihteki sonuç ve bir öncekine göre yönü. */
+  function matrisCiz(kap: HTMLElement) {
+    const l = suzulmus();
+    if (bosMesaj(kap, s.degerler.length, l.length)) return;
+    const tumTarihler = [...new Set(s.degerler.map(d => d.tarih))].sort();
+    const tarihler = s.matrisSon > 0 ? tumTarihler.slice(-s.matrisSon) : tumTarihler;
+    const sarma = el('div', 'tablo-sarma sg-matris-kap'), tablo = el('table', 'sg-matris'), bs = el('tr');
+    bs.appendChild(el('th', 'sg-matris-ilk', 'Test'));
+    tarihler.forEach(tar => {
+      const r = s.raporlar.find(x => x.tarih === tar);
+      const th = el('th', 'sg-matris-tarih');
+      const b = el('button', 'sg-matris-baslik', kisaTarih(tar)); b.type = 'button'; b.title = r ? `${r.ad}${r.kurum ? ' · ' + r.kurum : ''} — raporu aç` : tarihYaz(tar);
+      if (r) b.addEventListener('click', () => raporEditoru(r));
+      th.appendChild(b); bs.appendChild(th);
+    });
+    bs.appendChild(el('th', '', 'Referans'));
+    tablo.appendChild(el('thead')).appendChild(bs);
+    const g = el('tbody');
+    l.forEach(t => {
+      const tr = el('tr');
+      const ad = el('th', 'sg-matris-ilk'); const b = el('button', 'sg-matris-baslik', t.ad); b.type = 'button'; b.addEventListener('click', () => testDetay(t)); ad.appendChild(b);
+      tr.appendChild(ad);
+      tarihler.forEach(tar => {
+        const idx = t.seri.findIndex(d => d.tarih === tar);
+        const td = el('td', 'sayi');
+        if (idx >= 0) {
+          const d = t.seri[idx]!;
+          const durum = degerDurumu(d);
+          td.classList.add('sg-h-' + durum);
+          const onceki = t.seri.slice(0, idx).reverse().find(x => x.deger !== null) ?? null;
+          const f = farkHesapla(onceki, d);
+          td.append(degerMetni(d));
+          if (f && Math.abs(f.fark) > 1e-9) td.append(' ', el('span', 'sg-ok', f.fark > 0 ? '↑' : '↓'));
+          td.title = `${tarihYaz(tar)} · ${degerMetni(d)} ${d.birim ?? ''} · ${DURUM_ADI[durum]}${f ? ' · ' + farkMetni(f) : ''}`;
+        } else td.textContent = '·';
+        tr.appendChild(td);
+      });
+      tr.appendChild(el('td', 'sg-matris-ref', `${referans(t.son.ref_alt, t.son.ref_ust)} ${t.birim ?? ''}`));
+      g.appendChild(tr);
+    });
+    tablo.appendChild(g); sarma.appendChild(tablo); kap.appendChild(sarma);
+    if (tumTarihler.length > tarihler.length || s.matrisSon === 0) {
+      const d = el('button', 'btn ghost sm', s.matrisSon === 0 ? 'Yalnız son 6 tahlili göster' : `Tüm ${tumTarihler.length} tahlili göster`); d.type = 'button';
+      d.addEventListener('click', () => { s.matrisSon = s.matrisSon === 0 ? 6 : 0; ciz(); });
+      kap.appendChild(d);
+    }
+    kap.appendChild(el('p', 'sg-not', 'Hücrelerdeki ↑ ↓ oku, o testin bir önceki sonucuna göre yönü gösterir. Kırmızı: referansın üstünde, turuncu: altında. Başlıktaki tarihe basınca o rapor açılır.'));
   }
 
   function raporlarCiz(kap: HTMLElement) {
@@ -313,18 +416,24 @@ export function tahlilSayfasi(kok: HTMLElement) {
     const disiSay = testlereAyir(s.degerler).filter(t => t.durum === 'dusuk' || t.durum === 'yuksek').length;
     if (disiSay) kart.appendChild(el('p', 'sg-uyari', `${disiSay} testin son değeri referans aralığının dışında. Sonuçları doktorunla değerlendir; bu sayfa tanı koymaz.`));
     const sekme = el('div', 'dy-sekme');
-    (['degerler', 'raporlar'] as const).forEach(g => {
-      const b = el('button', 'dy-s' + (s.gorunum === g ? ' acik' : ''), g === 'degerler' ? `Değerler (${testlereAyir(s.degerler).length})` : `Raporlar (${s.raporlar.length})`); b.type = 'button';
+    (['degerler', 'karsilastirma', 'raporlar'] as const).forEach(g => {
+      const b = el('button', 'dy-s' + (s.gorunum === g ? ' acik' : ''), g === 'degerler' ? `Değerler (${testlereAyir(s.degerler).length})` : g === 'karsilastirma' ? 'Karşılaştırma' : `Raporlar (${s.raporlar.length})`); b.type = 'button';
       b.addEventListener('click', () => { s.gorunum = g; ciz(); });
       sekme.appendChild(b);
     });
     const arac = el('div', 'dy-satir');
-    const ara = el('input'); ara.type = 'search'; ara.id = 'th-ara'; ara.placeholder = s.gorunum === 'degerler' ? 'Test ara' : 'Rapor ara'; ara.value = s.ara; ara.setAttribute('aria-label', 'Ara');
+    const ara = el('input'); ara.type = 'search'; ara.id = 'th-ara'; ara.placeholder = s.gorunum === 'raporlar' ? 'Rapor ara' : 'Test ara'; ara.value = s.ara; ara.setAttribute('aria-label', 'Ara');
     const icerik = el('div', 'sg-icerik');
-    const doldur = () => { icerik.replaceChildren(); if (s.gorunum === 'degerler') degerlerCiz(icerik); else raporlarCiz(icerik); };
+    const doldur = () => { icerik.replaceChildren(); if (s.gorunum === 'degerler') degerlerCiz(icerik); else if (s.gorunum === 'karsilastirma') matrisCiz(icerik); else raporlarCiz(icerik); };
     ara.addEventListener('input', () => { s.ara = ara.value; doldur(); });
     arac.appendChild(ara);
-    if (s.gorunum === 'degerler') {
+    if (s.gorunum !== 'raporlar') {
+      const gruplar = [...new Set(testlereAyir(s.degerler).map(x => testGrubu(x.test)))].sort((a, b) => a.localeCompare(b, 'tr'));
+      const grupSec = el('select'); grupSec.id = 'th-grup'; grupSec.setAttribute('aria-label', 'Gruba göre süz');
+      [['', 'Tüm gruplar'], ...gruplar.map(x => [x, x])].forEach(([v, a]) => { const o = el('option', '', a); o.value = v!; grupSec.appendChild(o); });
+      grupSec.value = gruplar.includes(s.grup) ? s.grup : '';
+      grupSec.addEventListener('change', () => { s.grup = grupSec.value; doldur(); });
+      arac.appendChild(grupSec);
       const dis = el('button', 'btn ghost sm' + (s.sadeceDisi ? ' acik' : ''), 'Yalnız referans dışı'); dis.type = 'button';
       dis.addEventListener('click', () => { s.sadeceDisi = !s.sadeceDisi; ciz(); });
       arac.appendChild(dis);

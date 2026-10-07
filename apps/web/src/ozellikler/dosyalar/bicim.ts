@@ -1,0 +1,1 @@
+export const bayt = (b: number | null) => (b === null ? '' : b > 1073741824 ? (b / 1073741824).toFixed(2) + ' GB' : b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB');
