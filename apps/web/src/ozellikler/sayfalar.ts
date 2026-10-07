@@ -1,4 +1,6 @@
 import { genelBakisSayfasi } from './genel/genel';
+import { BIRIKIM_SAYFALARI } from './kayit/birikim';
+import { birikimOzetiSayfasi } from './kayit/birikim-ozet';
 import { borcOzetiSayfasi } from './kayit/borc-ozet';
 import { FINANS_SAYFALARI } from './kayit/finans';
 import { icraBorclariSayfasi } from './icra/icra';
@@ -15,6 +17,8 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   'k-icra': icraBorclariSayfasi,
   'b-ozet': borcOzetiSayfasi,
   ...FINANS_SAYFALARI,
+  ...BIRIKIM_SAYFALARI,
+  'v-ozet': birikimOzetiSayfasi,
   'o-takvim': odemeSayfasi(''),
   'o-vergi': odemeSayfasi('vergi'),
   'o-icra': odemeSayfasi('icra'),

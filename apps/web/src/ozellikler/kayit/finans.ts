@@ -1,6 +1,6 @@
 import { gun, tl } from '../../ortak/bicim';
 import { kayitSayfasi, sayi, type Alan, type Hucre, type KayitAyari, type Sutun } from './kayit-sayfasi';
-import type { Kayit } from '../../veri/kayit';
+import { kayitlariGetir, type Kayit } from '../../veri/kayit';
 
 const ad = (k: Kayit, f: string) => String(k[f] ?? '—');
 const sec = (liste: [string, string][], v: unknown) => liste.find(x => x[0] === v)?.[1] ?? '—';
@@ -110,7 +110,7 @@ const hesaplar: KayitAyari = {
     { ad: 'ad', etiket: 'Hesap adı', tur: 'metin', zorunlu: true },
     { ad: 'banka_id', etiket: 'Banka', tur: 'kisi' },
     { ad: 'tur', etiket: 'Tür', tur: 'secim', secenekler: HESAP_TURU, zorunlu: true, varsayilan: 'vadesiz' },
-    { ad: 'acilis_bakiyesi', etiket: 'Açılış bakiyesi (TL)', tur: 'sayi', ipucu: 'Bakiye, hareketler eklenince bundan hesaplanır' },
+    { ad: 'acilis_bakiyesi', etiket: 'Açılış bakiyesi (TL)', tur: 'sayi', ipucu: 'Güncel bakiye = açılış + girişler − çıkışlar' },
     { ad: 'hesap_kesim_gunu', etiket: 'Hesap kesim günü', tur: 'sayi', ipucu: 'Yalnız kartlar için, 1–31' },
     { ad: 'son_odeme_gunu', etiket: 'Son ödeme günü', tur: 'sayi', ipucu: 'Yalnız kartlar için, 1–31' },
     { ad: 'aktif', etiket: 'Aktif', tur: 'onay' },
@@ -120,12 +120,23 @@ const hesaplar: KayitAyari = {
     { baslik: 'Hesap', goster: k => ad(k, 'ad') },
     { baslik: 'Banka', goster: (k, b) => b.kisiler.get(String(k.banka_id)) ?? '—' },
     { baslik: 'Tür', goster: k => sec(HESAP_TURU, k.tur) },
-    { baslik: 'Açılış bakiyesi', sayi: true, goster: k => tl(sayi(k.acilis_bakiyesi)) },
+    { baslik: 'Güncel bakiye', sayi: true, goster: (k, b) => tl(sayi(k.acilis_bakiyesi) + ((b.dis?.hareket as Map<string, number> | undefined)?.get(k.id) ?? 0)) },
     { baslik: 'Durum', goster: k => (k.aktif === false ? 'Pasif' : 'Aktif') },
   ],
   filtre: {}, sirala: 'ad',
+  dis: async () => {
+    const h = await kayitlariGetir('hareketler', ['hesap_id', 'yon', 'tutar'], {}, 'tarih');
+    const m = new Map<string, number>();
+    h.forEach(x => m.set(String(x.hesap_id), (m.get(String(x.hesap_id)) ?? 0) + (x.yon === 'giris' ? 1 : -1) * sayi(x.tutar)));
+    return { hareket: m };
+  },
   hazirla: g => ({ ...g, acilis_bakiyesi: (g.acilis_bakiyesi as number | null) ?? 0 }),
-  ozet: l => [['Hesap', String(l.length), `${l.filter(k => k.aktif !== false).length} aktif`], ['Açılış bakiyeleri', tl(topla(l, 'acilis_bakiyesi')), 'hareketler eklenince güncel bakiye görünür']],
+  ozet: (l, b) => {
+    const hareket = (b.dis?.hareket as Map<string, number> | undefined) ?? new Map<string, number>();
+    const bakiye = (k: Kayit) => sayi(k.acilis_bakiyesi) + (hareket.get(k.id) ?? 0);
+    const vadesiz = l.filter(k => k.aktif !== false && k.tur === 'vadesiz');
+    return [['Vadesiz bakiye', tl(vadesiz.reduce((t, k) => t + bakiye(k), 0)), `${vadesiz.length} hesap`, 'vurgu'], ['Hesap', String(l.length), `${l.filter(k => k.aktif !== false).length} aktif`]];
+  },
 };
 
 /* ---------- gelirler ---------- */

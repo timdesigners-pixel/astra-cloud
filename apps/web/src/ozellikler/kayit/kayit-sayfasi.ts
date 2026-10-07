@@ -15,7 +15,8 @@ export type Alan = {
   varsayilan?: unknown;
 };
 
-export type Baglam = { kisiler: Map<string, string>; hesaplar: Map<string, string> };
+/* dis: sayfaya özel ek veri (ör. altın kuru, hesap hareket toplamları); yüklenemezse boş nesne. */
+export type Baglam = { kisiler: Map<string, string>; hesaplar: Map<string, string>; dis: any };
 export type Sutun = { baslik: string; goster: (k: Kayit, b: Baglam) => string; sayi?: boolean };
 export type Hucre = [etiket: string, deger: string, not?: string, sinif?: string];
 
@@ -32,6 +33,7 @@ export type KayitAyari = {
   sirala: string;
   aramaAlanlari?: string[];
   ozet?: (liste: Kayit[], b: Baglam) => Hucre[];
+  dis?: () => Promise<unknown>;
   hazirla?: (g: Record<string, unknown>) => Record<string, unknown>;
   dogrula?: (g: Record<string, unknown>) => string | null;
 };
@@ -48,7 +50,7 @@ async function hesaplariGetir(): Promise<Map<string, string>> {
 export function kayitSayfasi(a: KayitAyari) {
   return (kok: HTMLElement) => {
     const sutunlar = a.alanlar.map(x => x.ad);
-    const s = { liste: [] as Kayit[], b: { kisiler: new Map(), hesaplar: new Map() } as Baglam, yukleniyor: true, hata: '', ara: '' };
+    const s = { liste: [] as Kayit[], b: { kisiler: new Map(), hesaplar: new Map(), dis: {} } as Baglam, yukleniyor: true, hata: '', ara: '' };
     const kart = el('section', 'card icra');
     kok.replaceChildren(kart);
 
@@ -110,13 +112,14 @@ export function kayitSayfasi(a: KayitAyari) {
     async function yukle() {
       s.yukleniyor = true; s.hata = ''; ciz();
       try {
-        const [liste, kisiler, hesaplar] = await Promise.all([
+        const [liste, kisiler, hesaplar, dis] = await Promise.all([
           kayitlariGetir(a.tablo, sutunlar, a.filtre, a.sirala),
           kisileriGetir(),
           hesaplariGetir(),
+          a.dis ? a.dis().catch(() => ({})) : Promise.resolve({}),
         ]);
         s.liste = liste;
-        s.b = { kisiler: new Map(kisiler.map(x => [x.id, x.ad])), hesaplar };
+        s.b = { kisiler: new Map(kisiler.map(x => [x.id, x.ad])), hesaplar, dis };
       } catch (e) { s.hata = hataMetni(e); }
       s.yukleniyor = false; ciz();
     }
