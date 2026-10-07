@@ -21,8 +21,10 @@ pnpm dev
 
 PIN kaynak kodda yoktur; sunucuda yalnız HMAC etiketi saklanır.
 
-1. `supabase/migrations/0001_kimlik.sql` dosyasını Supabase SQL Editor'de çalıştır.
-2. Supabase'de `Authentication → Users` altında tek bir sahip kullanıcı oluştur (e-posta ve uzun rastgele parola; parolayı kimse girmez).
-3. `pin-giris` fonksiyonunu dağıt ve şu sırları tanımla: `ASTRA_PIN_BIBER`, `ASTRA_SAHIP_EPOSTA`, `ASTRA_SAHIP_PAROLA`, `ASTRA_CORS_IZIN`.
-4. Kendi makinende `node tools/pin-kur.mjs` çalıştır; PIN gizli sorulur.
-5. Vercel'de `VITE_SUPABASE_URL` ve `VITE_SUPABASE_ANON_KEY` değişkenlerini tanımla.
+1. `supabase/migrations/` altındaki göçleri uygula (kimlik tabloları, tek kayıt kuralı).
+2. `pin-giris` fonksiyonunu dağıt.
+3. Supabase → Edge Functions → Secrets bölümünde iki gizli ayar tanımla:
+   - `ASTRA_PIN_BIBER`: uzun rastgele bir metin
+   - `ASTRA_KURULUM_KODU`: ilk kurulumda ve PIN sıfırlamada sorulan kod
+4. Vercel'de `VITE_SUPABASE_URL` ve `VITE_SUPABASE_ANON_KEY` değişkenlerini tanımla.
+5. Siteyi aç; PIN kurulu değilse kapı "PIN Oluştur" ekranını gösterir.
