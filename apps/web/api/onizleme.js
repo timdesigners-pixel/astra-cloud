@@ -15,7 +15,8 @@
  * boyutu ve süresi sınırlı. */
 import dns from 'node:dns';
 import net from 'node:net';
-import { hizSayaci } from './_guvenlik.js';
+import { hizSayaci, oturumVar } from './_guvenlik.js';
+export { oturumVar };
 
 const AZAMI_BAYT = 3 * 1024 * 1024, SURE_MS = 8000, AZAMI_YONLENDIRME = 4;
 const hizAsildi = hizSayaci(Number(process.env.ONIZLEME_HIZ || 120));
@@ -220,18 +221,6 @@ export function sayfaCoz(html, adres){
   }
   r.baslik = String(r.baslik).slice(0, 300); r.aciklama = String(r.aciklama).slice(0, 600);
   return r;
-}
-
-/* Uç yalnız giriş yapmış kullanıcıya yanıt verir: istekteki Supabase jetonu Supabase'e doğrulatılır. */
-export async function oturumVar(req, getir = fetch){
-  const m = String(req.headers.authorization || '').match(/^Bearer (\S+)$/);
-  const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-  const anahtar = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
-  if(!m || !url || !anahtar) return false;
-  try{
-    const r = await getir(url.replace(/\/$/, '') + '/auth/v1/user', {headers: {apikey: anahtar, Authorization: 'Bearer ' + m[1]}, signal: AbortSignal.timeout(5000)});
-    return r.ok;
-  }catch(e){ return false; }
 }
 
 function gonder(res, durum, veri){
