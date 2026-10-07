@@ -1,0 +1,967 @@
+/* ==========================================================================
+   YERLEŞİM
+   Uygulama kabuğu, ızgara, üst bant, sol menü, çekmece ve mobil alt çubuk.
+
+   Kaynak dosyalar sırayla birleştirildi; sıra kazanan kuralı belirlediği
+   için korunması zorunludur.
+   ========================================================================== */
+
+/* =========================================================
+   ASTRA FINANCIAL COMMAND OS — SHELL & LAYOUT
+   Swiss Precision Financial Terminal Architecture
+   ========================================================= */
+
+/* ================= KABUK ================= */
+.shell {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  width: 100%;
+  margin: 0;
+  padding: 0 20px 24px 20px;
+  box-sizing: border-box;
+}
+
+/* ================= SOL MENÜ (SIDEBAR TERMINAL) ================= */
+#nav {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 16px 14px;
+  width: 260px;
+  flex: 0 0 260px;
+  /* v12.7 — menü kendi içinde kaymıyor: tam boyuyla sayfanın parçası,
+     sayfa kaydırılarak her öğesine erişilir (iç kaydırma çubuğu kalktı).
+     v12.11.1 — iki uçtan yapışkan: sayfa başında üst banda yapışık; aşağı
+     kaydırınca menüyle birlikte kayar, menünün sonu ekrana gelince alta
+     yapışık kalır. --nav-ust = min(üst bant + boşluk, ekran − menü boyu)
+     app/ust.js'te ölçülüyor; menü ekrandan kısaysa değer pozitif (üste
+     yapışık), uzunsa negatif (alta yapışık). */
+  align-self: flex-start;
+  overflow: visible;
+  position: sticky;
+  top: var(--nav-ust, var(--ust, 0px));
+  background: linear-gradient(160deg, var(--kb-2), var(--kb-1));
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
+}
+
+
+/* ================= SİDEBAR MARKA VE DURUM ================= */
+#nav .sb-header {
+  padding: 12px 14px 14px;
+  border-bottom: 1px solid var(--line);
+  margin: -16px -14px 10px -14px;
+  position: relative;
+  z-index: 10;
+  background: var(--kb-1);
+  border-radius: var(--r) var(--r) 0 0;
+}
+
+#nav .sb-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#nav .sb-logo-box {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-xs);
+  background: rgba(224, 185, 104, 0.12);
+  border: 1px solid rgba(224, 185, 104, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  font-size: 12.5px;
+  font-weight: 700;
+  flex: 0 0 24px;
+  line-height: 1;
+}
+
+#nav .sb-brand-info {
+  flex: 1;
+  min-width: 0;
+}
+
+#nav .sb-brand-info h2 {
+  font-size: var(--fs-3);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  line-height: 1.2;
+  color: var(--txt);
+  font-family: var(--f-ui);
+}
+
+#nav .sb-brand-info h2 span {
+  color: var(--gold);
+}
+
+#nav .sb-brand-info p {
+  display: none;
+}
+
+#nav .sb-status-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding: 3px 6px;
+  border-radius: var(--r-xs);
+  background: var(--yuva);
+  border: 1px solid var(--line);
+}
+
+#nav .pulse-dot {
+  width: 5px;
+  height: 5px;
+  border-radius:var(--r-pill);
+  background: var(--green);
+  box-shadow: 0 0 5px var(--green);
+  flex: 0 0 5px;
+}
+
+/* ================= ÖBEK BAŞLIKLARI ================= */
+#nav .navsec,
+#nav .sb-section-title {
+  font-family: var(--f-mono);
+  font-size: var(--fs-0);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+  text-transform: uppercase;
+  padding: 12px 10px 6px 10px;
+  margin-top: 10px;
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#nav .navsec:first-of-type {
+  margin-top: 4px;
+}
+
+#nav .navsec::after,
+#nav .sb-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line-soft);
+}
+
+/* ================= MENÜ BUTONLARI (MONOCHROMATIC & ARCHITECTURAL) ================= */
+#nav button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: var(--r-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--dim);
+  font-family: var(--f-ui);
+  font-size: var(--fs-4);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  text-align: left;
+  position: relative;
+  margin-bottom: 1px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#nav button:hover {
+  background: var(--kb-3);
+  border-color: rgba(42, 191, 212, 0.25);
+  color: var(--txt);
+}
+
+#nav button.on,
+#nav button.active {
+  background: var(--kb-3);
+  border: 1px solid rgba(224, 185, 104, 0.35);
+  color: var(--txt);
+  font-weight: 600;
+  box-shadow: 0 0 12px rgba(224, 185, 104, 0.06);
+}
+
+#nav button.on::before,
+#nav button.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18%;
+  bottom: 18%;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--gold);
+}
+
+#nav button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+#nav button .sb-icon-box,
+#nav button .nb {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13.5px;
+  color: inherit;
+  flex: 0 0 20px;
+  line-height: 1;
+  text-align: center;
+}
+
+#nav button.on .sb-icon-box,
+#nav button.on .nb,
+#nav button.active .sb-icon-box,
+#nav button.active .nb {
+  color: var(--gold);
+}
+
+#nav button .nl,
+#nav button .label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#nav button .nx,
+#nav button .badge {
+  font-family: var(--f-mono);
+  font-size: var(--fs-0);
+  padding: 1px 6px;
+  border-radius: var(--r-pill);
+  background: rgba(237, 140, 132, 0.14);
+  border: 1px solid rgba(237, 140, 132, 0.35);
+  color: var(--red);
+  line-height: 1.2;
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+
+#nav button .nk,
+#nav button .shortcut {
+  font-family: var(--f-mono);
+  font-size: var(--fs-0);
+  color: var(--faint);
+  padding: 1px 4px;
+  border-radius: var(--r-xs);
+  border: 1px solid var(--line-soft);
+  flex: 0 0 auto;
+  opacity: 0.8;
+}
+
+/* ================= SİDEBAR ALT ARAÇ ÇUBUĞU ================= */
+#nav .sb-footer {
+  margin-top: auto;
+  margin-left: -14px;
+  margin-right: -14px;
+  margin-bottom: -16px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  background: var(--kb-1);
+  border-radius: 0 0 var(--r) var(--r);
+  position: sticky;
+  bottom: -16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+#nav .sb-search.navfoot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--yuva);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 0 8px;
+  height: 30px;
+  box-sizing: border-box;
+  margin: 0;
+  width: 100%;
+}
+
+#nav .sb-search.navfoot #qbox {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 80px;
+  height: 28px;
+  line-height: 28px;
+  background: transparent;
+  border: none;
+  color: var(--txt);
+  font-family: var(--f-ui);
+  font-size: var(--fs-3);
+  outline: none;
+  padding: 0;
+  margin: 0;
+}
+
+#nav .sb-search.navfoot #qbox::placeholder {
+  color: var(--faint);
+}
+
+#nav .sb-search.navfoot kbd {
+  font-family: var(--f-mono);
+  font-size: var(--fs-0);
+  color: var(--dim);
+  background: var(--surface-2);
+  padding: 1px 5px;
+  border-radius: var(--r-xs);
+  border: 1px solid var(--line);
+  flex: 0 0 auto;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+#nav .sb-quick-actions {
+  display: flex;
+  gap: 5px;
+  width: 100%;
+}
+
+#nav .sb-quick-actions .sb-btn,
+#nav .sb-quick-actions .nfb {
+  flex: 1 1 0;
+  width: auto;
+  padding: 5px 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  color: var(--dim);
+  font-size: var(--fs-2);
+  font-family: var(--f-ui);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-sizing: border-box;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+#nav .sb-quick-actions .sb-btn:hover,
+#nav .sb-quick-actions .nfb:hover {
+  border-color: var(--line2);
+  color: var(--txt);
+}
+
+#nav .sb-quick-actions .nfb.acik {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* ================= ANA İÇERİK BÖLGESİ (MAIN CONTENT) ================= */
+main {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  max-width: none;
+  padding: 4px 0 60px;
+  box-sizing: border-box;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 20px 22px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s ease, transform 0.3s cubic-bezier(.2,.7,.3,1);
+  position: relative;
+}
+
+.card:hover {
+  border-color: rgba(42, 191, 212, 0.25);
+}
+
+/* Düğme varyantlarının tamamı TEK yerde: styles/rapor.css. Burada ve
+   orada iki ayrı tanım vardı; yükleme sırası gereği yalnız rapor.css
+   geçerliydi (Öneri 64). */
+
+/* Kart başlığının biçimi TEK yerde: styles/rapor.css (tipografi + yapı),
+   alt boşluğu styles/spacing.css (ölçek). Burada, readability.css'te ve
+   rapor.css'te üç ayrı tanım vardı (Öneri 63). */
+
+.card .hint {
+  color: var(--dim);
+  font-size: var(--fs-3);
+  margin-bottom: 12px;
+  line-height: var(--lh);
+  max-width: 75ch;
+}
+
+.grid {
+  display: grid;
+  gap: 14px;
+  row-gap: 14px;
+}
+
+main > .grid {
+  margin-bottom: 16px;
+}
+
+.card .grid {
+  margin-bottom: 0;
+}
+
+.g2 {
+  --kart-min: 280px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.g3 {
+  --kart-min: 190px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+/* Dört KPI'lık şeritler için. g3'ten daha dar bir taban değil AYNI taban
+   kullanılıyor: `auto-fit` zaten sığmayanı alt satıra indiriyor, minimumu
+   190'ın altına çekmek dar ekranda dört sütunu zorlayıp rakamları kırpardı. */
+.g4 {
+  --kart-min: 190px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+/* ================= KPI BLOKLARI ================= */
+
+.kpi .v.gold { color: var(--gold); }
+.kpi .v.cyan { color: var(--cyan); }
+.kpi .v.red  { color: var(--red); }
+.kpi .v.green{ color: var(--green); }
+
+/* ================= FORMLAR & BUTONLAR ================= */
+label {
+  display: block;
+  font-size: var(--fs-1);
+  letter-spacing: 0.06em;
+  color: var(--dim);
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+/* Form elemanlarının temel biçimi TEK yerde: styles/rapor.css.
+   Burada, readability.css'te ve layout.css'te üç ayrı tanım vardı; yükleme
+   sırası yüzünden yalnız sonuncusu geçerliydi ve hangisinin kazandığını
+   okumak mümkün değildi (Öneri 62). */
+
+input[type=checkbox] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--gold);
+}
+
+/* ================= TABLOLAR (SURGICAL PRECISION DATA) ================= */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-4);
+}
+
+th {
+  text-align: left;
+  color: var(--dim);
+  font-family: var(--f-mono);
+  font-size: var(--fs-1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 8px;
+  border-bottom: 1px solid var(--line);
+  font-weight: 600;
+}
+
+td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--line-soft);
+  vertical-align: middle;
+}
+
+.bar {
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--yuva);
+  overflow: hidden;
+}
+
+.bar > i {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  border-radius: var(--r-pill);
+  transition: width 0.3s ease;
+}
+
+.capbar > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--f-mono);
+  font-size: var(--fs-0);
+  color: #ffffff;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: width 0.3s ease;
+}
+
+.tabpane {
+  display: none;
+}
+
+.tabpane.on {
+  display: block;
+  animation: fade 0.2s ease;
+}
+
+@keyframes fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+.row-actions {
+  white-space: nowrap;
+}
+
+.svgwrap {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--yuva);
+  padding: 10px;
+}
+
+.warn {
+  color: var(--red);
+  font-size: var(--fs-4);
+  margin-top: 8px;
+  font-family: var(--f-mono);
+}
+
+.savechip {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--line2);
+  color: var(--dim);
+  padding: 6px 12px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-2);
+  font-family: var(--f-mono);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: var(--z-yapisik);
+}
+
+.savechip.show {
+  opacity: 1;
+}
+
+/* Sayfa başına çık: sağ altta kutu içinde yukarı ok; kaydet/geri al çipleri (alt 16 / 50 px) ve mobil alt çubuğun üstünde durur. */
+#basaCik {
+  position: fixed;
+  right: 16px;
+  bottom: 92px;
+  z-index: var(--z-yapisik);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--line2);
+  border-radius: var(--r-sm);
+  color: var(--txt);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s, border-color .15s ease, background .15s ease;
+}
+#basaCik.goster { opacity: .92; visibility: visible; transform: none; transition-delay: 0s; }
+#basaCik:hover { opacity: 1; border-color: var(--gold); color: var(--gold); }
+#basaCik:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; opacity: 1; }
+body.palet-acik #basaCik { display: none; }
+@media (prefers-reduced-motion: reduce) { #basaCik { transition: none; } }
+@media print { #basaCik { display: none !important; } }       /* yazdırmada gizli (print.css'e yazılırsa seçici iki dosyada çakışır) */
+
+.undochip {
+  position: fixed;
+  bottom: 50px;
+  right: 16px;
+  z-index: var(--z-yapisik);
+  background: var(--surface-2);
+  border: 1px solid var(--line2);
+  color: var(--dim);
+  padding: 6px 12px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-2);
+  font-family: var(--f-mono);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  line-height: 1;
+}
+
+.undochip:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+.undochip .uc-n {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: var(--r-xs);
+  background: rgba(224, 185, 104, 0.15);
+  color: var(--gold);
+  font-size: var(--fs-0);
+}
+
+@media print {
+  .undochip { display: none !important; }
+}
+
+/* ================= ÜST BANT: KİMLİK + SAYFA BAŞLIĞI HİZASI ================= */
+header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.hkimlik {
+  min-width: 0;
+}
+
+.hkimlik h1 {
+  cursor: pointer;
+}
+
+#sayfabasi {
+  flex: 0 0 auto;
+  max-width: 48%;
+  margin-left: auto;
+}
+
+#sayfabasi .sayfaadi h2 {
+  margin: 0;
+}
+
+#sayfabasi[hidden] {
+  display: none;
+}
+
+#sayfabasi .hubhead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--sp-1);
+  margin-bottom: 0;
+  text-align: right;
+  flex-wrap: nowrap;
+}
+
+#sayfabasi .hubhead > div {
+  min-width: 0;
+}
+
+#sayfabasi .hubcrumb {
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-eyebrow);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+#sayfabasi .hubhead h2 {
+  font-size: var(--fs-6);
+  margin-top: 2px;
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-title);
+  font-weight: 700;
+}
+
+#sayfabasi .hubhead .hi,
+#sayfabasi .hubhead .ws {
+  display: none;
+}
+
+#sayfabasi .hubback {
+  padding: 5px 10px;
+  font-size: var(--fs-2);
+  border-radius: var(--r-sm);
+  font-weight: 500;
+}
+
+#sayfabasi .hubhead > div:last-child {
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+/* ================= DUYARLI YERLEŞİM (RESPONSIVE) ================= */
+@media (max-width: 1000px) {
+  .shell {
+    flex-direction: column;
+    padding: 0 14px 20px 14px;
+  }
+  #nav {
+    display: none;
+  }
+  main {
+    padding: 10px 0;
+    max-width: 100%;
+  }
+  header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    padding: 12px 14px 4px 14px;
+  }
+  #sayfabasi {
+    max-width: 100%;
+    margin-left: 0;
+  }
+  #sayfabasi .hubhead {
+    align-items: flex-start;
+    text-align: left;
+  }
+  #sayfabasi .hubhead > div:last-child {
+    justify-content: flex-start;
+  }
+  #basaCik {
+    bottom: calc(152px + env(safe-area-inset-bottom));
+    right: 12px;
+  }
+  .savechip {
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    right: 12px;
+  }
+  .undochip {
+    bottom: calc(112px + env(safe-area-inset-bottom));
+    right: 12px;
+  }
+}
+
+/* ---- Düğme öbeği ve halka grafik tutamakları ----
+   .arc ve .donut-center D3'ün seçim tutamakları; biçimleri burada tanımlı
+   olmadığında sayfada karşılıksız sınıf olarak kalıyorlardı. */
+.btn-group{
+  display:inline-flex;
+  gap:2px;
+  padding:3px;
+  background:var(--surface-2);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+}
+.arc{ cursor:pointer; }
+.arc path{ transition:opacity .18s ease, transform .18s ease; }
+.donut-center{ pointer-events:none; }
+
+/* ================= MENÜ · DÖNEM KARTI, KİŞİ SATIRI, ÇİZGİ İKONLAR =================
+   Dönem seçimi bütün sayfaların ortak ayarı olduğu için menünün başında;
+   ay dışına çıkıldığında kart altın çerçeveye geçer ve "Bu aya dön" belirir. */
+#nav .sb-donem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 2px 0 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--yuva);
+}
+#nav .sb-donem.uzak {
+  border-color: color-mix(in srgb, var(--gold) 55%, transparent);
+  background: color-mix(in srgb, var(--gold) 9%, var(--yuva));
+}
+#nav .sb-donem-et {
+  font-family: var(--f-mono);
+  font-size: var(--fs-0);
+  letter-spacing: .18em;
+  color: var(--dim);
+}
+#nav .sb-donem-sat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#nav .sb-donem-sat b {
+  flex: 1;
+  text-align: center;
+  font-size: var(--fs-4);
+  color: var(--txt);
+  white-space: nowrap;
+}
+#nav .sb-donem.uzak .sb-donem-sat b { color: var(--gold); }
+#nav .sb-donem button.sb-donem-ok {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  padding: 0;
+  margin: 0;
+  justify-content: center;
+  border: 1px solid var(--line);
+  background: var(--kb-2);
+  color: var(--txt);
+}
+#nav .sb-donem button.sb-donem-ok .lu { font-size: 16px; }
+#nav .sb-donem-alt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: var(--fs-1);
+  color: var(--dim);
+}
+#nav .sb-donem button.sb-donem-bugun {
+  width: auto;
+  padding: 2px 6px;
+  margin: 0;
+  color: var(--gold);
+  font-weight: 700;
+  font-size: var(--fs-1);
+}
+#nav button .nb .lu { font-size: 18px; }
+#nav button.on,
+#nav button.active {
+  background: color-mix(in srgb, var(--gold) 11%, var(--kb-3));
+  color: var(--gold);
+}
+#nav button.on::after,
+#nav button.active::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--gold);
+  flex: 0 0 6px;
+}
+/* ================= MENÜ · TASARIM DİLİ (Komuta Paneli önizlemesi) =================
+   Sade panel: çerçevesiz satırlar, soluk öbek başlıkları, altın logo bloğu,
+   ayrı saat kartı ve kişi kartı. Etkin satır altın zemin + sağda nokta. */
+#nav {
+  background: var(--kb-1);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+#nav .sb-header { padding: 16px 14px 14px; }
+#nav .sb-brand { gap: 12px; }
+#nav .sb-logo-box {
+  width: 42px; height: 42px; flex: 0 0 42px; border-radius: var(--r);
+  background: linear-gradient(145deg, var(--gold), color-mix(in srgb, var(--gold) 70%, #6b4a12));
+  border: 0; color: #1a1406; font-size: 22px;
+}
+#nav .sb-brand-info h2 { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
+#nav .sb-brand-info p { display: block; margin: 1px 0 0; font-size: var(--fs-2); color: var(--dim); }
+#nav .navsec,
+#nav .sb-section-title {
+  font-family: var(--f-ui);
+  font-size: var(--fs-0);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+  padding: 8px 12px 4px;
+  margin-top: 8px;
+  margin-bottom: 2px;
+}
+#nav .navsec::after,
+#nav .sb-section-title::after { display: none; }
+#nav button {
+  padding: 9px 12px;
+  border: 1px solid transparent;
+  font-size: 14.5px;
+  gap: 12px;
+}
+#nav button:hover {
+  background: var(--kb-3);
+  border-color: transparent;
+}
+#nav button.on,
+#nav button.active {
+  background: color-mix(in srgb, var(--gold) 13%, transparent);
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--gold);
+  font-weight: 700;
+}
+#nav button.on::before,
+#nav button.active::before { display: none; }
+#nav button .nb .lu { font-size: 19px; }
+#nav button .nx,
+#nav button .badge {
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--bg);
+  font-weight: 700;
+  padding: 1px 7px;
+}
+#nav button .nk,
+#nav button .shortcut { opacity: 0; transition: opacity .15s ease; }
+#nav button:hover .nk { opacity: .8; }
+#nav .sb-kisi {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--gold) 10%, var(--yuva));
+}
+#nav .sb-avatar {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: var(--r-pill);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: var(--bg);
+  background: linear-gradient(145deg, var(--gold), var(--violet));
+}
+#nav .sb-saat {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: -.02em;
+}
+#nav .sb-kisi-ad {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+#nav .sb-kisi-ad b {
+  font-size: var(--fs-3);
+  color: var(--txt);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#nav .sb-kisi-ad span { font-size: var(--fs-1); color: var(--dim); }

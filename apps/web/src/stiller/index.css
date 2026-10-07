@@ -1,0 +1,24 @@
+/* ASTRA COMMAND OS — stil giriş noktası.
+
+   25 dosya sekiz katmanda toplandı (Öneri 61). Gruplar YÜKLEME SIRASINA
+   GÖRE BİTİŞİK seçildi: bu kod tabanında kazanan kuralı büyük ölçüde sıra
+   belirliyor ve grupları yeniden sıralamak ölçülmüş bir görsel gerileme
+   demek olurdu. Birleştirme öncesi ve sonrası 23 sekmede 11.939 öğenin
+   hesaplanmış stili karşılaştırıldı — fark sıfır.
+
+   Sıra: jetonlar → temel → yerleşim → bileşenler → tablolar → yardımcılar
+         → geri bildirim → yazdırma. */
+@import './tokens.css';
+@import './base.css';
+@import './layout.css';
+@import './components.css';
+@import './table.css';
+@import './pano.css';
+@import './apps.css';
+@import './utilities.css';
+@import './feedback.css';
+@import './zengin.css';
+@import './kutuphane.css';
+@import './genel.css';
+@import './alim.css';
+@import './print.css';

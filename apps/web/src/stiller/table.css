@@ -1,0 +1,222 @@
+/* ==========================================================================
+   TABLOLAR
+   Tablo motoru: yapışık başlık, sıralama, sayfalama, sütun toplamları.
+
+   Kaynak dosyalar sırayla birleştirildi; sıra kazanan kuralı belirlediği
+   için korunması zorunludur.
+   ========================================================================== */
+
+/* ---- tablo motoru araç çubuğu (ui/table.js) ---- */
+.tbar{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  margin:0 0 10px; padding:8px 12px;
+  background:var(--kb-2);
+  border:1px solid var(--line); border-radius:var(--r-sm);
+  font-family:var(--f-ui); font-size:var(--fs-2);
+}
+.tbar[hidden]{display:none}
+.tbar .tbar-sp{flex:1 1 auto}
+.tbar input[type=search]{
+  width:auto; flex:0 1 240px; min-width:140px;
+  padding:6px 12px; font-size:var(--fs-3); border-radius:var(--r-sm); font-family:var(--f-ui);
+}
+.tbar select{width:auto; padding:6px 10px; font-size:var(--fs-2); border-radius:var(--r-sm); font-family:var(--f-ui)}
+.tbar .tbar-count{color:var(--dim2,var(--dim)); white-space:nowrap; font-size:var(--fs-2)}
+.tbar button{
+  background:var(--surface); border:1px solid var(--line); color:var(--txt);
+  border-radius:var(--r-sm); padding:6px 12px; font-size:var(--fs-2);
+  font-family:var(--f-ui); font-weight:500; cursor:pointer; transition:color .15s,background-color .15s,border-color .15s,opacity .15s,transform .15s,filter .15s;
+}
+.tbar button:hover:not(:disabled){border-color:var(--line2); color:var(--gold); background:var(--surface-2)}
+.tbar button:disabled{opacity:.35; cursor:default}
+.tbar .tbar-pager{display:inline-flex; align-items:center; gap:6px}
+.tbar .tbar-pager b{color:var(--txt); font-weight:600; min-width:44px; text-align:center; font-family:var(--f-num)}
+
+.tbar-cols{position:relative}
+.tbar-cols>summary{
+  list-style:none; cursor:pointer; padding:6px 10px;
+  border:1px solid var(--line); border-radius:var(--r-sm); color:var(--dim2,var(--dim));
+}
+.tbar-cols>summary::-webkit-details-marker{display:none}
+.tbar-cols[open]>summary{color:var(--gold); border-color:var(--gold)}
+.tbar-colbox{
+  position:absolute; right:0; top:calc(100% + 6px); z-index:var(--z-acilir);
+  min-width:190px; max-height:300px; overflow:auto;
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-sm); padding:8px;
+  box-shadow:0 12px 32px -6px rgba(0,0,0,0.55), 0 0 0 1px var(--yuzey-3);
+}
+.tbar-col{
+  display:flex; align-items:center; gap:8px;
+  text-transform:none; letter-spacing:0; font-size:12.5px;
+  /* 3/4 hiçbir basamağa denk gelmiyordu; sütun menüsünün 34 satırı da
+     ölçeğin dışındaydı. --sp-1 en alt basamak ve bu yoğunluğa yetiyor. */
+  color:var(--txt); margin:0 0 4px; padding:var(--sp-1); border-radius:var(--r-sm); cursor:pointer;
+}
+.tbar-col:hover{background:var(--kb-2)}
+.tbar-col input{width:18px; height:18px; flex:0 0 auto}
+
+/* ---- sıralanabilir başlıklar ---- */
+th.t-sort{cursor:pointer; -webkit-user-select:none; user-select:none; position:sticky; padding-right:20px}
+th.t-sort:hover{color:var(--gold)}
+th.t-sort::after{
+  content:'↕'; position:absolute; right:7px; top:50%; transform:translateY(-50%);
+  opacity:.3; font-size:10px;
+}
+th.t-sort[data-dir=asc]::after{content:'↑'; opacity:1; color:var(--gold)}
+th.t-sort[data-dir=desc]::after{content:'↓'; opacity:1; color:var(--gold)}
+th.t-sort.sorted{color:var(--gold)}
+
+@media(max-width:640px){
+  .tbar{gap:6px; padding:7px 8px}
+  .tbar input[type=search]{flex:1 1 100%}
+  .tbar .tbar-sp{display:none}
+}
+@media print{ .tbar{display:none} th.t-sort::after{content:''} }
+
+/* ============ 023 · YAPIŞKAN TABLO BAŞLIĞI ============
+   25 satırlık sayfada aşağı inince sütun adları kayboluyordu ve hangi
+   sütuna baktığını hatırlamak gerekiyordu. Başlık üst banda yapışıyor —
+   --ust zaten ölçülüyor (bkz. app/ust.js), sabit sayı uydurmuyoruz. */
+.t-enh thead th{
+  position:sticky; top:calc(var(--ust,107px));
+  z-index:var(--z-yapisal);
+  background:var(--surface-2);
+  /* Yapışık başlığın altında ince bir çizgi olmazsa satırlar başlığın
+     içinden geçiyormuş gibi görünüyor. */
+  box-shadow:inset 0 -1px 0 var(--line2);
+}
+
+/* BAŞLIK GÖVDENİN İÇİNE KAYIYORDU — ölçülen kusur.
+   `.tablewrap` yatay kaydırma için `overflow-x:auto` taşıyor. CSS'te
+   overflow-x `visible` dışında bir değer alınca overflow-y de `visible`
+   KALAMAZ, `auto`ya düşer: sarmal böylece bir kaydırma kabı oluyor.
+   Yapışık öğe en yakın kaydırma kabına göre konumlandığı için
+   `top:110px` başlığı sayfanın üst bandına değil SARMALIN 110px içine,
+   yani gövde satırlarının üstüne oturtuyordu.
+
+   Ölçüm (planlama sekmesi, 1400px kaydırılmış): başlık 1420–1473
+   aralığında, gövde satırları 1363 / 1418 / 1474 — ilk iki satır
+   başlığın altında kalıyordu.
+
+   Sarmalın içinde doğru dayanak sarmalın kendi üstü. Sarmal dikey
+   kaydırmadığı için başlık akıştaki yerinde duruyor: örtüşme bitiyor. */
+.tablewrap thead th{ top:0 }
+
+/* Sütunlar nefes alsın — taban genişlik ui/table.js'te sütun sayısından
+   kuruluyor, buradaki yalnız hücre içi boşluk. Dar ekranda kart kipine
+   geçildiği için masaüstüyle sınırlı. */
+@media(min-width:641px){
+  .t-enh th, .t-enh td{ padding-left:14px; padding-right:14px }
+}
+
+/* ============ 022 · SIRALAMA DURUMU OKUNUR ============
+   Ok işareti 10px ve --faint idi; hangi sütuna göre sıralı olduğu uzaktan
+   görünmüyordu. Etkin sütun hem renk hem ağırlıkla ayrışıyor. */
+.t-enh thead th.sorted{color:var(--gold2); font-weight:700}
+.t-enh thead th.sorted::after{
+  content:'▲'; margin-left:6px; font-size:9px; color:var(--gold);
+  display:inline-block; vertical-align:middle;
+}
+.t-enh thead th.sorted[data-dir="desc"]::after{content:'▼'}
+/* Sıralanabilir ama sıralı olmayan sütun: soluk çift ok, yalnız fare
+   üstündeyken. Hepsinde sürekli göstermek başlık satırını okla dolduruyordu. */
+.t-enh thead th[aria-sort="none"]:hover::after{
+  content:'⇅'; margin-left:6px; font-size:9px; color:var(--faint);
+}
+
+/* ============ 021 · SÜTUN GENİŞLİĞİ İÇERİKTEN ============
+   "ALACAKLI / DOSYA" uzun adları kesiyor, "TÜR" üç harf için geniş
+   duruyordu; tablo sabit oranlı bölünüyordu. */
+.t-enh{table-layout:auto}
+
+/* İLK SÜRÜM DAHA KÖTÜYDÜ VE GÖRÜNTÜDEN ANLAŞILDI.
+   Kural `th, td{overflow-wrap:anywhere}` idi. `anywhere` sözcüğü ORTASINDAN
+   kırıyor ve dar bir sütunda başlık kuleye dönüşüyordu — ölçülen: başlık
+   satırı 121px, "ALACAKLI / DOSYA" üç parçaya bölünmüş ("ALACAKL / I /
+   DOSYA"), "ASGARİ" harf harf alt alta. Buna `width:1%` eklenince sayı
+   sütunları en dara çekiliyor ve artan yer metin sütunlarına DEĞİL, boş
+   alana gidiyordu.
+
+   Ayrım şu: BAŞLIK kısa ve sabit bir etiket, kırılmamalı; HÜCRE uzun ve
+   öngörülemeyen bir ad taşıyabilir (dosya numarası, alacaklı unvanı) ve
+   orada kırılma taşmaya yeğdir. */
+.t-enh td{overflow-wrap:break-word}     /* yalnız sözcük sınırında zorlanır */
+.t-enh th{overflow-wrap:normal; -webkit-hyphens:none; hyphens:none}
+
+/* Sayı sütunları satır sonunda bölünmesin — ama genişliği de zorlanmasın.
+   `width:1%` kaldırıldı: tarayıcının kendi dağıtımı, sayıya nowrap verilince
+   zaten sayıya yetecek kadarını ayırıyor ve gerisini metne bırakıyor.
+   YALNIZ MASAÜSTÜNDE: telefonda tablo kart kipine geçiyor (satır blok,
+   hücre esnek) ve orada nowrap bir hücre daralamıyor — ölçümde 358px'lik
+   sarmalın içinde 461px'lik hücre çıktı, yani kart kipi sessizce yatay
+   kaydırmaya dönüyordu. */
+@media(min-width:641px){
+  .t-enh td.mono, .t-enh th.mono{white-space:nowrap}
+  /* Başlık etiketleri kısa; kırılmak yerine sütunu genişletsinler. */
+  .t-enh thead th{white-space:nowrap}
+}
+
+/* ============ 024 · SATIR YOĞUNLUĞU ============ */
+.t-enh.t-yogun td, .t-enh.t-yogun th{padding-top:6px; padding-bottom:6px; font-size:var(--fs-3)}
+.t-enh.t-yogun input, .t-enh.t-yogun select{padding-top:4px; padding-bottom:4px}
+
+/* ============ 025 · TOPLAM SATIRI ============ */
+.t-enh tfoot.t-toplam td{
+  border-top:2px solid var(--line2); border-bottom:none;
+  padding-top:var(--sp-2); padding-bottom:var(--sp-2);
+  font-weight:700; color:var(--txt); font-size:var(--fs-4);
+  background:color-mix(in srgb, var(--surface-2) 60%, transparent);
+}
+.t-enh tfoot.t-toplam td:first-child{color:var(--dim2); font-weight:600; letter-spacing:.08em; font-size:var(--fs-1); text-transform:uppercase}
+/* Sayılmayan satırların (ötelenen, dökümde karşılanan, pasif) ayrı toplamı: ana toplamdan görsel olarak ayrı, daha sönük. */
+.t-enh tfoot.t-toplam tr.t-toplam-disi td{border-top:1px dashed var(--line2); font-weight:500; font-size:var(--fs-2); color:var(--gold); background:transparent}
+.t-enh tfoot.t-toplam tr.t-toplam-disi td:first-child{color:var(--gold)}
+
+/* ============ 078 · KLAVYEYLE HÜCRE GEZİNME ============
+   908 satırda sekme tuşuyla ilerlemek sürüyordu. Ok tuşlarıyla hücreden
+   hücreye geçiliyor; odaklanan hücre görünür. */
+.t-enh td:focus{outline:2px solid var(--focus); outline-offset:-2px; border-radius:var(--r-sm)}
+
+/* Yoğunluk anahtarı basılıyken durumunu göstersin — aria-pressed'i gözle
+   görünür kılan kural yoksa düğme hangi kipte olduğunu söylemiyor. */
+.tbar .tbar-yog[aria-pressed="true"]{
+  color:var(--gold); border-color:color-mix(in srgb, var(--gold) 45%, var(--line));
+  background:color-mix(in srgb, var(--gold) 10%, transparent);
+}
+
+
+/* Kart kipinde yapışkan başlık anlamsız (thead zaten gizli) ve sticky bir
+   hücre kart satırının içinde beklenmedik yerde duruyor. */
+@media(max-width:640px){
+  .t-enh thead th{position:static}
+  .t-enh tfoot.t-toplam td{display:flex; justify-content:space-between}
+  .t-enh tfoot.t-toplam td:empty{display:none}
+}
+
+/* 022 · sıralı sütunun gövde izi — hücre hücre sınıf yazmak yerine tek
+   öznitelik. Sütun sayısı 12'yi geçmiyor; kuralı elle açmak, çizim başına
+   binlerce classList çağrısından ucuz. */
+.t-enh[data-sirali="1"]  td:nth-child(1),
+.t-enh[data-sirali="2"]  td:nth-child(2),
+.t-enh[data-sirali="3"]  td:nth-child(3),
+.t-enh[data-sirali="4"]  td:nth-child(4),
+.t-enh[data-sirali="5"]  td:nth-child(5),
+.t-enh[data-sirali="6"]  td:nth-child(6),
+.t-enh[data-sirali="7"]  td:nth-child(7),
+.t-enh[data-sirali="8"]  td:nth-child(8),
+.t-enh[data-sirali="9"]  td:nth-child(9),
+.t-enh[data-sirali="10"] td:nth-child(10),
+.t-enh[data-sirali="11"] td:nth-child(11),
+.t-enh[data-sirali="12"] td:nth-child(12){
+  background:color-mix(in srgb, var(--gold) 4%, transparent);
+}
+
+/* Aylık Gider › "Ayrıntılı rakamlar" açılır bölümü (başa baş, gelir dağılımı, nakit akışı) */
+.gider-ayrinti{margin:0 0 var(--sp-4,16px)}
+.gider-ayrinti>summary{list-style:none}
+.gider-ayrinti>summary::-webkit-details-marker{display:none}
+.gider-ayrinti[open]>summary{border-color:var(--cyan)}
+/* açık/kapalı simgesi (metne gömülü sabit "▾" durumu göstermiyordu) */
+.gider-ayrinti>summary::before{content:"▸";display:inline-block;width:1.2em;color:var(--dim2)}
+.gider-ayrinti[open]>summary::before{content:"▾"}
