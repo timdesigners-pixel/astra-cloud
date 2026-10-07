@@ -1,4 +1,7 @@
 import { genelBakisSayfasi } from './genel/genel';
+import { aylikRaporSayfasi } from './modul/rapor';
+import { planlayiciSayfasi } from './modul/planlayici';
+import { simulasyonSayfasi } from './modul/simulasyon';
 import { davaSayfasi } from './hukuk/davalar';
 import { listelerSayfasi } from './notlar/listeler';
 import { todoSayfasi } from './notlar/todo';
@@ -29,6 +32,9 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   'k-ceza': davaSayfasi('ceza'),
   'k-hukuk': davaSayfasi('hukuk'),
   'k-cbs': davaSayfasi('cbs'),
+  'm-rapor': aylikRaporSayfasi,
+  'm-plan': planlayiciSayfasi,
+  'm-sim': simulasyonSayfasi,
   'n-todo': todoSayfasi,
   'n-zihin': zihinSayfasi,
   'n-liste': listelerSayfasi,
