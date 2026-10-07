@@ -10,13 +10,13 @@ export const VARSAYILAN_PROFIL: Profil = { ad: '', sehir: { etiket: 'İstanbul',
 export const VARSAYILAN_HEDEF: Hedefler = { su: 2500, adim: 8000 };
 
 /* ---- ayarlar: anahtar başına tek satır ---- */
-async function ayarOku<T>(anahtar: string): Promise<{ id: string; surum: number; deger: T } | null> {
+export async function ayarOku<T>(anahtar: string): Promise<{ id: string; surum: number; deger: T } | null> {
   const { data, error } = await istemciAl().from('ayarlar').select('id,surum,deger').eq('anahtar', anahtar).is('silindi_at', null).maybeSingle();
   if (error) throw error;
   return data as { id: string; surum: number; deger: T } | null;
 }
 
-async function ayarYaz<T extends object>(anahtar: string, deger: T): Promise<void> {
+export async function ayarYaz<T extends object>(anahtar: string, deger: T): Promise<void> {
   const db = istemciAl();
   const mevcut = await ayarOku<T>(anahtar);
   if (!mevcut) {

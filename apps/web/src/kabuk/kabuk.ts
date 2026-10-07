@@ -5,6 +5,9 @@ import { duzMenu, duzMenuYaz, hepsiniAyarla, hubAcik, hubCevir, sekmeMerkeziniAc
 import { menuIkon } from './ikonlar';
 import { donem, donemDurumu, donemEtiketi, donemKaydir, donemeGit, buAy, donemDinle } from './donem';
 import { temaAd, temaCevir, temaSimge, temaUygula } from './tema';
+import { bildirimMerkeziAc } from '../ozellikler/sistem/bildirim-merkezi';
+import { panelGetir, panelSifirla, type Panel } from '../veri/panel';
+import { tl } from '../ortak/bicim';
 import { aktifSekme, git, kisayolHedefi, yonlendiriciBaslat, yonlendiriciDinle } from './yonlendirici';
 
 const $ = (id: string) => document.getElementById(id) as HTMLElement;
@@ -80,20 +83,47 @@ function ustCiz() {
     + `<span class="mono" style="font-size:10px;padding:var(--sp-0) 8px;border-radius:var(--r-pill);white-space:nowrap;background:${zemin};color:${renk}">${d === 'bugun' ? 'bu ay' : d === 'gelecek' ? 'gelecek' : 'geçmiş'}</span>`
     + (d !== 'bugun' ? `<button class="pbtn adim" style="color:var(--cyan)" data-donem="bugun">⟳ bugün</button>` : '')
     + `<span style="flex:1;min-width:8px"></span>`
-    + `<div style="position:relative"><button class="bell" aria-label="0 okunmamış bildirim — Bildirim Merkezi (N)" title="Bildirim Merkezi (N tuşu)">${ZIL}</button></div>`;
+    + `<div style="position:relative"><button class="bell" data-islem="bildirim" aria-label="${zilEtiketi()}" title="Bildirim Merkezi (N tuşu)">${ZIL}${panelSon && panelSon.uyarilar.length ? `<span class="bell-say" aria-hidden="true">${panelSon.uyarilar.length}</span>` : ''}</button></div>`;
 
-  const h = (l: string, v: string, tab: string, ipucu: string) =>
-    `<div class="ms" data-tab="${tab}" title="${ipucu}"><i>${l}</i><b>${v}</b></div>`;
   const kartta = aktifSekme() === 'genel';
-  $('ministrip').innerHTML =
-    (kartta ? '' : h('SERBEST BÜTÇE', '—', 'gider', 'gelir − gider − birikim − taksit')
-      + h('TOPLAM BORÇ', '—', 'borc', 'tüm borçların karşılığı')
-      + h('SAĞLIK', '—', 'sistem', 'finansal sağlık skoru'))
-    + h('ANAPARA', '—', 'mevduat', 'faiz motorundaki anapara')
-    + h('BORÇ BİTİŞ', '—', 'sim', 'borç kapatma simülasyonu')
-    + h('UYARI', '—', 'genel', 'uyarı merkezi')
-    + h('YEDEK', '—', 'sistem', 'son yedek')
-    + h('BÜTÜNLÜK', '—', 'gider', 'veri tutarlılık denetimi');
+  $('ministrip').innerHTML = ministripHtml(kartta);
+  panelYukle();
+}
+
+/* ---------- canlı özet şeridi ve bildirim sayısı ---------- */
+let panelSon: Panel | null = null;
+let panelAy = '';
+const zilEtiketi = () => `${panelSon?.uyarilar.length ?? 0} bekleyen uyarı — Bildirim Merkezi (N)`;
+
+function ministripHtml(kartta: boolean) {
+  const p = panelSon && panelAy === donem() ? panelSon : null;
+  const h = (l: string, v: string, tab: string, ipucu: string, sinif = '') =>
+    `<div class="ms" ${tab.startsWith('!') ? `data-islem="${tab.slice(1)}"` : `data-tab="${tab}"`} title="${ipucu}"><i>${l}</i><b class="gz ${sinif}">${v}</b></div>`;
+  const kontrolSorun = p ? p.kontroller.filter(k => !k.tamam).length : 0;
+  return (kartta ? '' : h('SERBEST BÜTÇE', p ? tl(p.serbest) : '—', 'e-ozet', 'seçili ay: gelir − gider', p && p.serbest < 0 ? 'neg' : '')
+      + h('TOPLAM BORÇ', p ? tl(p.borc) : '—', 'b-ozet', 'açık borçların toplamı')
+      + h('SAĞLIK', p ? `${p.saglik} · ${p.saglikEtiket}` : '—', 'genel', 'finansal sağlık skoru (100 üzerinden)'))
+    + h('ANAPARA', p ? tl(p.anapara) : '—', 'v-ozet', 'mevduat anaparası')
+    + h('BORÇ BİTİŞ', p ? (p.borcBitis ?? '—') : '—', 'm-sim', 'planlı son borç ödemesi')
+    + h('UYARI', p ? String(p.uyarilar.length) : '—', '!bildirim', 'Bildirim Merkezi', p && p.uyarilar.length ? 'neg' : '')
+    + h('YEDEK', p ? (p.yedek ?? 'yok') : '—', 'sistem', 'son yedek')
+    + h('BÜTÜNLÜK', p ? (kontrolSorun ? `${kontrolSorun} sorun` : 'Tamam') : '—', 'sistem', 'veri tutarlılık denetimi', kontrolSorun ? 'neg' : '');
+}
+
+function panelYukle() {
+  if (!bagliMi()) return;
+  const ay = donem();
+  panelGetir(ay).then(p => {
+    if (donem() !== ay) return;
+    panelSon = p; panelAy = ay;
+    $('ministrip').innerHTML = ministripHtml(aktifSekme() === 'genel');
+    const zil = document.querySelector<HTMLElement>('#perbar .bell');
+    if (zil) {
+      zil.setAttribute('aria-label', zilEtiketi());
+      zil.querySelector('.bell-say')?.remove();
+      if (p.uyarilar.length) { const s = document.createElement('span'); s.className = 'bell-say'; s.setAttribute('aria-hidden', 'true'); s.textContent = String(p.uyarilar.length); zil.appendChild(s); }
+    }
+  }).catch(() => { /* şerit boş kalır; sayfalar kendi hatasını gösterir */ });
 }
 
 /* ---------- sayfa başlığı ve gövde ---------- */
@@ -110,17 +140,18 @@ function sayfaCiz() {
   }
   const sayfa = SAYFALAR[aktifSekme()];
   if (sayfa) {
-    if (bagliMi()) sayfa($('main'));
+    if (bagliMi()) {
+      /* Her sayfa kendi kabına çizer; geç gelen veri başka sayfayı ezemesin. */
+      const kap = document.createElement('div');
+      kap.className = 'sayfa-kap';
+      $('main').replaceChildren(kap);
+      sayfa(kap);
+    }
     else $('main').innerHTML = `<section class="card" style="padding:28px"><h2 style="margin:0 0 6px">${ad}</h2>`
       + `<p style="margin:0;color:var(--dim)">Kilit açılınca yüklenecek.</p></section>`;
   } else
   $('main').innerHTML = `<section class="card" style="padding:28px"><h2 style="margin:0 0 6px">${ad}</h2>`
-    + `<p style="margin:0;color:var(--dim)">Bu ekran sonraki fazda doldurulacak.</p></section>`
-    + (aktifSekme() === 'sistem'
-      ? `<section class="card" style="padding:28px;margin-top:16px"><h2 style="margin:0 0 6px">Menü görünümü</h2>`
-        + `<p style="margin:0 0 14px;color:var(--dim)">Gruplu menü merkezlere ayrılmıştır. Alışana kadar eski düz listeye dönebilirsin.</p>`
-        + `<button type="button" class="btn" data-islem="menu-tur" aria-pressed="${duzMenu()}">${duzMenu() ? 'Gruplu menüye geç' : 'Eski düz menüye dön'}</button></section>`
-      : '');
+    + `<p style="margin:0;color:var(--dim)">Bu ekran sonraki fazda doldurulacak.</p></section>`;
   document.title = `${ad} · ASTRA FİNANS OS`;
   $('duyuru').textContent = `${ad} sayfası açıldı`;
 }
@@ -191,6 +222,7 @@ function olaylariBagla() {
     else if (islem === 'gizlilik') { gizlilik.acik = !gizlilik.acik; document.body.classList.toggle('gizli', gizlilik.acik); menuCiz(); }
     else if (islem === 'hub-ac' || islem === 'hub-kapat') { hepsiniAyarla(islem === 'hub-ac'); menuCiz(); }
     else if (islem === 'menu-tur') { duzMenuYaz(!duzMenu()); menuCiz(); sayfaCiz(); }
+    else if (islem === 'bildirim') bildirimMerkeziAc(panelSon);
     else if (islem === 'cekmece-kapat') $('mobdrawer').classList.remove('acik');
     else if (hedef.closest('#mobnav [data-tab="__more"]')) cekmeceAc();
   });
@@ -210,6 +242,7 @@ function olaylariBagla() {
     else if (e.key === 'ArrowRight') donemKaydir(1);
     else if (e.key === 't' || e.key === 'T') donemeGit(buAy());
     else if (e.key === 'p' || e.key === 'P') { gizlilik.acik = !gizlilik.acik; document.body.classList.toggle('gizli', gizlilik.acik); menuCiz(); }
+    else if (e.key === 'n' || e.key === 'N') bildirimMerkeziAc(panelSon);
     else if (e.key === '?') $('kbdhelp').classList.add('acik');
     else if (e.key === 'Escape') { $('kbdhelp').classList.remove('acik'); $('mobdrawer').classList.remove('acik'); }
   });
@@ -220,11 +253,12 @@ export function kabuguBaslat() {
   yonlendiriciBaslat();
   yonlendiriciDinle(k => { sekmeMerkeziniAc(k); hepsiniCiz(); });
   donemDinle(hepsiniCiz);
-  document.addEventListener('astra:oturum', sayfaCiz);
+  document.addEventListener('astra:oturum', () => { sayfaCiz(); panelYukle(); });
   olaylariBagla();
   sekmeMerkeziniAc(aktifSekme());
   hepsiniCiz();
   setInterval(saatTazele, 30000);
+  setInterval(() => { panelSifirla(); panelYukle(); }, 60000);
   if (typeof ResizeObserver === 'function') new ResizeObserver(() =>
     document.documentElement.style.setProperty('--ust', `${$('perbarwrap').getBoundingClientRect().height}px`)).observe($('perbarwrap'));
   matchMedia('(max-width: 1000px)').addEventListener('change', sayfaCiz);

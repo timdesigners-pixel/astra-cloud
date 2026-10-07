@@ -7,8 +7,11 @@ import {
   VARSAYILAN_HEDEF, VARSAYILAN_PROFIL, hedefGetir, hedefYaz, notDegistir, notEkle, notlariGetir, profilGetir, profilYaz,
   saglikGetir, saglikYaz, type Hedefler, type Not, type Profil, type Saglik,
 } from '../../veri/karsilama';
-import { havaGetir, kurGetir, sehirAra, type Hava, type Kur } from './dis-veri';
+import { HABER_KAYNAKLARI, haberGetir, havaGetir, kurGetir, sehirAra, type Haber, type Hava, type Kur } from './dis-veri';
 import { git } from '../../kabuk/yonlendirici';
+import { donem } from '../../kabuk/donem';
+import { tl } from '../../ortak/bicim';
+import { panelGetir, type Panel } from '../../veri/panel';
 
 const IPUCLARI = [
   'Su hayattır{n}, bugün bol su içtiğinden emin ol! 💧✨',
@@ -29,8 +32,13 @@ const IPUCLARI = [
 
 type Durum = {
   profil: Profil; hedef: Hedefler; hava: Hava | null; havaHata: boolean; kur: Kur | null; kurHata: boolean;
-  saglik: Saglik | null; notlar: Not[]; hata: string; ipucuKaydirma: number;
+  saglik: Saglik | null; notlar: Not[]; hata: string; ipucuKaydirma: number; panel: Panel | null;
+  haber: { kod: string; liste: Haber[] | null; hata: boolean };
 };
+
+const HABER_ANAHTAR = 'astra.haber';
+const haberKodu = () => { try { const v = localStorage.getItem(HABER_ANAHTAR); if (v && HABER_KAYNAKLARI.some(k => k.kod === v)) return v; } catch { /* varsayılan */ } return HABER_KAYNAKLARI[0]!.kod; };
+const kacDakika = (t: number | null) => { if (t === null) return ''; const dk = Math.max(0, Math.round((Date.now() - t) / 60000)); return dk < 1 ? 'az önce' : dk < 60 ? `${dk} dk önce` : dk < 1440 ? `${Math.round(dk / 60)} sa önce` : `${Math.round(dk / 1440)} gün önce`; };
 
 let saatKimligi = 0;
 const yas = (t: number | undefined) => {
@@ -43,14 +51,15 @@ const sayi = (n: number | null | undefined) => (n ?? 0).toLocaleString('tr-TR');
 export function genelBakisSayfasi(kok: HTMLElement) {
   const d: Durum = {
     profil: VARSAYILAN_PROFIL, hedef: VARSAYILAN_HEDEF, hava: null, havaHata: false, kur: null, kurHata: false,
-    saglik: null, notlar: [], hata: '', ipucuKaydirma: 0,
+    saglik: null, notlar: [], hata: '', ipucuKaydirma: 0, panel: null,
+    haber: { kod: haberKodu(), liste: null, hata: false },
   };
   const gun = () => bugunAnahtari();
 
   /* ---------- çizim ---------- */
   function ciz() {
     const w = h('div', { sinif: 'wel' });
-    w.append(baslik(), karolar(), ikiliSira1(), ikiliSira2());
+    w.append(baslik(), karolar(), ikiliSira1(), ikiliSira2(), haberKarti());
     kok.replaceChildren(w);
   }
 
@@ -92,10 +101,40 @@ export function genelBakisSayfasi(kok: HTMLElement) {
       k ? yas(k.zaman) : null);
     kurKaro.querySelector('.wtop')!.append(yenileDugme(() => void kurYenile(true)));
 
-    const bekleyen = (simge: string, etiket: string, not: string) => karo(simge, etiket, '—', 'var(--dim)', not);
-    return h('div', { sinif: 'welgrid' }, havaKaro, kurKaro,
-      bekleyen('🎯', 'Günün Puanı', 'finans verileri bağlanınca hesaplanır'),
-      bekleyen('✓', 'Görevler', 'Yapılacaklar sayfası hazır olunca burada'));
+    const p = d.panel;
+    const renk = !p ? 'var(--dim)' : p.saglik >= 80 ? 'var(--green)' : p.saglik >= 60 ? 'var(--gold)' : 'var(--red)';
+    const puan = karo('🎯', 'Finansal Sağlık', p ? `${p.saglik}/100` : '—', renk,
+      p ? `${p.saglikEtiket} · seçili ay serbest bütçe ${tl(p.serbest)}` : 'hesaplanıyor…',
+      p ? `${p.uyarilar.length} bekleyen uyarı` : null);
+    const gorev = karo('✓', 'Görevler', p ? `${p.todoAcik} açık` : '—', p && p.todoGecikmis ? 'var(--red)' : null,
+      p ? `bugün ${p.todoBugun} · gecikmiş ${p.todoGecikmis}` : 'yükleniyor…');
+    puan.style.cursor = 'pointer'; puan.addEventListener('click', () => git('sistem'));
+    gorev.style.cursor = 'pointer'; gorev.addEventListener('click', () => git('n-todo'));
+    return h('div', { sinif: 'welgrid' }, havaKaro, kurKaro, puan, gorev);
+  }
+
+  function haberKarti() {
+    const k = HABER_KAYNAKLARI.find(x => x.kod === d.haber.kod) ?? HABER_KAYNAKLARI[0]!;
+    const sekmeler = h('div', { sinif: 'haber-sekme' },
+      ...HABER_KAYNAKLARI.map(x => h('button', {
+        sinif: 'wpill' + (x.kod === d.haber.kod ? ' secili' : ''), tip: 'button', id: `haber-${x.kod}`,
+        tikla: () => { d.haber = { kod: x.kod, liste: null, hata: false }; try { localStorage.setItem(HABER_ANAHTAR, x.kod); } catch { /* yok say */ } ciz(); void haberYukle(false); },
+      }, x.ad)),
+      h('button', { sinif: 'wref', tip: 'button', id: 'haber-yenile', tikla: () => { d.haber.liste = null; d.haber.hata = false; ciz(); void haberYukle(true); } }, 'yenile'));
+    const gov = h('div', { sinif: 'haber-liste' });
+    if (d.haber.hata) gov.appendChild(h('div', { sinif: 'ws' }, 'Haberler alınamadı. Bağlantını kontrol edip yenile.'));
+    else if (!d.haber.liste) gov.appendChild(h('div', { sinif: 'ws' }, 'Haberler yükleniyor…'));
+    else if (!d.haber.liste.length) gov.appendChild(h('div', { sinif: 'ws' }, 'Gösterilecek haber yok.'));
+    else d.haber.liste.slice(0, 8).forEach(n => {
+      const a = h('a', { sinif: 'haber-oge' },
+        h('span', { sinif: 'haber-metin' }, h('b', {}, n.baslik), h('small', {}, `${n.kaynak}${n.zaman ? ' · ' + kacDakika(n.zaman) : ''}`)));
+      a.href = n.baglanti; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      if (n.resim) { const r = document.createElement('img'); r.src = n.resim; r.alt = ''; r.loading = 'lazy'; r.referrerPolicy = 'no-referrer'; a.prepend(r); }
+      gov.appendChild(a);
+    });
+    return h('div', { sinif: 'card haber-kart', stil: 'margin-bottom:18px' },
+      h('h2', { stil: 'font-size:15.5px' }, 'Haber Akışı'),
+      h('div', { sinif: 'hint', stil: 'font-size:12.5px' }, `${k.kaynak} · haberler 30 dakikada bir tazelenir.`), sekmeler, gov);
   }
 
   function ipucu() {
@@ -229,6 +268,12 @@ export function genelBakisSayfasi(kok: HTMLElement) {
     try { d.kur = await kurGetir(zorla); d.kurHata = false; } catch { d.kurHata = true; }
     ciz();
   }
+  async function haberYukle(zorla: boolean) {
+    const kod = d.haber.kod;
+    try { const l = await haberGetir(kod, zorla); if (d.haber.kod === kod) d.haber = { kod, liste: l, hata: false }; }
+    catch { if (d.haber.kod === kod) d.haber = { kod, liste: null, hata: true }; }
+    ciz();
+  }
   async function yenile(zorla: boolean) { await Promise.all([havaYenile(zorla), kurYenile(zorla)]); if (zorla) bildir(d.havaHata || d.kurHata ? 'Bazı canlı veriler alınamadı.' : 'Canlı veri güncellendi', undefined, d.havaHata || d.kurHata); }
 
   /* ---------- açılış ---------- */
@@ -251,5 +296,7 @@ export function genelBakisSayfasi(kok: HTMLElement) {
     if (ilkHata) hataBildir(ilkHata.reason);
     ciz();
     void yenile(false);
+    void haberYukle(false);
+    panelGetir(donem()).then(pn => { d.panel = pn; ciz(); }).catch(() => { /* kartlar bekleme halinde kalır */ });
   })();
 }

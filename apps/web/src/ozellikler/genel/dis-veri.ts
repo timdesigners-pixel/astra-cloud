@@ -83,3 +83,26 @@ export async function sehirAra(ad: string): Promise<Sehir[]> {
     etiket: [x.name, x.admin1].filter(Boolean).join(', '), lat: Math.round(x.latitude * 10000) / 10000, lon: Math.round(x.longitude * 10000) / 10000,
   }));
 }
+
+/* Haber akışı: RSS adresleri rss2json üzerinden JSON'a çevrilir (anahtarsız, tarayıcıdan erişilebilir). */
+export type Haber = { baslik: string; baglanti: string; zaman: number | null; kaynak: string; resim: string | null };
+export const HABER_KAYNAKLARI: { kod: string; ad: string; kaynak: string; rss: string }[] = [
+  { kod: 'ekonomi', ad: 'Ekonomi', kaynak: 'Anadolu Ajansı', rss: 'https://www.aa.com.tr/tr/rss/default?cat=ekonomi' },
+  { kod: 'gundem', ad: 'Gündem', kaynak: 'Anadolu Ajansı', rss: 'https://www.aa.com.tr/tr/rss/default?cat=guncel' },
+  { kod: 'dunya', ad: 'Dünya', kaynak: 'BBC Türkçe', rss: 'https://feeds.bbci.co.uk/turkce/rss.xml' },
+];
+const https = (u: unknown) => (typeof u === 'string' && /^https:\/\//i.test(u) ? u : null);
+
+export const haberGetir = (kod: string, zorla = false) => {
+  const k = HABER_KAYNAKLARI.find(x => x.kod === kod) ?? HABER_KAYNAKLARI[0]!;
+  return getir<Haber[]>(`haber:${k.kod}`, `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(k.rss)}`, j => {
+    if (j.status !== 'ok' || !Array.isArray(j.items)) throw new Error('veri yok');
+    return j.items.slice(0, 10).map((x: any): Haber => {
+      const ms = typeof x.pubDate === 'string' ? Date.parse(x.pubDate.replace(' ', 'T') + 'Z') : NaN;
+      return {
+        baslik: String(x.title ?? '').trim(), baglanti: https(x.link) ?? '', zaman: Number.isNaN(ms) ? null : ms,
+        kaynak: k.kaynak, resim: https(x.thumbnail) ?? https(x.enclosure?.link),
+      };
+    }).filter((x: Haber) => x.baslik && x.baglanti);
+  }, zorla);
+};
