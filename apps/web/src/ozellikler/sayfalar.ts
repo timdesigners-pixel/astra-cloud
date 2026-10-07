@@ -1,4 +1,7 @@
 import { genelBakisSayfasi } from './genel/genel';
+import { listelerSayfasi } from './notlar/listeler';
+import { todoSayfasi } from './notlar/todo';
+import { zihinSayfasi } from './notlar/zihin';
 import { ajandaSayfasi } from './ajanda/ajanda';
 import { BIRIKIM_SAYFALARI } from './kayit/birikim';
 import { birikimOzetiSayfasi } from './kayit/birikim-ozet';
@@ -22,6 +25,9 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   ...BIRIKIM_SAYFALARI,
   ...HEDEF_SAYFALARI,
   'a-ajanda': ajandaSayfasi,
+  'n-todo': todoSayfasi,
+  'n-zihin': zihinSayfasi,
+  'n-liste': listelerSayfasi,
   'v-ozet': birikimOzetiSayfasi,
   'o-takvim': odemeSayfasi(''),
   'o-vergi': odemeSayfasi('vergi'),
