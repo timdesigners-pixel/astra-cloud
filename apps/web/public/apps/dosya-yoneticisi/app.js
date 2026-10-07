@@ -18,7 +18,7 @@
  * Görünüm tercihleri ve sık kullanılanlar 'dosya-yoneticisi-ui' anahtarında;
  * Astra bunu şifreli kasaya eşitler. */
 
-const SB = 'https://fwjzgiorkkmwzohdgirh.supabase.co/storage/v1/object/public/dosyalar/';
+const SB = 'https://mwrbfayhfyvttmhpfawz.supabase.co/storage/v1/object/public/dosyalar/';
 const UI = 'dosya-yoneticisi-ui';
 const ATOLYE = 'tasarim-atolyesi-kutuphane';
 
