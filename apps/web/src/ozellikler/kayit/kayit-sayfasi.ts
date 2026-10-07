@@ -9,7 +9,7 @@ export type Alan = {
   ad: string;
   etiket: string;
   tur: 'metin' | 'sayi' | 'tarih' | 'secim' | 'kisi' | 'hesap' | 'onay' | 'uzun';
-  secenekler?: [string, string][];
+  secenekler?: [string, string][] | ((b: Baglam) => [string, string][]);
   zorunlu?: boolean;
   ipucu?: string;
   varsayilan?: unknown;
@@ -18,6 +18,12 @@ export type Alan = {
 /* dis: sayfaya özel ek veri (ör. altın kuru, hesap hareket toplamları); yüklenemezse boş nesne. */
 export type Baglam = { kisiler: Map<string, string>; hesaplar: Map<string, string>; dis: any };
 export type Sutun = { baslik: string; goster: (k: Kayit, b: Baglam) => string; sayi?: boolean };
+/* Satır sonundaki ek düğmeler (ör. "Alındı"); calistir bitince liste yenilenir. */
+export type SatirIslemi = {
+  etiket: string;
+  gorunur?: (k: Kayit) => boolean;
+  calistir: (k: Kayit, b: Baglam) => Promise<void> | void;
+};
 export type Hucre = [etiket: string, deger: string, not?: string, sinif?: string];
 
 export type KayitAyari = {
@@ -34,6 +40,9 @@ export type KayitAyari = {
   aramaAlanlari?: string[];
   ozet?: (liste: Kayit[], b: Baglam) => Hucre[];
   dis?: () => Promise<unknown>;
+  islemler?: SatirIslemi[];
+  /* Formda olmayan ama listede gösterilen sütunlar (yalnız işlevlerle yazılanlar). */
+  ekSutunlar?: string[];
   hazirla?: (g: Record<string, unknown>) => Record<string, unknown>;
   dogrula?: (g: Record<string, unknown>) => string | null;
 };
@@ -49,7 +58,7 @@ async function hesaplariGetir(): Promise<Map<string, string>> {
 /* Ayara göre liste + yeni/düzenle formu + geri alınabilir silme üreten genel veri sayfası. */
 export function kayitSayfasi(a: KayitAyari) {
   return (kok: HTMLElement) => {
-    const sutunlar = a.alanlar.map(x => x.ad);
+    const sutunlar = [...a.alanlar.map(x => x.ad), ...(a.ekSutunlar ?? [])];
     const s = { liste: [] as Kayit[], b: { kisiler: new Map(), hesaplar: new Map(), dis: {} } as Baglam, yukleniyor: true, hata: '', ara: '' };
     const kart = el('section', 'card icra');
     kok.replaceChildren(kart);
@@ -94,11 +103,24 @@ export function kayitSayfasi(a: KayitAyari) {
       const tablo = el('table');
       const bs = el('tr');
       a.sutunlar.forEach(c => bs.appendChild(el('th', '', c.baslik)));
+      if (a.islemler) bs.appendChild(el('th', '', ''));
       tablo.appendChild(el('thead')).appendChild(bs);
       const govde = el('tbody');
       liste.forEach(k => {
         const tr = el('tr', 'satir'); tr.tabIndex = 0; tr.dataset.id = k.id;
         a.sutunlar.forEach(c => tr.appendChild(el('td', c.sayi ? 'sayi gz' : '', c.goster(k, s.b))));
+        if (a.islemler) {
+          const td = el('td', 'islem');
+          a.islemler.filter(i => !i.gorunur || i.gorunur(k)).forEach(i => {
+            const d = el('button', 'btn ghost xs', i.etiket); d.type = 'button';
+            d.addEventListener('click', async e => {
+              e.stopPropagation(); d.disabled = true;
+              try { await i.calistir(k, s.b); await yukle(); } catch (err) { bildir(hataMetni(err), undefined, true); d.disabled = false; }
+            });
+            td.appendChild(d);
+          });
+          tr.appendChild(td);
+        }
         const ac = () => form(k);
         tr.addEventListener('click', ac);
         tr.addEventListener('keydown', e => { if (e.key === 'Enter') ac(); });
@@ -142,7 +164,7 @@ export function kayitSayfasi(a: KayitAyari) {
         if (al.tur === 'secim' || al.tur === 'kisi' || al.tur === 'hesap') {
           const sec = el('select');
           const bos = el('option', '', '—'); bos.value = ''; sec.appendChild(bos);
-          const secenek: [string, string][] = al.tur === 'secim' ? (al.secenekler ?? [])
+          const secenek: [string, string][] = al.tur === 'secim' ? (typeof al.secenekler === 'function' ? al.secenekler(s.b) : (al.secenekler ?? []))
             : [...(al.tur === 'kisi' ? s.b.kisiler : s.b.hesaplar).entries()].map(([id, ad]) => [id, ad]);
           secenek.forEach(([v, t]) => { const o = el('option', '', t); o.value = v; sec.appendChild(o); });
           sec.value = eski === null || eski === undefined ? '' : String(eski);

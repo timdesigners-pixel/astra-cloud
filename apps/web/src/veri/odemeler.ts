@@ -35,3 +35,13 @@ export async function odemeGeriAl(id: string) {
   const { error } = await istemciAl().rpc('odeme_geri_al', { p_odeme_id: id });
   if (error) throw error;
 }
+
+export async function alinacakAlindi(id: string, hesapId: string, tutar: number, tarih: string) {
+  const { error } = await istemciAl().rpc('alinacak_alindi', { p_id: id, p_hesap_id: hesapId, p_tutar: tutar, p_tarih: tarih });
+  if (error) throw error;
+}
+
+export async function alinacakGeriAl(id: string) {
+  const { error } = await istemciAl().rpc('alinacak_geri_al', { p_id: id });
+  if (error) throw error;
+}
