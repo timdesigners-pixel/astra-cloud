@@ -4,6 +4,7 @@ import { gun, tl } from '../../ortak/bicim';
 import { git } from '../../kabuk/yonlendirici';
 import { CakismaHatasi, hataMetni } from '../../veri/hata';
 import { kayitEkle, kayitGuncelle, kayitlariGetir, type Kayit } from '../../veri/kayit';
+import { onayla } from '../../ortak/uyari';
 
 type Tur = 'odeme' | 'gelir' | 'gider' | 'alinacak' | 'hedef' | 'todo' | 'durusma' | 'etkinlik';
 type Olay = { tarih: string; baslik: string; tur: Tur; saat?: string; tutar?: number; sayfa: string; kayit?: Kayit; bitti?: boolean };
@@ -178,9 +179,9 @@ export function ajandaSayfasi(kok: HTMLElement) {
     const vazgec = el('button', 'btn ghost', 'Vazgeç'); vazgec.type = 'button'; vazgec.addEventListener('click', () => dlg.close());
     d.append(kaydet, vazgec);
     if (mevcut) {
-      const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button'; let emin = false;
+      const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button';
       sil.addEventListener('click', async () => {
-        if (!emin) { emin = true; sil.textContent = 'Emin misin? Tekrar bas'; return; }
+        if (!(await onayla({ baslik: 'Silinsin mi?', metin: 'Bu kayıt silinecek.', evet: 'Sil' }))) return;
         sil.disabled = true;
         try {
           const silinen = await kayitGuncelle('ajanda_olaylari', OLAY_SUTUN, mevcut.id, mevcut.surum, { silindi_at: new Date().toISOString() });

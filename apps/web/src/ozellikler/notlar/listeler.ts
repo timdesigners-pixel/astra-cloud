@@ -3,6 +3,7 @@ import { bildir } from '../../ortak/bildirim';
 import { CakismaHatasi, hataMetni } from '../../veri/hata';
 import { kayitEkle, kayitGuncelle, kayitlariGetir, type Kayit } from '../../veri/kayit';
 import { girdi, guvenliBaglanti, kutu, secim } from './ortak';
+import { onayla } from '../../ortak/uyari';
 
 const LSUTUN = ['ad', 'kaynak', 'notlar'];
 const OSUTUN = ['liste_id', 'baslik', 'baglanti', 'etiket', 'okundu'];
@@ -113,10 +114,10 @@ export function listelerSayfasi(kok: HTMLElement) {
     const not = el('textarea'); not.id = 'lf-not'; not.rows = 3; not.value = l?.notlar ? String(l.notlar) : '';
     d.alan('Liste adı', ad); d.alan('Kaynak', kay); d.alan('Not', not);
     if (l) {
-      const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button'; let emin = false;
+      const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button';
       sil.addEventListener('click', async () => {
         if (ogeSay(l.id).length) { d.hatayaz('Önce listedeki öğeleri sil.'); return; }
-        if (!emin) { emin = true; sil.textContent = 'Emin misin? Tekrar bas'; return; }
+        if (!(await onayla({ baslik: 'Silinsin mi?', metin: 'Bu kayıt silinecek.', evet: 'Sil' }))) return;
         try { await kayitGuncelle('listeler', LSUTUN, l.id, l.surum, { silindi_at: new Date().toISOString() }); s.listeler = s.listeler.filter(x => x.id !== l.id); s.secili = ''; d.dlg.close(); solCiz(); sagCiz(); bildir('Liste silindi'); }
         catch (e) { d.hatayaz(hataMetni(e)); }
       });

@@ -6,6 +6,7 @@ import { davaGeriAl, davaKaydet, davaSil, davalariGetir, type Dava, type DavaGir
 import { icraDosyalariniGetir, type IcraDosyasi } from '../../veri/icra';
 import { kisileriGetir, type Kisi } from '../../veri/kisiler';
 import { girdi, kutu, secim } from '../notlar/ortak';
+import { onayla } from '../../ortak/uyari';
 
 type Ayar = {
   tur: DavaTuru; yeni: string; baslik: string; bos: string; mahkeme: string; konu: string; konuIpucu: string;
@@ -125,9 +126,9 @@ export function davaSayfasi(tur: DavaTuru) {
       if (a.icraBagi) d.alan('Bağlı icra dosyası', icra);
       d.alan('Not', not);
       if (m) {
-        const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button'; let emin = false;
+        const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button';
         sil.addEventListener('click', async () => {
-          if (!emin) { emin = true; sil.textContent = 'Emin misin? Tekrar bas'; return; }
+          if (!(await onayla({ baslik: 'Silinsin mi?', metin: 'Bu kayıt silinecek.', evet: 'Sil' }))) return;
           sil.disabled = true;
           try {
             const silinen = await davaSil(m.id, m.surum);

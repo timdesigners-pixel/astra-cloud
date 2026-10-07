@@ -6,6 +6,7 @@ import { istemciAl } from '../../veri/istemci';
 import { kayitGuncelle, kayitlariGetir } from '../../veri/kayit';
 import { fisKaydet, fisSil, fisleriGetir, kalemleriGetir, urunleriGetir, type Fis, type FisKalemi, type Urun, type YeniKalem } from '../../veri/market';
 import { bugunStr, girdi, kutu, secim } from '../notlar/ortak';
+import { onayla } from '../../ortak/uyari';
 
 const AY = new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' });
 
@@ -91,9 +92,9 @@ export function marketAlisverisiSayfasi(kok: HTMLElement) {
     });
     t.appendChild(g); sarma.appendChild(t);
     d.f.append(sarma, el('p', 'alt', `Toplam ${tl(Number(f.toplam))}${f.hesap_id ? ' · ' + (s.hesaplar.get(f.hesap_id) ?? '') : ' · hesaba işlenmedi'}${f.notlar ? ' · ' + f.notlar : ''}`));
-    const sil = el('button', 'btn danger', 'Fişi sil'); sil.type = 'button'; let emin = false;
+    const sil = el('button', 'btn danger', 'Fişi sil'); sil.type = 'button';
     sil.addEventListener('click', async () => {
-      if (!emin) { emin = true; sil.textContent = 'Stok ve hesap geri alınır. Emin misin?'; return; }
+      if (!(await onayla({ baslik: 'Fiş silinsin mi?', metin: 'Stok ve hesap hareketi geri alınır.', evet: 'Sil' }))) return;
       sil.disabled = true;
       try { await fisSil(f.id); d.dlg.close(); bildir('Fiş silindi'); await yukle(); }
       catch (err) { sil.disabled = false; d.hatayaz(hataMetni(err)); }

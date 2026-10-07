@@ -8,6 +8,7 @@ import {
   odemeBorclariniGetir, odemeGeriAl, odemeGuncelle, odemeIsaretle, odemeleriEkle, odemeleriGetir,
   type Odeme, type OdemeBorcu,
 } from '../../veri/odemeler';
+import { onayla } from '../../ortak/uyari';
 
 const bugunStr = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
 
@@ -162,8 +163,8 @@ export function odemeSayfasi(tur: string) {
       k.bitir();
     }
 
-    function geriAl(o: Odeme, d: HTMLButtonElement) {
-      if (d.dataset.emin !== '1') { d.dataset.emin = '1'; d.textContent = 'Emin misin?'; return; }
+    async function geriAl(o: Odeme, d: HTMLButtonElement) {
+      if (!(await onayla({ baslik: 'Ödeme geri alınsın mı?', metin: 'Ödeme yeniden "bekliyor" olur, hesaba işlenen hareket geri alınır.', evet: 'Geri al' }))) return;
       d.disabled = true;
       odemeGeriAl(o.id).then(() => { bildir('Ödeme geri alındı'); return yukle(); }).catch(e => { d.disabled = false; bildir(hataMetni(e), undefined, true); });
     }
@@ -173,9 +174,9 @@ export function odemeSayfasi(tur: string) {
       const vade = girdi('df-vade', 'date', o.vade_tarihi), tutar = girdi('df-tutar', 'number', String(o.tutar));
       const hesap = secim('df-hesap', hesapSecenekleri(), o.hesap_id ?? ''), not = el('textarea'); not.id = 'df-not'; not.rows = 2; not.value = o.notlar ?? '';
       k.alan('Vade tarihi', vade); k.alan('Tutar (TL)', tutar); k.alan('Ödenecek hesap', hesap); k.alan('Not', not);
-      const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button'; sil.id = 'df-sil'; let emin = false;
+      const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button'; sil.id = 'df-sil';
       sil.addEventListener('click', async () => {
-        if (!emin) { emin = true; sil.textContent = 'Emin misin? Tekrar bas'; return; }
+        if (!(await onayla({ baslik: 'Silinsin mi?', metin: 'Bu kayıt silinecek.', evet: 'Sil' }))) return;
         sil.disabled = true;
         try {
           const g = await odemeGuncelle(o.id, o.surum, { silindi_at: new Date().toISOString() });

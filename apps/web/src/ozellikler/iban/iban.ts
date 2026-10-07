@@ -4,6 +4,7 @@ import { CakismaHatasi, hataMetni } from '../../veri/hata';
 import { ibanEkle, ibanGeriAl, ibanGuncelle, ibanSil, ibanlariGetir, type Iban } from '../../veri/iban';
 import { kisileriGetir, type Kisi } from '../../veri/kisiler';
 import { girdi, kutu, secim } from '../notlar/ortak';
+import { onayla } from '../../ortak/uyari';
 
 const bicimle = (i: string) => i.replace(/\s+/g, '').replace(/(.{4})/g, '$1 ').trim();
 const temizle = (i: string) => i.replace(/\s+/g, '').toUpperCase();
@@ -81,9 +82,9 @@ export function ibanSayfasi(kok: HTMLElement) {
     d.alan('IBAN', iban, m ? 'IBAN numarası değiştirilemez. Yanlışsa silip yenisini ekle.' : 'Boşluklu ya da boşluksuz yazabilirsin');
     if (m) { sahip.disabled = true; kisi.disabled = true; } else { sahip.addEventListener('change', kisiAlan); kisiAlan(); }
     if (m) {
-      const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button'; let emin = false;
+      const sil = el('button', 'btn danger', 'Sil'); sil.type = 'button';
       sil.addEventListener('click', async () => {
-        if (!emin) { emin = true; sil.textContent = 'Emin misin? Tekrar bas'; return; }
+        if (!(await onayla({ baslik: 'Silinsin mi?', metin: 'Bu kayıt silinecek.', evet: 'Sil' }))) return;
         sil.disabled = true;
         try {
           const silinen = await ibanSil(m.id, m.surum);
