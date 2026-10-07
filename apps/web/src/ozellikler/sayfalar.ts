@@ -7,8 +7,9 @@ import { uygulamaSayfalari } from './uygulamalar/uygulama';
 /* Veriyle çalışan sayfalar; kaydı olmayan sekmeler kabukta yer tutucu gösterir. */
 export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   genel: genelBakisSayfasi,
-  kisiler: kisilerSayfasi,
-  icraborc: icraBorclariSayfasi,
+  'r-kisi': kisilerSayfasi,
+  'b-icra': icraBorclariSayfasi,
+  'k-icra': icraBorclariSayfasi,
   hub: modulMerkeziSayfasi,
   ...uygulamaSayfalari,
 };

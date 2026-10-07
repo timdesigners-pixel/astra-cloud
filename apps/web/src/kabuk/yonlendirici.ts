@@ -1,27 +1,21 @@
-import { SEKMELER, sekmeBul } from './sekmeler';
+import { SEKMELER, sekmeCoz } from './sekmeler';
 
 type Dinleyici = (k: string) => void;
 const dinleyiciler = new Set<Dinleyici>();
 const VARSAYILAN = 'genel';
 
-const ESKI_ADLAR: Record<string, string> = {
-  odeme: 'app-odeme', tasarim: 'app-tasarim', karsilama: 'app-karsilama', telrehber: 'app-telrehber', oynatma: 'app-oynatma',
-  pinterest: 'app-pinterest', ilgi: 'app-ilgi', dosya: 'app-dosya', marketliste: 'app-marketliste', kutuphane: 'app-kutuphane',
-  bahis: 'app-bahis', hesapyon: 'app-hesapyon',
-};
-
 function adrestenOku(): string {
   const ham = new URLSearchParams(location.search).get('tab') ?? '';
-  const k = ESKI_ADLAR[ham] ?? ham;
-  return sekmeBul(k) ? k : VARSAYILAN;
+  return sekmeCoz(ham) ?? VARSAYILAN;
 }
 
 let aktif = adrestenOku();
 
 export const aktifSekme = () => aktif;
 
-export function git(k: string, adresYaz = true) {
-  if (!sekmeBul(k)) return;
+export function git(ham: string, adresYaz = true) {
+  const k = sekmeCoz(ham);
+  if (!k) return;
   aktif = k;
   if (adresYaz) {
     const u = new URL(location.href);

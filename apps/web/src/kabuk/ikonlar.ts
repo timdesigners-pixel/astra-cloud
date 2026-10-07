@@ -39,8 +39,19 @@ const YOL: Record<string, string> = {
   simsek:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',};
 const KATEGORI: Record<string, string> = { apps: 'genel', finans: 'cuzdan', plan: 'takvim', saglik: 'kalp', envanter: 'telefon', araclar: 'simsek' };
 
+const TAKMA: Record<string, string> = {
+  'b-ozet': 'borc', 'b-kisi': 'kisi', 'b-banka': 'hesaplar', 'b-icra': 'icraborc', 'b-vergi': 'vergisgk', 'b-sgk': 'vergisgk', 'b-limit': 'limit',
+  'g-ozet': 'kazanc', 'g-sabit': 'abonelik', 'g-ekstra': 'kazanc', 'e-ozet': 'gider', 'e-fatura': 'gmail', 'e-abone': 'abonelik',
+  'e-sabit': 'taksit', 'e-alinacak': 'plan', 'e-market': 'market', 'o-takvim': 'aylik', 'o-vergi': 'vergisgk', 'o-icra': 'icraborc',
+  'o-kisi': 'kisi', 'o-sgk': 'vergisgk', 'v-ozet': 'yatirim', 'v-bes': 'yatirim', 'v-mevduat': 'mevduat', 'v-altin': 'yatirim',
+  'h-alinacak': 'plan', 'h-begen': 'kalp', 'h-hedef': 'karar', 'n-todo': 'todo', 'n-zihin': 'rapor', 'n-liste': 'rapor',
+  'a-ajanda': 'aylik', 'r-hesap': 'hesaplar', 'r-sifre': 'sistem', 'r-iban': 'iban', 'r-kisi': 'kisiler',
+  'k-ceza': 'hukuk', 'k-hukuk': 'hukuk', 'k-icra': 'icraborc', 'k-cbs': 'hukuk',
+  'm-plan': 'tahmin', 'm-rapor': 'rapor', 'm-stok': 'market', 'm-liste': 'plan', 'm-karsi': 'strateji', 'm-sim': 'sim',
+};
+
 export function menuIkon(ad: string): string {
-  const y = YOL[ad] ?? YOL[KATEGORI[ad] ?? ''] ?? (ad.startsWith('app-') ? YOL.uygulama : undefined);
+  const y = YOL[ad] ?? YOL[TAKMA[ad] ?? ''] ?? YOL[KATEGORI[ad] ?? ''] ?? (ad.startsWith('app-') ? YOL.uygulama : undefined);
   return y
     ? `<svg class="lu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${y}</svg>`
     : '';

@@ -129,7 +129,7 @@ function sayfaCiz() {
 function altCubukCiz() {
   const k = aktifSekme();
   $('mobnav').innerHTML = ALT_CUBUK.map(([a, ic, lb]) =>
-    `<button class="${a === k || (a === 'gider' && k === 'aylik') ? 'on' : ''}" data-tab="${a}" aria-label="${lb}"><i aria-hidden="true">${ic}</i>${lb}</button>`).join('');
+    `<button class="${a === k || false ? 'on' : ''}" data-tab="${a}" aria-label="${lb}"><i aria-hidden="true">${ic}</i>${lb}</button>`).join('');
 }
 
 function cekmeceAc() {

@@ -50,3 +50,11 @@
 - Uygulama kayıtları `uygulama_durumu` tablosunda şifreli tutulur; istemci tabloya değil yalnız `uygulama_durumu_oku/yaz/sil` işlevlerine erişir.
 - Servis uçları (market fiyatı, Gemini) yeni sunucuda henüz yok; köprü "servis bağlı değil" yanıtı verir.
 - Geçici bağımlılıklar: oynatma/pinterest verisi, dosya yöneticisi, telefon rehberi ve ilgi ürünleri eski projenin depolamasından okur.
+
+## Onaylanan menü ve veri planı
+- Menü 12 merkez ve onaylanan sayfalar olarak yeniden kuruldu; eski adresler yeni sayfalara yönlenir.
+- Alınacaklar (Giderler) ve Alınacaklar Listesi (Hayaller) ayrı listelerdir.
+- Ödemeler ayrı veridir (`odemeler`); beklenen gelir ve gider vadeleri `vadeler`'dedir; gerçekleşenler tek defter olan `hareketler`'e yazılır.
+- İcra dosyası tek kayıttır; Borçlar ve Hukuk menüsü aynı kaydı gösterir. Her icra dosyası bir `borclar` satırına bağlanır.
+- Alınan borç gelir raporuna girmez (`gelir_sayilir = false`).
+- Bahis sonucu Ekstra Gelirler'e net tek satır olarak yazılır; zarar eksi tutarlıdır.
