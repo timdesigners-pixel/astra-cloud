@@ -5,14 +5,14 @@ import { git } from '../../kabuk/yonlendirici';
 import { CakismaHatasi, hataMetni } from '../../veri/hata';
 import { kayitEkle, kayitGuncelle, kayitlariGetir, type Kayit } from '../../veri/kayit';
 
-type Tur = 'odeme' | 'gelir' | 'gider' | 'alinacak' | 'hedef' | 'todo' | 'etkinlik';
+type Tur = 'odeme' | 'gelir' | 'gider' | 'alinacak' | 'hedef' | 'todo' | 'durusma' | 'etkinlik';
 type Olay = { tarih: string; baslik: string; tur: Tur; saat?: string; tutar?: number; sayfa: string; kayit?: Kayit; bitti?: boolean };
 
-const TUR_AD: Record<Tur, string> = { odeme: 'Ödeme', gelir: 'Gelir', gider: 'Gider', alinacak: 'Alınacak', hedef: 'Hedef', todo: 'Görev', etkinlik: 'Etkinlik' };
+const TUR_AD: Record<Tur, string> = { odeme: 'Ödeme', gelir: 'Gelir', gider: 'Gider', alinacak: 'Alınacak', hedef: 'Hedef', todo: 'Görev', durusma: 'Duruşma', etkinlik: 'Etkinlik' };
 const GIDER_SAYFA: Record<string, string> = { fatura: 'e-fatura', abonelik: 'e-abone', sabit: 'e-sabit', tek_sefer: 'e-sabit' };
 const AY_ADI = new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' });
 const GUN_ADI = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
-const SOZ = ['odeme', 'gelir', 'gider', 'alinacak', 'hedef', 'todo', 'etkinlik'] as Tur[];
+const SOZ = ['odeme', 'gelir', 'gider', 'alinacak', 'hedef', 'todo', 'durusma', 'etkinlik'] as Tur[];
 
 const bugunStr = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
 const iki = (n: number) => String(n).padStart(2, '0');
@@ -22,7 +22,7 @@ const sayi = (v: unknown) => (typeof v === 'number' ? v : Number(v ?? 0));
 
 /* Ayın her gününe düşen olaylar. Aylık tekrarlayan gelir ve giderler, ayın kısa olduğu aylarda son güne çekilir. */
 export function olaylariUret(y: number, a: number, k: {
-  odemeler: Kayit[]; borclar: Map<string, string>; gelirler: Kayit[]; giderler: Kayit[]; alinacaklar: Kayit[]; hedefler: Kayit[]; todolar: Kayit[]; olaylar: Kayit[];
+  odemeler: Kayit[]; borclar: Map<string, string>; gelirler: Kayit[]; giderler: Kayit[]; alinacaklar: Kayit[]; hedefler: Kayit[]; todolar: Kayit[]; davalar: Kayit[]; olaylar: Kayit[];
 }): Olay[] {
   const ay = `${y}-${iki(a + 1)}`;
   const o: Olay[] = [];
@@ -49,6 +49,8 @@ export function olaylariUret(y: number, a: number, k: {
     o.push({ tarih: String(x.hedef_tarihi), baslik: String(x.ad), tur: 'hedef', sayfa: 'h-hedef' }));
   k.todolar.filter(x => String(x.tarih ?? '').startsWith(ay)).forEach(x =>
     o.push({ tarih: String(x.tarih), baslik: String(x.baslik), tur: 'todo', sayfa: 'n-todo', bitti: !!x.tamamlandi }));
+  k.davalar.filter(x => x.durum !== 'kapandi' && String(x.sonraki_durusma ?? '').startsWith(ay)).forEach(x =>
+    o.push({ tarih: String(x.sonraki_durusma), baslik: `${x.konu ?? x.mahkeme ?? 'Dosya'} duruşması`, tur: 'durusma', sayfa: ({ ceza: 'k-ceza', hukuk: 'k-hukuk', cbs: 'k-cbs' } as Record<string, string>)[String(x.tur)] ?? 'k-hukuk' }));
   k.olaylar.filter(x => String(x.tarih).startsWith(ay)).forEach(x =>
     o.push({ tarih: String(x.tarih), baslik: String(x.baslik), tur: 'etkinlik', saat: (x.saat as string | null) ?? undefined, sayfa: 'a-ajanda', kayit: x, bitti: !!x.tamamlandi }));
   return o.sort((p, q) => p.tarih.localeCompare(q.tarih) || (p.saat ?? '').localeCompare(q.saat ?? ''));
@@ -60,7 +62,7 @@ export function ajandaSayfasi(kok: HTMLElement) {
   const simdi = new Date();
   const s = {
     y: simdi.getFullYear(), a: simdi.getMonth(), secili: bugunStr(), yukleniyor: true, uyari: [] as string[],
-    veri: { odemeler: [] as Kayit[], borclar: new Map<string, string>(), gelirler: [] as Kayit[], giderler: [] as Kayit[], alinacaklar: [] as Kayit[], hedefler: [] as Kayit[], todolar: [] as Kayit[], olaylar: [] as Kayit[] },
+    veri: { odemeler: [] as Kayit[], borclar: new Map<string, string>(), gelirler: [] as Kayit[], giderler: [] as Kayit[], alinacaklar: [] as Kayit[], hedefler: [] as Kayit[], todolar: [] as Kayit[], davalar: [] as Kayit[], olaylar: [] as Kayit[] },
     acik: new Set<Tur>(SOZ),
   };
   const kart = el('section', 'card ajanda');
@@ -147,13 +149,14 @@ export function ajandaSayfasi(kok: HTMLElement) {
       ['alinacaklar', 'alınacaklar', ['ad', 'hedef_tarih', 'durum', 'tahmini_tutar'], {}, 'ad'],
       ['hedefler', 'hedefler', ['ad', 'hedef_tarihi', 'durum'], {}, 'ad'],
       ['todolar', 'görevler', ['baslik', 'tarih', 'tamamlandi'], {}, 'tarih'],
+      ['davalar', 'duruşmalar', ['tur', 'konu', 'mahkeme', 'durum', 'sonraki_durusma'], {}, 'sonraki_durusma'],
       ['ajanda_olaylari', 'etkinlikler', OLAY_SUTUN, {}, 'tarih'],
     ];
     const sonuc = await Promise.allSettled(kaynaklar.map(([t, , c, f, o]) => kayitlariGetir(t, c, f, o)));
     s.uyari = [];
     const al = (i: number) => { const r = sonuc[i]!; if (r.status === 'fulfilled') return r.value; s.uyari.push(kaynaklar[i]![1]); return [] as Kayit[]; };
     s.veri = {
-      odemeler: al(0), borclar: new Map(al(1).map(b => [b.id, String(b.ad)])), gelirler: al(2), giderler: al(3), alinacaklar: al(4), hedefler: al(5), todolar: al(6), olaylar: al(7),
+      odemeler: al(0), borclar: new Map(al(1).map(b => [b.id, String(b.ad)])), gelirler: al(2), giderler: al(3), alinacaklar: al(4), hedefler: al(5), todolar: al(6), davalar: al(7), olaylar: al(8),
     };
     s.yukleniyor = false; ciz();
   }
