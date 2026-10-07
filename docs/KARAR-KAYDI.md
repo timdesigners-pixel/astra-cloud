@@ -31,3 +31,14 @@
 | IBAN | Alan düzeyinde şifreli (pgcrypto, anahtar Vault'ta); istemci şifreli sütunları okuyamaz, yalnız RPC ile çözülür |
 | Banka bağlantısı | İlk sürümde ekstre içe aktarma; canlı bağlantı sonraya |
 | Yapım sırası | Kişiler, IBAN, Banka Hesapları, Limitler, Borç Takibi, Kişilere Borçlar, Vergi & SGK, İcra Borçları, Taksitlendirme |
+
+## Karşılama panosu ve eski veriler
+
+| Konu | Karar |
+| --- | --- |
+| Panonun yeri | Genel Bakış sayfasının üstü; görünüm eski sistemle aynı |
+| Saat dilimi | Tarih, gün, hafta ve selamlama Europe/Istanbul saatine göre |
+| Dış servisler | Hava: open-meteo, kur: open.er-api, altın: gold-api. Anahtarsız, tarayıcıdan çağrılır; yalnız bellekte 30 dk önbelleğe alınır. İleride Edge Function arkasına alınabilir |
+| Saklanan | Ad, şehir, sağlık hedefi (`ayarlar`), günlük sağlık (`saglik_gunluk`), hızlı notlar (`hizli_notlar`); hepsi satır düzeyi güvenlikli, silme yumuşak |
+| Bağlanmayanlar | Günün puanı, görevler, tarihte bugün: ilgili sayfalar yapılınca bağlanır |
+| Eski veri aktarımı | icra dosyaları, alacaklılar ve avukatlar eski projeden tek seferlik aktarıldı; dosya numaraları şifreli; sayı ve tutar kontrol toplamları eşleşti |
