@@ -2995,3 +2995,7 @@ button.gmail-etiket.aktif{background:var(--c); color:var(--on-gold)}
 .gmail-ek i{font-style:normal; font-size:var(--fs-1); color:var(--dim)}
 
 @media print{ #swal-container{display:none!important} }
+
+.g-kod{width:100%; margin:0 0 14px; padding:12px 14px; border-radius:var(--r); border:1px solid var(--line2);
+  background:var(--yuva); color:var(--txt); font:inherit; letter-spacing:.08em}
+.g-kod:focus{outline:2px solid var(--cyan); outline-offset:1px}

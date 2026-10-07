@@ -34,8 +34,9 @@
       </ul>
     </div>
     <section class="g-lock g-in d4" aria-label="Kilit">
-      <h2>◉ Kilitli</h2>
-      <div class="g-sub">Devam etmek için PIN gir.</div>
+      <h2 id="gbaslik">◉ Kilitli</h2>
+      <div class="g-sub" id="galt">Devam etmek için PIN gir.</div>
+      <input class="g-kod" id="gkod" type="password" autocomplete="off" placeholder="kurulum kodu" aria-label="Kurulum kodu" hidden>
       <div class="g-dots" id="gdots" role="status" aria-live="polite" aria-label="girilen hane sayısı"></div>
       <input class="g-hidden" id="gpin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="8" aria-label="PIN">
       <div class="g-pad" id="gpad">
@@ -46,7 +47,7 @@
       </div>
       <div class="g-msg" id="gmsg" role="status" aria-live="assertive"></div>
       <div class="g-alt">
-        <button type="button" data-a="unuttum">PIN'i unuttum</button>
+        <button type="button" data-a="unuttum" id="galtdugme">PIN'i unuttum</button>
         <div class="g-note">Bu kapı ekranı kilitler, veriyi şifrelemez.
           Şifreli yedek için Sistem → PIN'li dışa aktarma.</div>
       </div>
