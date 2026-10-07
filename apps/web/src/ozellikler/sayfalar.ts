@@ -17,6 +17,7 @@ import { gelirOzetiSayfasi, giderOzetiSayfasi } from './kayit/gelir-gider-ozet';
 import { borcOzetiSayfasi } from './kayit/borc-ozet';
 import { FINANS_SAYFALARI } from './kayit/finans';
 import { icraBorclariSayfasi } from './icra/icra';
+import { begenilerSayfasi } from './begeniler/begeniler';
 import { sistemSayfasi } from './sistem/sistem';
 import { ibanSayfasi } from './iban/iban';
 import { sifrelerSayfasi } from './sifreler/sifreler';
@@ -32,6 +33,7 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   'r-sifre': sifrelerSayfasi,
   'r-iban': ibanSayfasi,
   sistem: sistemSayfasi,
+  'h-begen': begenilerSayfasi,
   'b-icra': icraBorclariSayfasi,
   'k-icra': icraBorclariSayfasi,
   'b-ozet': borcOzetiSayfasi,

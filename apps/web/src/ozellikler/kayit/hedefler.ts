@@ -80,32 +80,6 @@ const istekler: KayitAyari = {
   },
 };
 
-const begeniler: KayitAyari = {
-  tablo: 'begeniler', yeniDugme: '+ Yeni ürün', yeniBaslik: 'Beğenilen ürün', bos: 'Henüz beğenilen ürün yok.',
-  alanlar: [
-    { ad: 'ad', etiket: 'Ürün', tur: 'metin', zorunlu: true },
-    { ad: 'fiyat', etiket: 'Güncel fiyat (TL)', tur: 'sayi', ipucu: 'Fiyat değişince buradan güncelle; ilk fiyatla karşılaştırılır' },
-    { ad: 'ilk_fiyat', etiket: 'İlk görülen fiyat (TL)', tur: 'sayi', ipucu: 'Boş bırakırsan güncel fiyat yazılır' },
-    { ad: 'baglanti', etiket: 'Bağlantı', tur: 'metin' },
-    { ad: 'notlar', etiket: 'Not', tur: 'uzun' },
-  ],
-  sutunlar: [
-    { baslik: 'Ürün', goster: k => ad(k) }, { baslik: 'Fiyat', sayi: true, goster: k => (k.fiyat === null ? '—' : tl(sayi(k.fiyat))) },
-    { baslik: 'Değişim', sayi: true, goster: k => (k.fiyat === null || !k.ilk_fiyat ? '—' : `${sayi(k.fiyat) < sayi(k.ilk_fiyat) ? '−' : '+'}%${Math.abs(Math.round(((sayi(k.fiyat) - sayi(k.ilk_fiyat)) / sayi(k.ilk_fiyat)) * 100))}`) },
-    { baslik: 'Bağlantı', goster: k => (k.baglanti ? 'var' : '—') },
-  ],
-  filtre: {}, sirala: 'ad',
-  hazirla: g => ({ ...g, ilk_fiyat: g.ilk_fiyat ?? g.fiyat }),
-  ozet: l => [['Ürün', String(l.length)], ['Fiyatı düşen', String(l.filter(k => k.fiyat !== null && k.ilk_fiyat && sayi(k.fiyat) < sayi(k.ilk_fiyat)).length), 'ilk fiyata göre', 'vurgu']],
-  islemler: [{
-    etiket: 'İstek listesine ekle',
-    calistir: async k => {
-      await kayitEkle('istekler', ['ad'], { ad: k.ad, tahmini_tutar: k.fiyat ?? null, baglanti: k.baglanti ?? null, oncelik: 'orta', durum: 'bekliyor' });
-      bildir('İstek listesine eklendi');
-    },
-  }],
-};
-
 /* Alındı: hesap ve gerçek tutar sorulur; hareket tek işlemde yazılır. */
 function alindiSor(k: Kayit, hesaplar: Map<string, string>): Promise<boolean> {
   return new Promise(coz => {
@@ -173,5 +147,5 @@ const alinacaklar: KayitAyari = {
 };
 
 export const HEDEF_SAYFALARI: Record<string, (kok: HTMLElement) => void> = {
-  'h-hedef': kayitSayfasi(hedefler), 'h-alinacak': kayitSayfasi(istekler), 'h-begen': kayitSayfasi(begeniler), 'e-alinacak': kayitSayfasi(alinacaklar),
+  'h-hedef': kayitSayfasi(hedefler), 'h-alinacak': kayitSayfasi(istekler), 'e-alinacak': kayitSayfasi(alinacaklar),
 };

@@ -222,3 +222,50 @@ dialog.u-soru .uyari-ikon { color: var(--gold); }
 .haber-metin small { color: var(--dim); font-size: var(--fs-2); }
 
 .sayfa-kap { display: contents; }
+
+dialog .pencere-x { all: unset; box-sizing: border-box; position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; display: grid; place-items: center;
+  border-radius: 50%; color: var(--dim); font-size: 22px; line-height: 1; cursor: pointer; z-index: 1; }
+dialog .pencere-x:hover { background: var(--kb-3); color: var(--txt); }
+dialog .pencere-x:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+dialog.kutu h2, dialog.uyari h2 { padding-inline: 0 28px; }
+dialog.uyari h2 { padding-inline: 0; }
+
+.bg-filtre { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; }
+.bg-filtre .wpill { cursor: pointer; }
+.bg-filtre .wpill.secili { border-color: var(--gold); color: var(--gold); }
+.bg-izgara { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; align-items: start; }
+.bg-izgara > .bos { grid-column: 1 / -1; }
+.bg-kart { background: var(--kb-2); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; cursor: pointer; min-width: 0; display: flex; flex-direction: column; }
+.bg-kart:hover { border-color: var(--line2); }
+.bg-kart:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.bg-resim { position: relative; aspect-ratio: 4 / 3; background: var(--kb-3); display: grid; place-items: center; overflow: hidden; }
+.bg-resim img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #fff; }
+.bg-yedek { font-size: 40px; opacity: .6; }
+.bg-kalp { all: unset; box-sizing: border-box; position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%;
+  background: rgba(0, 0, 0, .55); color: #fff; font-size: 18px; cursor: pointer; }
+.bg-kalp.acik { color: var(--red); background: rgba(255, 255, 255, .92); }
+.bg-kalp:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.bg-rozet { position: absolute; left: 8px; bottom: 8px; padding: 2px 8px; border-radius: 4px; font-size: var(--fs-1); font-weight: 600; }
+.bg-rozet.iyi { background: var(--green); color: var(--on-green); }
+.bg-rozet.dikkat { background: var(--gold); color: var(--on-gold); }
+.bg-govde { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.bg-kat { color: var(--dim); font-size: var(--fs-1); }
+.bg-ad { font-weight: 600; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.bg-fiyat { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.bg-fiyat b { font-size: var(--fs-4, 16px); }
+.bg-fiyat small { color: var(--dim); }
+.bg-fiyat small.dus { color: var(--green); font-weight: 600; }
+.bg-fiyat small.art { color: var(--red); font-weight: 600; }
+.bg-fiyat.buyuk b { font-size: 24px; }
+.bg-alt { display: flex; justify-content: space-between; gap: 8px; color: var(--dim); font-size: var(--fs-2); }
+.bg-puan { color: var(--gold); letter-spacing: 1px; }
+.bg-hedef { color: var(--green); font-weight: 600; }
+.bg-hedef.bekle { color: var(--dim); font-weight: 400; }
+.bg-baslik { padding-right: 36px; overflow-wrap: anywhere; }
+.bg-ust { margin: 0 0 10px; color: var(--dim); }
+.bg-buyuk { display: block; width: 100%; max-height: 260px; object-fit: contain; background: #fff; border-radius: var(--r-sm); margin-bottom: 12px; }
+.bg-cizgi { display: block; width: 100%; max-width: 360px; height: 56px; margin: 8px 0 12px; }
+.bg-yol { stroke: var(--cyan); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.bg-nokta { fill: var(--gold); }
+dialog.kutu .bg-ozellik { display: grid; grid-template-columns: minmax(110px, 190px) 1fr; gap: 4px 12px; margin: 0; }
+dialog.kutu .bg-ozellik dt { color: var(--dim); }
