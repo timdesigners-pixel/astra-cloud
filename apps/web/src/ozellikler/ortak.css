@@ -105,8 +105,9 @@ a.todo-baslik { color: var(--cyan); }
 .zihin-oge.secili { background: var(--kb-3); outline: 1px solid var(--cyan); }
 .zihin-oge:focus-visible { outline: 2px solid var(--focus); }
 .zihin-sag { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.zihin-baslik { font-size: 20px; font-weight: 600; background: transparent; border: 0; border-bottom: 1px solid var(--line); color: var(--txt); padding: 6px 2px; }
-.zihin-metin { min-height: 52vh; resize: vertical; background: var(--kb-2); border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--txt); padding: 12px; font: inherit; line-height: 1.6; }
+.zihin-editor { min-width: 0; }
+.zihin-durum { align-self: flex-end; color: var(--dim); }
+.zihin-oge-ad { overflow-wrap: anywhere; }
 
 /* Marka logosu */
 .g-logo { display: block; width: 168px; max-width: 46vw; height: auto; margin: 0 0 18px; }
@@ -269,3 +270,8 @@ dialog.uyari h2 { padding-inline: 0; }
 .bg-nokta { fill: var(--gold); }
 dialog.kutu .bg-ozellik { display: grid; grid-template-columns: minmax(110px, 190px) 1fr; gap: 4px 12px; margin: 0; }
 dialog.kutu .bg-ozellik dt { color: var(--dim); }
+.zihin-kat { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.zihin-kat-dugme { all: unset; cursor: pointer; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line, #3a3f4b); font-size: 12px; color: var(--dim); }
+.zihin-kat-dugme.secili { background: var(--kb-3); color: var(--txt); }
+.zihin-ozellik { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.zihin-ozellik input { flex: 1 1 200px; min-width: 0; }

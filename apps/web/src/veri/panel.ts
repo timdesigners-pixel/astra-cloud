@@ -80,7 +80,7 @@ export function panelGetir(ay: string): Promise<Panel> {
       kayitlariGetir('borclar', ['yon', 'durum', 'guncel_borc'], {}, 'ad'),
       kayitlariGetir('odemeler', ['borc_id', 'vade_tarihi', 'tutar', 'durum', 'hareket_id'], {}, 'vade_tarihi'),
       kayitlariGetir('gelirler', ['tur', 'sabit', 'periyot', 'tutar', 'baslangic', 'bitis', 'aktif'], {}, 'ad'),
-      kayitlariGetir('giderler', ['tur', 'periyot', 'tutar', 'para_birimi', 'bitis', 'aktif'], {}, 'ad'),
+      kayitlariGetir('giderler', ['tur', 'periyot', 'tutar', 'para_birimi', 'baslangic', 'bitis', 'aktif'], {}, 'ad'),
       kayitlariGetir('fisler', ['tarih', 'toplam'], {}, 'tarih'),
       kayitlariGetir('hareketler', ['yon', 'tur', 'tutar', 'tarih'], {}, 'tarih'),
       kayitlariGetir('varliklar', ['tur', 'anapara'], {}, 'ad'),

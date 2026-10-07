@@ -1,4 +1,5 @@
 import { bildir } from '../../ortak/bildirim';
+import { istemciAl } from '../../veri/istemci';
 import { uygulamaDurumuSil, uygulamaDurumuYaz } from '../../veri/uygulamalar';
 
 /* Çerçeveli uygulamalar sandbox içinde (allow-same-origin YOK) çalışır; depolama ve servis istekleri bu köprüden geçer.
@@ -83,10 +84,25 @@ function depo(kod: string, m: Record<string, unknown>) {
   yaz(hedef, anahtar, m.v);
 }
 
-/* Servis uçları (market fiyatı, Gemini) henüz yeni sunucuda yok. */
-function apiVekil(f: HTMLIFrameElement, m: Record<string, unknown>) {
+/* Çerçeveli uygulamaların /api/ istekleri: yalnız izinli uçlara, oturum jetonuyla iletilir. */
+const API_IZINLI = ['/api/market', '/api/tasarim'];
+const API_AZAMI_GOVDE = 12 * 1024 * 1024;
+async function apiVekil(f: HTMLIFrameElement, m: Record<string, unknown>) {
   const yanit = (d: object) => { try { f.contentWindow?.postMessage({ astra: 'api-yanit', id: m.id, ...d }, '*'); } catch { /* çerçeve gitti */ } };
-  yanit({ durum: 503, metin: JSON.stringify({ hata: 'Bu servis henüz bağlı değil' }), basliklar: { 'content-type': 'application/json' } });
+  const hata = (durum: number, metin: string) => yanit({ durum, metin: JSON.stringify({ error: metin }), basliklar: { 'content-type': 'application/json' } });
+  const yol = typeof m.yol === 'string' ? m.yol : '';
+  const yontem = m.yontem === 'POST' ? 'POST' : 'GET';
+  const ad = yol.split('?')[0]!;
+  if (!API_IZINLI.includes(ad)) return hata(403, 'Bu uca erişim yok');
+  const govde = typeof m.govde === 'string' && yontem === 'POST' ? m.govde : undefined;
+  if (govde && govde.length > API_AZAMI_GOVDE) return hata(413, 'İstek çok büyük');
+  try {
+    const { data } = await istemciAl().auth.getSession();
+    const jeton = data.session?.access_token;
+    if (!jeton) return hata(401, 'Oturum gerekli');
+    const r = await fetch(yol, { method: yontem, body: govde, headers: { Accept: 'application/json', Authorization: `Bearer ${jeton}`, ...(govde ? { 'Content-Type': 'application/json' } : {}) } });
+    yanit({ durum: r.status, metin: await r.text(), basliklar: { 'content-type': r.headers.get('content-type') ?? 'application/json' } });
+  } catch { hata(502, 'Servise ulaşılamadı'); }
 }
 
 function dilimYay() {
@@ -115,7 +131,7 @@ export function kopruBagla() {
     if (!f) return;
     const kod = f.dataset.app ?? '';
     if (m.astra === 'depo') depo(kod, m);
-    else if (m.astra === 'api') apiVekil(f, m);
+    else if (m.astra === 'api') void apiVekil(f, m);
     else if (m.astra === 'boy') {
       const asgari = Number(f.dataset.asgari) || 320;
       const h = Math.max(asgari, Math.min(60000, Math.round(Number(m.h) || 0)));

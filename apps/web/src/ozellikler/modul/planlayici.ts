@@ -15,7 +15,7 @@ export function planlayiciSayfasi(kok: HTMLElement) {
     try {
       const [gelirler, giderler, odemeler, alinacaklar, hedefler, hesaplar, hareketler] = await Promise.all([
         kayitlariGetir('gelirler', ['sabit', 'periyot', 'tutar', 'baslangic', 'bitis', 'aktif'], {}, 'ad'),
-        kayitlariGetir('giderler', ['periyot', 'tutar', 'para_birimi', 'bitis', 'taksit_kalan', 'aktif'], {}, 'ad'),
+        kayitlariGetir('giderler', ['periyot', 'tutar', 'para_birimi', 'baslangic', 'bitis', 'taksit_kalan', 'aktif'], {}, 'ad'),
         kayitlariGetir('odemeler', ['vade_tarihi', 'tutar', 'durum'], {}, 'vade_tarihi'),
         kayitlariGetir('alinacaklar', ['tahmini_tutar', 'hedef_tarih', 'durum'], {}, 'ad'),
         kayitlariGetir('hedefler', ['hedef_tutar', 'biriken', 'hedef_tarihi', 'durum'], {}, 'ad'),
@@ -49,8 +49,8 @@ export function planlayiciSayfasi(kok: HTMLElement) {
         g.appendChild(tr);
       });
       t.appendChild(g); sarma.appendChild(t);
-      const not = el('p', 'bos', 'Hesaba katılanlar: aylık sabit gelirler, aylık giderler (taksidi biten çıkar), bekleyen ödemeler (gecikenler ilk ayda), tarihi olan alınacaklar ve hedeflere aylık ayırma. '
-        + 'Yıllık ve 3 aylık kalemler ile kısa vadeli ekstra gelirler tahmine girmez.' + (dovizli ? ` ${dovizli} dövizli gider TL karşılığı bilinmediği için dahil değil.` : ''));
+      const not = el('p', 'bos', 'Hesaba katılanlar: sabit gelirler ve giderler kendi aylarında (aylık, 3 aylık, yıllık; tek seferlik giderler başlangıç ayında; taksidi biten çıkar), bekleyen ödemeler (gecikenler ilk ayda), tarihi olan alınacaklar ve hedeflere aylık ayırma. '
+        + 'Kısa vadeli ekstra gelirler tahmine girmez.' + (dovizli ? ` ${dovizli} dövizli gider TL karşılığı bilinmediği için dahil değil.` : ''));
       kart.replaceChildren(ozet, sarma, not);
     } catch (e) { kart.replaceChildren(el('p', 'bos hata', hataMetni(e))); }
   })();

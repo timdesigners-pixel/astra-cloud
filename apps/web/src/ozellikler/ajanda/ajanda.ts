@@ -1,6 +1,7 @@
 import { el } from '../../ortak/dom';
 import { bildir } from '../../ortak/bildirim';
 import { gun, tl } from '../../ortak/bicim';
+import { ayGunu, ayaDenk } from '../kayit/tekrar';
 import { git } from '../../kabuk/yonlendirici';
 import { CakismaHatasi, hataMetni } from '../../veri/hata';
 import { kayitEkle, kayitGuncelle, kayitlariGetir, type Kayit } from '../../veri/kayit';
@@ -21,7 +22,7 @@ const tarihYaz = (y: number, a: number, g: number) => `${y}-${iki(a + 1)}-${iki(
 const ayinGunSayisi = (y: number, a: number) => new Date(y, a + 1, 0).getDate();
 const sayi = (v: unknown) => (typeof v === 'number' ? v : Number(v ?? 0));
 
-/* Ayın her gününe düşen olaylar. Aylık tekrarlayan gelir ve giderler, ayın kısa olduğu aylarda son güne çekilir. */
+/* Ayın her gününe düşen olaylar. Aylık, 3 aylık ve yıllık tekrarlar ile tek seferlik giderler kendi aylarında görünür; ayın kısa olduğu aylarda son güne çekilir. */
 export function olaylariUret(y: number, a: number, k: {
   odemeler: Kayit[]; borclar: Map<string, string>; gelirler: Kayit[]; giderler: Kayit[]; alinacaklar: Kayit[]; hedefler: Kayit[]; todolar: Kayit[]; davalar: Kayit[]; olaylar: Kayit[];
 }): Olay[] {
@@ -33,16 +34,20 @@ export function olaylariUret(y: number, a: number, k: {
   k.odemeler.filter(x => x.durum !== 'iptal' && String(x.vade_tarihi).startsWith(ay)).forEach(x =>
     o.push({ tarih: String(x.vade_tarihi), baslik: k.borclar.get(String(x.borc_id)) ?? 'Borç ödemesi', tur: 'odeme', tutar: sayi(x.tutar), sayfa: 'o-takvim', bitti: x.durum === 'odendi' }));
   k.gelirler.filter(x => x.aktif !== false).forEach(x => {
-    if (x.sabit && x.periyot === 'aylik' && x.gun) {
-      const t = gunYaz(x.gun);
+    if (x.sabit) {
+      const g = ayGunu(x);
+      if (!g || !ayaDenk(x, ay)) return;
+      const t = gunYaz(g);
       if (aralikta(t, x.baslangic, x.bitis)) o.push({ tarih: t, baslik: String(x.ad), tur: 'gelir', tutar: sayi(x.tutar), sayfa: 'g-sabit' });
-    } else if (!x.sabit && String(x.baslangic ?? '').startsWith(ay)) {
+    } else if (String(x.baslangic ?? '').startsWith(ay)) {
       o.push({ tarih: String(x.baslangic), baslik: String(x.ad), tur: 'gelir', tutar: sayi(x.tutar), sayfa: 'g-ekstra', bitti: true });
     }
   });
-  k.giderler.filter(x => x.aktif !== false && x.periyot === 'aylik' && x.gun).forEach(x => {
-    const t = gunYaz(x.gun);
-    if (aralikta(t, null, x.bitis)) o.push({ tarih: t, baslik: String(x.ad), tur: 'gider', tutar: sayi(x.tutar), sayfa: GIDER_SAYFA[String(x.tur)] ?? 'e-ozet' });
+  k.giderler.filter(x => x.aktif !== false).forEach(x => {
+    const g = ayGunu(x);
+    if (!g || !ayaDenk(x, ay)) return;
+    const t = x.periyot === 'tek_sefer' ? String(x.baslangic) : gunYaz(g);
+    if (aralikta(t, x.baslangic, x.bitis)) o.push({ tarih: t, baslik: String(x.ad), tur: 'gider', tutar: sayi(x.tutar), sayfa: GIDER_SAYFA[String(x.tur)] ?? 'e-ozet' });
   });
   k.alinacaklar.filter(x => x.durum === 'karar' && String(x.hedef_tarih ?? '').startsWith(ay)).forEach(x =>
     o.push({ tarih: String(x.hedef_tarih), baslik: String(x.ad), tur: 'alinacak', tutar: x.tahmini_tutar === null ? undefined : sayi(x.tahmini_tutar), sayfa: 'e-alinacak' }));
@@ -146,7 +151,7 @@ export function ajandaSayfasi(kok: HTMLElement) {
       ['odemeler', 'odemeler', ['borc_id', 'vade_tarihi', 'tutar', 'durum'], {}, 'vade_tarihi'],
       ['borclar', 'borçlar', ['ad'], {}, 'ad'],
       ['gelirler', 'gelirler', ['ad', 'tur', 'sabit', 'periyot', 'tutar', 'gun', 'baslangic', 'bitis', 'aktif'], {}, 'ad'],
-      ['giderler', 'giderler', ['ad', 'tur', 'periyot', 'tutar', 'gun', 'bitis', 'aktif'], {}, 'ad'],
+      ['giderler', 'giderler', ['ad', 'tur', 'periyot', 'tutar', 'gun', 'baslangic', 'bitis', 'aktif'], {}, 'ad'],
       ['alinacaklar', 'alınacaklar', ['ad', 'hedef_tarih', 'durum', 'tahmini_tutar'], {}, 'ad'],
       ['hedefler', 'hedefler', ['ad', 'hedef_tarihi', 'durum'], {}, 'ad'],
       ['todolar', 'görevler', ['baslik', 'tarih', 'tamamlandi'], {}, 'tarih'],
