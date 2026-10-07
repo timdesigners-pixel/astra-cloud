@@ -22,7 +22,7 @@ export const UYGULAMALAR: Uygulama[] = [
   { kod: 'telrehber', sekme: 'app-telrehber', ad: 'Telefon Rehberi', yol: 'apps/telefon-rehberi/index.html',
     not: 'Model, fiyat ve özellik karşılaştırmalı telefon alım rehberi.' },
   { kod: 'kutuphane', sekme: 'app-kutuphane', ad: 'Bilgi Kütüphanesi',
-    not: 'AI notları, projeler, ilham panosu ve Recall Center. Sonraki fazda yeniden yazılacak.' },
+    not: 'AI notları, projeler, ilham ve Recall Center; Zihin Sarayı ile aynı blok düzenleyici.' },
   { kod: 'oynatma', sekme: 'app-oynatma', ad: 'Oynatma Listelerim', yol: 'apps/oynatma-listelerim/index.html',
     not: 'YouTube oynatma listeleri arşivi. Liste verisi şimdilik eski projeden gelir.' },
   { kod: 'pinterest', sekme: 'app-pinterest', ad: 'Pinterest Panolarım', yol: 'apps/pinterest-panolarim/index.html',

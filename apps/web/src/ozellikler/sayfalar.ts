@@ -8,7 +8,7 @@ import { simulasyonSayfasi } from './modul/simulasyon';
 import { davaSayfasi } from './hukuk/davalar';
 import { listelerSayfasi } from './notlar/listeler';
 import { todoSayfasi } from './notlar/todo';
-import { zihinSayfasi } from './notlar/zihin';
+import { kutuphaneSayfasi, zihinSayfasi } from './notlar/zihin';
 import { ajandaSayfasi } from './ajanda/ajanda';
 import { BIRIKIM_SAYFALARI } from './kayit/birikim';
 import { birikimOzetiSayfasi } from './kayit/birikim-ozet';
@@ -63,4 +63,5 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   'o-sgk': odemeSayfasi('sgk'),
   hub: modulMerkeziSayfasi,
   ...uygulamaSayfalari,
+  'app-kutuphane': kutuphaneSayfasi,
 };

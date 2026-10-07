@@ -6,9 +6,12 @@ import { onayla } from '../../ortak/uyari';
 import { editorAc, type Editor, type Sayfa } from '../zihin/editor';
 import { bloklarOf } from '../zihin/bloklar';
 
-const SUTUN = ['baslik', 'ust_id', 'icerik', 'sira', 'ikon', 'bloklar', 'one', 'onemli', 'onemli_not', 'onemli_renk'];
+const SUTUN = ['baslik', 'ust_id', 'icerik', 'sira', 'ikon', 'bloklar', 'one', 'onemli', 'onemli_not', 'onemli_renk', 'alan', 'kategori', 'etiketler'];
 const BEKLEME_MS = 800;
-const KAYIT_ALANLARI = ['baslik', 'ikon', 'bloklar', 'icerik', 'one', 'onemli', 'onemli_not', 'onemli_renk'] as const;
+const KAYIT_ALANLARI = ['baslik', 'ikon', 'bloklar', 'icerik', 'one', 'onemli', 'onemli_not', 'onemli_renk', 'kategori', 'etiketler'] as const;
+export const KUTUPHANE_KATEGORILERI = ['AI Notları', 'Projeler', 'İlham', 'Recall Center'];
+
+export type NotAyar = { alan: 'zihin' | 'kutuphane'; ad: string; kategoriler?: string[] };
 
 /* Sayfaları üst–alt sırasıyla, girinti derinliğiyle düzleştirir. Döngü olursa kopan kayıtlar en sona kök olarak eklenir.
    Aynı düzeyde öne çıkarılanlar en üsttedir. */
@@ -30,8 +33,13 @@ export function agacSirala(liste: Kayit[]): { k: Kayit; derinlik: number }[] {
   return sonuc;
 }
 
-export function zihinSayfasi(kok: HTMLElement) {
-  const s = { liste: [] as Kayit[], secili: '' as string, yukleniyor: true, hata: '', ara: '' };
+export const zihinSayfasi = (kok: HTMLElement) => notSayfasi({ alan: 'zihin', ad: 'Zihin Sarayı' })(kok);
+export const kutuphaneSayfasi = (kok: HTMLElement) => notSayfasi({ alan: 'kutuphane', ad: 'Bilgi Kütüphanesi', kategoriler: KUTUPHANE_KATEGORILERI })(kok);
+
+function notSayfasi(ayar: NotAyar) {
+  return (kok: HTMLElement) => {
+  const kutup = ayar.alan === 'kutuphane';
+  const s = { liste: [] as Kayit[], secili: '' as string, yukleniyor: true, hata: '', ara: '', kat: '' };
   const kart = el('section', 'card zihin');
   kok.replaceChildren(kart);
   const sol = el('div', 'zihin-sol'), sag = el('div', 'zihin-sag');
@@ -40,7 +48,8 @@ export function zihinSayfasi(kok: HTMLElement) {
   const yeni = el('button', 'btn primary sm', '+ Sayfa'); yeni.type = 'button'; yeni.id = 'zihin-yeni';
   const ust = el('div', 'tbar'); ust.append(ara, yeni);
   const agac = el('div', 'zihin-agac');
-  sol.append(ust, agac);
+  const katSerit = el('div', 'zihin-kat');
+  sol.append(ust, ...(kutup ? [katSerit] : []), agac);
 
   let editor: Editor | null = null;
   let icerde = false;
@@ -87,7 +96,24 @@ export function zihinSayfasi(kok: HTMLElement) {
     const parcalar: string[] = [];
     let u = k.ust_id ? s.liste.find(x => x.id === k.ust_id) : undefined;
     for (let n = 0; u && n < 20; n++) { parcalar.unshift(String(u.baslik)); u = u.ust_id ? s.liste.find(x => x.id === u!.ust_id) : undefined; }
-    return ['Zihin Sarayı', ...parcalar].join(' / ');
+    return [ayar.ad, ...parcalar].join(' / ');
+  }
+
+  const kategoriOf = (k: Kayit) => String(k.kategori || '') || (ayar.kategoriler?.[0] ?? '');
+  const kokKategori = (k: Kayit): string => {
+    let g = k;
+    for (let n = 0; g.ust_id && n < 20; n++) { const u = s.liste.find(x => x.id === g.ust_id); if (!u) break; g = u; }
+    return kategoriOf(g);
+  };
+  const kategoriler = () => [...new Set([...(ayar.kategoriler ?? []), ...s.liste.map(kategoriOf)])].filter(Boolean);
+  function katCiz() {
+    if (!kutup) return;
+    katSerit.replaceChildren();
+    ['', ...kategoriler()].forEach(c => {
+      const b = el('button', 'zihin-kat-dugme' + (s.kat === c ? ' secili' : ''), c || 'Tümü'); b.type = 'button';
+      b.addEventListener('click', () => { s.kat = c; agacCiz(); });
+      katSerit.appendChild(b);
+    });
   }
 
   function agacCiz() {
@@ -98,7 +124,9 @@ export function zihinSayfasi(kok: HTMLElement) {
       agac.append(el('p', 'bos hata', s.hata), t); return;
     }
     const q = katla(s.ara.trim());
-    const sirali = agacSirala(s.liste).filter(({ k }) => !q || katla(`${k.baslik} ${k.icerik}`).includes(q));
+    katCiz();
+    const sirali = agacSirala(s.liste).filter(({ k }) => (!kutup || !s.kat || kategoriOf(k) === s.kat || (k.ust_id && s.liste.some(x => x.id === k.ust_id) && kokKategori(k) === s.kat))
+      && (!q || katla(`${k.baslik} ${k.icerik} ${(k.etiketler as string[] | undefined ?? []).join(' ')}`).includes(q)));
     if (!sirali.length) { agac.appendChild(el('p', 'bos', s.liste.length ? 'Aramana uyan sayfa yok.' : 'Henüz sayfa yok. "+ Sayfa" ile ilkini aç.')); return; }
     sirali.forEach(({ k, derinlik }) => {
       const b = el('button', 'zihin-oge' + (k.id === s.secili ? ' secili' : ''));
@@ -120,6 +148,7 @@ export function zihinSayfasi(kok: HTMLElement) {
     const k = mevcut();
     if (!k) { sag.appendChild(el('p', 'bos', 'Soldan bir sayfa seç ya da yeni sayfa aç.')); return; }
     const kap = el('div', 'zihin-editor');
+    if (kutup) sag.appendChild(ozellikBar(k));
     const yazi = el('span', 'tbar-count zihin-durum'); durumYazi = yazi;
     sag.append(kap, yazi);
     editor = editorAc({
@@ -134,6 +163,30 @@ export function zihinSayfasi(kok: HTMLElement) {
         { etiket: 'Sil', id: 'zihin-sil', sinif: 'danger sm', tikla: () => void sil(k) },
       ],
     });
+  }
+
+  /* Kütüphane sayfalarının kategori ve etiketleri. */
+  function ozellikBar(k: Kayit): HTMLElement {
+    const bar = el('div', 'zihin-ozellik');
+    if (k.ust_id) { bar.append(el('span', 'tbar-count', `Kategori: ${kokKategori(k)} (üst sayfadan)`)); return bar; }
+    const sec = el('select'); sec.id = 'kut-kat'; sec.setAttribute('aria-label', 'Kategori');
+    const secenekler = kategoriler();
+    secenekler.forEach(c => sec.append(new Option(c, c)));
+    sec.append(new Option('+ Yeni kategori…', '__yeni'));
+    sec.value = kategoriOf(k);
+    sec.addEventListener('change', () => {
+      let v = sec.value;
+      if (v === '__yeni') { v = (window.prompt('Yeni kategori adı') ?? '').trim().slice(0, 60); if (!v) { sec.value = kategoriOf(k); return; } }
+      k.kategori = v; planla(); agacCiz(); editorCiz();
+    });
+    const et = el('input'); et.id = 'kut-etiket'; et.placeholder = 'Etiketler (virgülle)'; et.setAttribute('aria-label', 'Etiketler');
+    et.value = (k.etiketler as string[] | undefined ?? []).join(', ');
+    et.addEventListener('change', () => {
+      k.etiketler = [...new Set(et.value.split(',').map(x => x.trim()).filter(Boolean))].slice(0, 20).map(x => x.slice(0, 40));
+      planla(); agacCiz();
+    });
+    bar.append(sec, et);
+    return bar;
   }
 
   async function sil(k: Kayit) {
@@ -153,7 +206,7 @@ export function zihinSayfasi(kok: HTMLElement) {
   async function sayfaAc(ustId: string | null) {
     try {
       await bosalt();
-      const k = await kayitEkle('zihin_sayfalari', SUTUN, { baslik: 'Adsız sayfa', ust_id: ustId, icerik: '', bloklar: [], sira: s.liste.filter(x => (x.ust_id ?? null) === ustId).length });
+      const k = await kayitEkle('zihin_sayfalari', SUTUN, { baslik: 'Adsız sayfa', ust_id: ustId, alan: ayar.alan, ...(kutup && !ustId ? { kategori: s.kat || ayar.kategoriler![0] } : {}), icerik: '', bloklar: [], sira: s.liste.filter(x => (x.ust_id ?? null) === ustId).length });
       yerles(k); s.secili = k.id; agacCiz(); editorCiz();
       const a = document.getElementById('ze-baslik') as HTMLInputElement | null; a?.focus(); a?.select();
     } catch (e) { bildir(hataMetni(e), undefined, true); }
@@ -162,7 +215,7 @@ export function zihinSayfasi(kok: HTMLElement) {
   async function yukle() {
     s.yukleniyor = true; s.hata = ''; agacCiz();
     try {
-      s.liste = await kayitlariGetir('zihin_sayfalari', SUTUN, {}, 'sira');
+      s.liste = await kayitlariGetir('zihin_sayfalari', SUTUN, { alan: ayar.alan }, 'sira');
       s.liste.forEach(k => { if (!Array.isArray(k.bloklar)) k.bloklar = []; hatirla(k); });
       if (!mevcut()) s.secili = '';
     } catch (e) { s.hata = hataMetni(e); }
@@ -174,4 +227,5 @@ export function zihinSayfasi(kok: HTMLElement) {
   addEventListener('pagehide', () => void bosalt());
   void bloklarOf;
   void yukle();
+  };
 }
