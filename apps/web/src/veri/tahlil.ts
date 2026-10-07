@@ -1,5 +1,5 @@
 import { istemciAl } from './istemci';
-import { durumHesapla, type Durum } from './tahlil-katalog';
+import { durumHesapla, testBilgisi, type Durum } from './tahlil-katalog';
 import { gorselSikistir } from '../ozellikler/zihin/baglanti';
 
 /* Tahlil raporları (dosya + tarih) ve içindeki değerler. Dosyalar özel "saglik" kovasında, kullanıcı kimliği klasörü altında durur. */
@@ -149,3 +149,59 @@ export async function yapayZekaylaOku(dosya: File): Promise<OkunanRapor> {
   if (!r.ok || !v.sonuc) throw new Error(v.anahtarYok ? 'Sunucuda GEMINI_API_KEY tanımlı değil; değerleri elle girebilir ya da metni yapıştırabilirsin.' : v.error || `Okuma başarısız (${r.status})`);
   return v.sonuc;
 }
+
+/* ——— Geçmiş karşılaştırması ——— */
+export type Fark = { fark: number; yuzde: number | null };
+/** İki sonuç arasındaki fark (yalnız sayısal değerler için). */
+export function farkHesapla(onceki: Pick<Deger, 'deger'> | null | undefined, son: Pick<Deger, 'deger'>): Fark | null {
+  if (!onceki || onceki.deger === null || son.deger === null) return null;
+  const fark = son.deger - onceki.deger;
+  return { fark, yuzde: onceki.deger === 0 ? null : (fark / onceki.deger) * 100 };
+}
+
+export type Istatistik = { n: number; ilk: Deger; son: Deger; en_dusuk: Deger; en_yuksek: Deger; ortalama: number; disinda: number };
+export function istatistik(seri: Deger[]): Istatistik | null {
+  const s = seri.filter(d => d.deger !== null);
+  if (!s.length) return null;
+  return {
+    n: s.length, ilk: s[0]!, son: s[s.length - 1]!,
+    en_dusuk: s.reduce((m, d) => (d.deger! < m.deger! ? d : m)),
+    en_yuksek: s.reduce((m, d) => (d.deger! > m.deger! ? d : m)),
+    ortalama: s.reduce((t, d) => t + d.deger!, 0) / s.length,
+    disinda: s.filter(d => ['dusuk', 'yuksek'].includes(degerDurumu(d))).length,
+  };
+}
+
+/** Referans aralığına en yakın sınırdan uzaklık (aralık içindeyse 0). */
+function sinirdanUzaklik(d: Deger): number {
+  if (d.deger === null) return 0;
+  if (d.ref_alt !== null && d.deger < d.ref_alt) return d.ref_alt - d.deger;
+  if (d.ref_ust !== null && d.deger > d.ref_ust) return d.deger - d.ref_ust;
+  return 0;
+}
+
+/** Seriyi bir cümleyle özetler: yön, referansa göre durum değişimi. Yorum değil, yalnız rakamların anlatımı. */
+export function egilimMetni(seri: Deger[]): string {
+  const s = seri.filter(d => d.deger !== null);
+  if (s.length < 2) return 'Karşılaştırma için en az iki sonuç gerekir.';
+  const son = s[s.length - 1]!, onceki = s[s.length - 2]!;
+  const parca: string[] = [];
+  const son4 = s.slice(-4);
+  const farklar = son4.slice(1).map((d, i) => d.deger! - son4[i]!.deger!);
+  if (farklar.every(f => f === 0)) parca.push('Değer değişmedi.');
+  else if (farklar.length >= 2 && farklar.every(f => f > 0)) parca.push(`Son ${son4.length} sonuçta sürekli artış var.`);
+  else if (farklar.length >= 2 && farklar.every(f => f < 0)) parca.push(`Son ${son4.length} sonuçta sürekli düşüş var.`);
+  else parca.push(son.deger! > onceki.deger! ? 'Önceki sonuca göre arttı.' : son.deger! < onceki.deger! ? 'Önceki sonuca göre azaldı.' : 'Önceki sonuçla aynı.');
+  const d1 = degerDurumu(onceki), d2 = degerDurumu(son);
+  const dis = (x: string) => x === 'dusuk' || x === 'yuksek';
+  if (dis(d1) && d2 === 'normal') parca.push('Referans aralığına döndü.');
+  else if (d1 === 'normal' && dis(d2)) parca.push(`Referans aralığının ${d2 === 'yuksek' ? 'üstüne' : 'altına'} çıktı.`);
+  else if (dis(d1) && dis(d2)) {
+    const a = sinirdanUzaklik(onceki), b = sinirdanUzaklik(son);
+    parca.push(b < a ? 'Hâlâ referans dışında ama aralığa yaklaşıyor.' : b > a ? 'Referans dışında ve aralıktan uzaklaşıyor.' : 'Hâlâ referans dışında.');
+  }
+  return parca.join(' ');
+}
+
+/** Teste göre grup adı (katalogdaki grup; tanımsızsa "Diğer"). */
+export const testGrubu = (test: string) => testBilgisi(test)?.grup ?? 'Diğer';

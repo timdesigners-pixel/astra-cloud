@@ -13,12 +13,14 @@ import { davalariGetir, type DavaTuru } from '../../veri/davalar';
 import { icraDosyalariniGetir } from '../../veri/icra';
 import { kutu, secim } from '../notlar/ortak';
 import { uygulamaSayfasi } from '../uygulamalar/uygulama';
+import { bayt } from './bicim';
+import { hukukTasiPenceresi, type Hazir } from './hukuk-tasi';
+import type { Aday } from './hukuk-eslestir';
 
 type Gorunum = 'dosyalarim' | 'cop' | 'arsiv';
 type Sirala = 'ad' | 'tarih' | 'boyut';
 
 const GUVENLI_TUR = /^(image\/(png|jpe?g|webp|gif)|application\/pdf|text\/plain|text\/csv)$/;
-const bayt = (b: number | null) => (b === null ? '' : b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB');
 const tarihYaz = (s: string) => new Date(s).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 const DAVA_ADI: Record<DavaTuru, string> = { ceza: 'Ceza', hukuk: 'Hukuk', cbs: 'CBS' };
 
@@ -71,7 +73,9 @@ export function dosyaYoneticisiSayfasi(kok: HTMLElement) {
   const dosyaSec = el('input'); dosyaSec.type = 'file'; dosyaSec.multiple = true; dosyaSec.hidden = true;
   const klasorSec = el('input'); klasorSec.type = 'file'; klasorSec.hidden = true;
   klasorSec.setAttribute('webkitdirectory', '');
-  kart.append(dosyaSec, klasorSec);
+  const hukukSec = el('input'); hukukSec.type = 'file'; hukukSec.hidden = true;
+  hukukSec.setAttribute('webkitdirectory', '');
+  kart.append(dosyaSec, klasorSec, hukukSec);
 
   /* ——— Veri ——— */
   const bul = (id: string | null) => (id ? s.tum.find(k => k.id === id) : undefined);
@@ -161,7 +165,10 @@ export function dosyaYoneticisiSayfasi(kok: HTMLElement) {
     const klasorYukle = el('button', 'btn ghost sm', 'Klasör yükle'); klasorYukle.type = 'button';
     klasorYukle.addEventListener('click', () => klasorSec.click());
     const ustSatir = el('div', 'dy-satir');
-    ustSatir.append(yer, el('span', 'tbar-sp'), yukleD, klasorYukle, yeni);
+    const hukukTasi = el('button', 'btn ghost sm', '⚖ Hukuk belgelerini taşı'); hukukTasi.type = 'button';
+    hukukTasi.title = 'Bilgisayardaki dava klasörlerini ilgili dava ve icra dosyalarına yükle';
+    hukukTasi.addEventListener('click', () => hukukSec.click());
+    ustSatir.append(yer, el('span', 'tbar-sp'), yukleD, klasorYukle, hukukTasi, yeni);
     const altSatir = el('div', 'dy-satir');
     altSatir.append(ara, sirala, yil, el('span', 'tbar-sp'), el('span', 'dy-not', s.mesgul));
     ust.append(ustSatir, altSatir);
@@ -438,17 +445,15 @@ export function dosyaYoneticisiSayfasi(kok: HTMLElement) {
   /* ——— Yükleme ——— */
   type Is = { f: File; yol: string[] };
   let yukleniyor = false;
-  async function yukleIsler(isler: Is[]) {
-    if (yukleniyor || !isler.length) return;
-    yukleniyor = true;
-    const baslangic = s.klasor;
-    const klasorler = new Map<string, string | null>([['', baslangic]]);
-    let basarili = 0; const hatalar: string[] = [];
+  type Sayim = { basarili: number; atlanan: number; hatalar: string[] };
+  /* Dosyaları verilen klasörün altına yükler; klasör yapısı yol parçalarından kurulur. tekrarAtla: aynı ad ve boyutta dosya varsa yüklemez. */
+  async function yukleCekirdek(isler: Is[], kokId: string | null, etiket: (i: number) => string, tekrarAtla: boolean, sayim: Sayim) {
+    const klasorler = new Map<string, string | null>([['', kokId]]);
     for (let i = 0; i < isler.length; i++) {
       const { f, yol: y } = isler[i]!;
-      s.mesgul = `Yükleniyor ${i + 1}/${isler.length}…`; ustCiz();
+      s.mesgul = etiket(i); ustCiz();
       try {
-        let anahtar = '', ust = baslangic;
+        let anahtar = '', ust = kokId;
         for (const parca of y) {
           anahtar += '/' + parca;
           if (!klasorler.has(anahtar)) {
@@ -459,17 +464,72 @@ export function dosyaYoneticisiSayfasi(kok: HTMLElement) {
           }
           ust = klasorler.get(anahtar)!;
         }
-        s.tum.push(await dosyaYukle(f, ust)); basarili++;
-        if (s.gorunum === 'dosyalarim') listeCiz();
+        if (tekrarAtla && s.tum.some(k => k.tur === 'dosya' && k.ust_id === ust && k.ad === f.name.slice(0, 200) && k.boyut === f.size)) { sayim.atlanan++; continue; }
+        s.tum.push(await dosyaYukle(f, ust)); sayim.basarili++;
+        if (s.gorunum === 'dosyalarim' && i % 5 === 0) listeCiz();
       } catch (e) {
-        hatalar.push(e instanceof Error && e.message.startsWith('boyut:') ? `${f.name} (en fazla ${bayt(AZAMI_DOSYA)})` : `${f.name} (${hataMetni(e)})`);
+        sayim.hatalar.push(e instanceof Error && e.message.startsWith('boyut:') ? `${f.name} (en fazla ${bayt(AZAMI_DOSYA)})` : `${f.name} (${hataMetni(e)})`);
       }
     }
+  }
+  function yukleSonuc(sayim: Sayim) {
     yukleniyor = false; s.mesgul = '';
     ciz();
-    if (basarili) bildir(`${basarili} dosya yüklendi`);
-    if (hatalar.length) bildir(`Yüklenemedi: ${hatalar.slice(0, 3).join(', ')}${hatalar.length > 3 ? ` ve ${hatalar.length - 3} dosya daha` : ''}`, undefined, true);
+    if (sayim.basarili) bildir(`${sayim.basarili} dosya yüklendi${sayim.atlanan ? `, ${sayim.atlanan} tanesi zaten vardı` : ''}`);
+    else if (sayim.atlanan && !sayim.hatalar.length) bildir(`${sayim.atlanan} dosya zaten yüklüydü`);
+    if (sayim.hatalar.length) bildir(`Yüklenemedi: ${sayim.hatalar.slice(0, 3).join(', ')}${sayim.hatalar.length > 3 ? ` ve ${sayim.hatalar.length - 3} dosya daha` : ''}`, undefined, true);
   }
+  async function yukleIsler(isler: Is[]) {
+    if (yukleniyor || !isler.length) return;
+    yukleniyor = true;
+    const sayim: Sayim = { basarili: 0, atlanan: 0, hatalar: [] };
+    await yukleCekirdek(isler, s.klasor, i => `Yükleniyor ${i + 1}/${isler.length}…`, false, sayim);
+    yukleSonuc(sayim);
+  }
+
+  /* Hukuk belgelerini taşı: her grup, eşleştiği dava/icra kaydının "Belgeler" klasörüne (ya da sıradan klasöre) yüklenir. */
+  async function hukukTasiBaslat(hazir: Hazir[]) {
+    if (yukleniyor || !hazir.length) return;
+    yukleniyor = true;
+    const sayim: Sayim = { basarili: 0, atlanan: 0, hatalar: [] };
+    const toplam = hazir.reduce((t, h) => t + h.grup.parcalar.length, 0);
+    let yapilan = 0;
+    for (const h of hazir) {
+      try {
+        let kok: string | null;
+        if (h.hedef === 'normal') {
+          const var_ = s.tum.find(k => k.tur === 'klasor' && !k.bag_tur && k.ust_id === s.klasor && k.ad === h.grup.ad);
+          const k = var_ ?? await klasorOlustur(h.grup.ad, s.klasor);
+          if (!var_) s.tum.push(k);
+          kok = k.id;
+        } else {
+          const k = await bagliKlasor(h.hedef.tur, h.hedef.id);
+          if (!s.tum.some(x => x.id === k.id)) s.tum.push(k);
+          kok = k.id;
+        }
+        const taban = yapilan;
+        await yukleCekirdek(h.grup.parcalar, kok, i => `Hukuk belgeleri taşınıyor ${taban + i + 1}/${toplam} · ${h.grup.ad}`, true, sayim);
+      } catch (e) { sayim.hatalar.push(`${h.grup.ad} klasörü (${hataMetni(e)})`); }
+      yapilan += h.grup.parcalar.length;
+      if (h.grup.buyuk) sayim.hatalar.push(`${h.grup.ad}: ${h.grup.buyuk} dosya ${bayt(AZAMI_DOSYA)} sınırını aştığı için atlandı`);
+    }
+    yukleSonuc(sayim);
+    void adlariYukle();
+  }
+
+  hukukSec.addEventListener('change', async () => {
+    const dosyalar = [...(hukukSec.files ?? [])];
+    hukukSec.value = '';
+    if (!dosyalar.length) return;
+    try {
+      const [ceza, hukuk, cbs, icra] = await Promise.all([davalariGetir('ceza'), davalariGetir('hukuk'), davalariGetir('cbs'), icraDosyalariniGetir()]);
+      const adaylar: Aday[] = [
+        ...([['ceza', ceza], ['hukuk', hukuk], ['cbs', cbs]] as [DavaTuru, typeof ceza][]).flatMap(([t, l]) => l.map(d => ({ tur: 'dava' as const, id: d.id, esas: d.dosya_no, etiket: `${DAVA_ADI[t]} davası ${d.dosya_no}${d.konu ? ' · ' + d.konu : ''}` }))),
+        ...icra.map(d => ({ tur: 'icra' as const, id: d.id, esas: d.dosya_no ?? '', etiket: `${d.dosya_no ?? '—'}${d.icra_dairesi ? ' · ' + d.icra_dairesi : ''}` })),
+      ];
+      hukukTasiPenceresi({ dosyalar, adaylar, baslat: hukukTasiBaslat });
+    } catch (e) { bildir(hataMetni(e), undefined, true); }
+  });
 
   dosyaSec.addEventListener('change', () => { void yukleIsler([...(dosyaSec.files ?? [])].map(f => ({ f, yol: [] }))); dosyaSec.value = ''; });
   klasorSec.addEventListener('change', () => {
