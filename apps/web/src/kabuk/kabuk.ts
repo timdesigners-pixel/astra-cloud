@@ -1,4 +1,6 @@
 import { ALT_CUBUK, HUBLAR, OBEKLER, kisayolNo, sekmeBul } from './sekmeler';
+import { SAYFALAR } from '../ozellikler/sayfalar';
+import { bagliMi } from '../veri/istemci';
 import { duzMenu, duzMenuYaz, hepsiniAyarla, hubAcik, hubCevir, sekmeMerkeziniAc } from './menu-durum';
 import { menuIkon } from './ikonlar';
 import { donem, donemDurumu, donemEtiketi, donemKaydir, donemeGit, buAy, donemDinle } from './donem';
@@ -65,6 +67,11 @@ function menuCiz() {
     + '</div></div>';
 }
 
+/* Sayfaya gidince aktif satır görünür alana getirilir (menü sayfayla birlikte kayar). */
+function aktifGorunur() {
+  $('nav').querySelector<HTMLElement>('.sb-item.on')?.scrollIntoView({ block: 'center' });
+}
+
 /* ---------- üst çubuk ve mini şerit ---------- */
 function ustCiz() {
   const pk = donem();
@@ -106,6 +113,12 @@ function sayfaCiz() {
     yuva.innerHTML = `<div class="hubhead sayfaadi"><h2 aria-hidden="true">${ad}</h2></div>`;
     yuva.hidden = false;
   }
+  const sayfa = SAYFALAR[aktifSekme()];
+  if (sayfa) {
+    if (bagliMi()) sayfa($('main'));
+    else $('main').innerHTML = `<section class="card" style="padding:28px"><h2 style="margin:0 0 6px">${ad}</h2>`
+      + `<p style="margin:0;color:var(--dim)">Kilit açılınca yüklenecek.</p></section>`;
+  } else
   $('main').innerHTML = `<section class="card" style="padding:28px"><h2 style="margin:0 0 6px">${ad}</h2>`
     + `<p style="margin:0;color:var(--dim)">Bu ekran sonraki fazda doldurulacak.</p></section>`
     + (aktifSekme() === 'sistem'
@@ -209,11 +222,13 @@ function olaylariBagla() {
 export function kabuguBaslat() {
   temaUygula();
   yonlendiriciBaslat();
-  yonlendiriciDinle(k => { sekmeMerkeziniAc(k); hepsiniCiz(); });
+  yonlendiriciDinle(k => { sekmeMerkeziniAc(k); hepsiniCiz(); aktifGorunur(); });
   donemDinle(hepsiniCiz);
+  document.addEventListener('astra:oturum', sayfaCiz);
   olaylariBagla();
   sekmeMerkeziniAc(aktifSekme());
   hepsiniCiz();
+  aktifGorunur();
   setInterval(saatTazele, 30000);
   if (typeof ResizeObserver === 'function') new ResizeObserver(() =>
     document.documentElement.style.setProperty('--ust', `${$('perbarwrap').getBoundingClientRect().height}px`)).observe($('perbarwrap'));

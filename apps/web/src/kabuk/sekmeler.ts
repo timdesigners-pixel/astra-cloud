@@ -15,10 +15,6 @@ export const HUBLAR: Hub[] = [
       s('gider', '↓', 'Aylık Giderler'), s('kazanc', '↗', 'Gelir & İş Modelleri'),
       s('abonelik', '⟳', 'Abonelik & Fatura'), s('gmail', '✉︎', 'Gmail & E-Fatura'),
     ] },
-    { ad: 'Borç & Limit', sekmeler: [
-      s('borc', '⚠︎', 'Borç Takibi'), s('kisi', '⇄', 'Kişi Borçları'), s('limit', '▭', 'Limitler'),
-      s('taksit', '▤', 'Taksitlendirme'), s('sim', '⚡︎', 'Borç Kapatma Sim.'),
-    ] },
     { ad: 'Varlık & Büyüme', sekmeler: [
       s('mevduat', '%', 'Faiz / Getiri Motoru'), s('yatirim', '△', 'Yatırım Portföyü'), s('tahmin', '→', 'Gelecek Tahminleme'),
     ] },
@@ -26,6 +22,14 @@ export const HUBLAR: Hub[] = [
       s('danisman', '◉', 'Eylemler & Bütçe'), s('karar', '⊙', 'Karar Desteği'), s('strateji', '⚖︎', 'Strateji Matrisi'),
     ] },
     { ad: 'Raporlar', sekmeler: [s('aylik', '▦', 'Aylık Z-Raporu'), s('rapor', '◎', 'Rapor Merkezi')] },
+  ] },
+  { id: 'borc', glif: '▣', ad: 'Borçlar & Hesaplar', gruplar: [
+    { ad: 'Borçlar', sekmeler: [
+      s('borc', '⚠︎', 'Borç Takibi'), s('kisi', '⇄', 'Kişilere Borçlar'), s('vergisgk', '▧', 'Vergi & SGK Borçları'),
+      s('icraborc', '▲', 'İcra Borçları'), s('taksit', '▤', 'Taksitlendirme'), s('sim', '⚡︎', 'Borç Kapatma Sim.'),
+    ] },
+    { ad: 'Hesaplar', sekmeler: [s('hesaplar', '▩', 'Banka Hesapları'), s('limit', '▭', 'Limitler')] },
+    { ad: 'Rehber', sekmeler: [s('kisiler', '◍', 'Kişiler & Kurumlar'), s('iban', '▥', 'IBAN Rehberi')] },
   ] },
   { id: 'huk', glif: '§', ad: 'Hukuk Merkezi', gruplar: [{ sekmeler: [s('hukuk', '§', 'Hukuk & İcra Masası')] }] },
   { id: 'my', glif: '☰', ad: 'My Space', gruplar: [
@@ -49,7 +53,7 @@ export const OBEKLER: Obek[] = [
   { ad: 'GENEL KOMUTA', sekmeler: al('genel') },
   { ad: 'YAPAY ZEKA', sekmeler: al('asistan', 'danisman') },
   { ad: 'PARA AKIŞI', sekmeler: al('gider', 'abonelik', 'kazanc', 'plan', 'odemeplan', 'market', 'gmail') },
-  { ad: 'BORÇLAR & HUKUK', sekmeler: al('borc', 'kisi', 'limit', 'taksit', 'sim', 'tahmin', 'hukuk') },
+  { ad: 'BORÇLAR & HUKUK', sekmeler: al('borc', 'kisi', 'vergisgk', 'icraborc', 'hesaplar', 'limit', 'kisiler', 'iban', 'taksit', 'sim', 'tahmin', 'hukuk') },
   { ad: 'VARLIK & BÜYÜME', sekmeler: al('mevduat', 'yatirim') },
   { ad: 'STRATEJİ & RAPOR', sekmeler: al('karar', 'strateji', 'sirada', 'todo', 'rapor', 'aylik') },
   { ad: 'SİSTEM', sekmeler: al('veri', 'sistem', 'hub') },

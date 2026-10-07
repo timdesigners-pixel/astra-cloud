@@ -1,0 +1,27 @@
+/* Veri sayfalarının ortak parçaları: kutu (dialog), form, boş durum, bildirim. */
+.kisiler .bos { margin: 18px 4px; color: var(--dim); }
+.kisiler .bos.hata { color: var(--red); }
+.kisiler .tablo-sarma { overflow-x: auto; }
+.kisiler tr.satir { cursor: pointer; }
+.kisiler tr.satir:hover td { background: var(--kb-3); }
+.kisiler td.islem { text-align: right; white-space: nowrap; }
+.kisiler small.takma { display: block; color: var(--dim); font-size: var(--fs-2); margin-top: 2px; }
+body.gizli .gz { filter: blur(6px); user-select: none; }
+
+dialog.kutu { background: var(--bg2); color: var(--txt); border: 1px solid var(--line2); border-radius: var(--r);
+  padding: 22px; width: min(460px, calc(100vw - 32px)); }
+dialog.kutu::backdrop { background: rgba(3, 5, 9, .75); }
+dialog.kutu h2 { margin: 0 0 14px; font-size: var(--fs-5, 18px); }
+dialog.kutu .alan { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+dialog.kutu .alan > span { font-family: var(--f-mono); font-size: var(--fs-1); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+dialog.kutu .alan small { color: var(--dim); font-size: var(--fs-2); }
+dialog.kutu .form-hata { color: var(--red); margin: 0 0 10px; }
+dialog.kutu .form-dugmeler { display: flex; gap: 8px; flex-wrap: wrap; }
+dialog.kutu .form-dugmeler .danger { margin-left: auto; }
+
+#toast.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: var(--z-kiptik, 90);
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--r-sm);
+  background: var(--surface-2); border: 1px solid var(--line2); color: var(--txt); font-size: var(--fs-3); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+#toast.toast.hata { border-color: var(--red); }
+#toast.toast button { all: unset; cursor: pointer; color: var(--gold); font-weight: 600; }
+#toast.toast button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
