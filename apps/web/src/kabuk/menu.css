@@ -1,0 +1,14 @@
+/* Gruplu menü: merkez başlığı, açılır gövde, grup etiketi. Satır görünümü layout.css'teki #nav button kurallarını kullanır. */
+#nav .sb-hub { font-weight: 600; color: var(--txt); }
+#nav .sb-hub .sb-chev { width: 12px; flex: 0 0 12px; font-size: 9px; color: var(--dim); transition: transform .15s ease; }
+#nav .sb-hub[aria-expanded="true"] .sb-chev { transform: rotate(90deg); }
+#nav .sb-hub .sb-hub-ic { width: 20px; flex: 0 0 20px; text-align: center; color: var(--gold); }
+#nav .sb-hub .sb-say { font-family: var(--f-mono); font-size: var(--fs-0); color: var(--dim); font-weight: 400; flex: 0 0 auto; }
+#nav .sb-hub-govde { display: flex; flex-direction: column; margin: 0 0 6px 12px; padding-left: 4px; border-left: 1px solid var(--line); }
+#nav .sb-hub-govde[hidden] { display: none; }
+#nav .sb-grp { font-family: var(--f-mono); font-size: var(--fs-0); letter-spacing: .16em; text-transform: uppercase; color: var(--dim); padding: 10px 10px 3px; }
+#nav .sb-menu-araclar { display: flex; gap: 6px; padding: 2px 4px 8px; }
+#nav .sb-menu-araclar button { width: auto; flex: 1; justify-content: center; padding: 6px 8px; font-size: var(--fs-1); }
+#nav .sb-hub { padding-inline: 8px; gap: 8px; }
+#nav .sb-hub-govde button { padding: 9px 8px; gap: 8px; }
+#nav .sb-hub-govde button .shortcut { padding: 0 4px; }

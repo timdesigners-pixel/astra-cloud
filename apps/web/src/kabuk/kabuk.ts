@@ -1,4 +1,5 @@
-import { ALT_CUBUK, OBEKLER, kisayolNo, sekmeBul } from './sekmeler';
+import { ALT_CUBUK, HUBLAR, OBEKLER, kisayolNo, sekmeBul } from './sekmeler';
+import { duzMenu, duzMenuYaz, hepsiniAyarla, hubAcik, hubCevir, sekmeMerkeziniAc } from './menu-durum';
 import { menuIkon } from './ikonlar';
 import { donem, donemDurumu, donemEtiketi, donemKaydir, donemeGit, buAy, donemDinle } from './donem';
 import { temaAd, temaCevir, temaSimge, temaUygula } from './tema';
@@ -22,13 +23,27 @@ function menuCiz() {
   const pk = donem();
   const d = donemDurumu(pk);
   const simdi = new Date();
-  const obekler = OBEKLER.map(o => `<div class="navsec sb-section-title">${o.ad}</div>`
-    + o.sekmeler.map(s => {
-      const no = kisayolNo(s.anahtar);
-      return `<button class="sb-item ${k === s.anahtar ? 'on active' : ''}" data-tab="${s.anahtar}" title="${s.ad}">`
-        + `<span class="sb-icon-box nb">${menuIkon(s.anahtar) || s.glif}</span><span class="label nl">${s.ad}</span>`
-        + (no ? `<span class="shortcut nk" aria-hidden="true">${no}</span>` : '') + '</button>';
-    }).join('')).join('');
+  const satir = (sa: string, glif: string, ad: string) => {
+    const no = kisayolNo(sa);
+    return `<button class="sb-item ${k === sa ? 'on active' : ''}" data-tab="${sa}" title="${ad}">`
+      + `<span class="sb-icon-box nb">${menuIkon(sa) || glif}</span><span class="label nl">${ad}</span>`
+      + (no ? `<span class="shortcut nk" aria-hidden="true">${no}</span>` : '') + '</button>';
+  };
+  const obekler = duzMenu()
+    ? OBEKLER.map(o => `<div class="navsec sb-section-title">${o.ad}</div>`
+      + o.sekmeler.map(x => satir(x.anahtar, x.glif, x.ad)).join('')).join('')
+    : `<div class="sb-menu-araclar"><button type="button" class="sb-btn" data-islem="hub-ac">Hepsini aç</button>`
+      + `<button type="button" class="sb-btn" data-islem="hub-kapat">Hepsini kapat</button></div>`
+      + HUBLAR.map(h => {
+        const acik = hubAcik(h.id);
+        const say = h.gruplar.reduce((t, g) => t + g.sekmeler.length, 0);
+        return `<button type="button" class="sb-item sb-hub" data-hub="${h.id}" aria-expanded="${acik}" title="${h.ad}">`
+          + `<span class="sb-chev" aria-hidden="true">▶</span><span class="sb-hub-ic" aria-hidden="true">${h.glif}</span>`
+          + `<span class="label nl">${h.ad}</span><span class="sb-say">${say}</span></button>`
+          + `<div class="sb-hub-govde"${acik ? '' : ' hidden'}>`
+          + h.gruplar.map(g => (g.ad ? `<div class="sb-grp">${g.ad}</div>` : '')
+            + g.sekmeler.map(x => satir(x.anahtar, x.glif, x.ad)).join('')).join('') + '</div>';
+      }).join('');
 
   $('nav').innerHTML = `<div class="sb-header"><div class="sb-brand" data-tab="genel" style="cursor:pointer" title="Genel Bakış'a Dön">`
     + `<div class="sb-logo-box">${menuIkon('karar')}</div><div class="sb-brand-info"><h2>ASTRA</h2><p>Finans komuta merkezi</p></div></div></div>`
@@ -92,7 +107,12 @@ function sayfaCiz() {
     yuva.hidden = false;
   }
   $('main').innerHTML = `<section class="card" style="padding:28px"><h2 style="margin:0 0 6px">${ad}</h2>`
-    + `<p style="margin:0;color:var(--dim)">Bu ekran sonraki fazda doldurulacak.</p></section>`;
+    + `<p style="margin:0;color:var(--dim)">Bu ekran sonraki fazda doldurulacak.</p></section>`
+    + (aktifSekme() === 'sistem'
+      ? `<section class="card" style="padding:28px;margin-top:16px"><h2 style="margin:0 0 6px">Menü görünümü</h2>`
+        + `<p style="margin:0 0 14px;color:var(--dim)">Gruplu menü merkezlere ayrılmıştır. Alışana kadar eski düz listeye dönebilirsin.</p>`
+        + `<button type="button" class="btn" data-islem="menu-tur" aria-pressed="${duzMenu()}">${duzMenu() ? 'Gruplu menüye geç' : 'Eski düz menüye dön'}</button></section>`
+      : '');
   document.title = `${ad} · ASTRA FİNANS OS`;
   $('duyuru').textContent = `${ad} sayfası açıldı`;
 }
@@ -110,8 +130,11 @@ function cekmeceAc() {
   const k = aktifSekme();
   d.innerHTML = `<div class="mdhead"><b style="font-size:15.5px">Tüm Modüller</b><button class="btn ghost" data-islem="cekmece-kapat">Kapat ✕</button></div>`
     + `<input class="mdara" type="search" placeholder="sayfa ara…" aria-label="Modüllerde ara" autocomplete="off">`
-    + OBEKLER.map(o => `<div class="mdsec">${o.ad}</div><div class="mdgrid">`
-      + o.sekmeler.map(s => `<button class="${s.anahtar === k ? 'on' : ''}" data-tab="${s.anahtar}">${s.glif} ${s.ad}</button>`).join('') + '</div>').join('');
+    + (duzMenu()
+      ? OBEKLER.map(o => ({ ad: o.ad, sekmeler: o.sekmeler }))
+      : HUBLAR.map(h => ({ ad: h.ad.toLocaleUpperCase('tr'), sekmeler: h.gruplar.flatMap(g => g.sekmeler) })))
+      .map(o => `<div class="mdsec">${o.ad}</div><div class="mdgrid">`
+        + o.sekmeler.map(x => `<button class="${x.anahtar === k ? 'on' : ''}" data-tab="${x.anahtar}">${x.glif} ${x.ad}</button>`).join('') + '</div>').join('');
   d.classList.add('acik');
 }
 const kat = (s: string) => s.toLocaleLowerCase('tr').replace(/[ıİI]/g, 'i');
@@ -149,6 +172,8 @@ function olaylariBagla() {
       git(sekme.dataset.tab);
       return;
     }
+    const hub = hedef.closest<HTMLElement>('[data-hub]')?.dataset.hub;
+    if (hub) { hubCevir(hub); menuCiz(); return; }
     const dn = hedef.closest<HTMLElement>('[data-donem]')?.dataset.donem;
     if (dn) { if (dn === 'bugun') donemeGit(buAy()); else donemKaydir(Number(dn)); return; }
     const kapat = hedef.closest<HTMLElement>('[data-kapat]')?.dataset.kapat;
@@ -156,6 +181,8 @@ function olaylariBagla() {
     const islem = hedef.closest<HTMLElement>('[data-islem]')?.dataset.islem;
     if (islem === 'tema') { temaCevir(); menuCiz(); }
     else if (islem === 'gizlilik') { gizlilik.acik = !gizlilik.acik; document.body.classList.toggle('gizli', gizlilik.acik); menuCiz(); }
+    else if (islem === 'hub-ac' || islem === 'hub-kapat') { hepsiniAyarla(islem === 'hub-ac'); menuCiz(); }
+    else if (islem === 'menu-tur') { duzMenuYaz(!duzMenu()); menuCiz(); sayfaCiz(); }
     else if (islem === 'cekmece-kapat') $('mobdrawer').classList.remove('acik');
     else if (hedef.closest('#mobnav [data-tab="__more"]')) cekmeceAc();
   });
@@ -182,9 +209,10 @@ function olaylariBagla() {
 export function kabuguBaslat() {
   temaUygula();
   yonlendiriciBaslat();
-  yonlendiriciDinle(hepsiniCiz);
+  yonlendiriciDinle(k => { sekmeMerkeziniAc(k); hepsiniCiz(); });
   donemDinle(hepsiniCiz);
   olaylariBagla();
+  sekmeMerkeziniAc(aktifSekme());
   hepsiniCiz();
   setInterval(saatTazele, 30000);
   if (typeof ResizeObserver === 'function') new ResizeObserver(() =>
