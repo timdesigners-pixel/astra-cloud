@@ -1,0 +1,8 @@
+{
+  "name": "@astra/ortak-test",
+  "version": "15.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": { "tip": "tsc -p ." }
+}
