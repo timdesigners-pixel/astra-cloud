@@ -139,6 +139,10 @@ const hesaplar: KayitAyari = {
   },
 };
 
+/* 3 aylık, yıllık ve tek seferlik kalemler hangi aya düştüğünü başlangıç tarihinden bilir. */
+const baslangicDogrula = (g: Record<string, unknown>) => (['uc_aylik', 'yillik', 'tek_sefer'].includes(String(g.periyot)) && !g.baslangic
+  ? 'Başlangıç tarihi gerekli: 3 aylık, yıllık ve tek seferlik kalemlerde hangi aya düştüğü ondan bulunur.' : null);
+
 /* ---------- gelirler ---------- */
 const aylik = (k: Kayit) => {
   const t = sayi(k.tutar);
@@ -151,7 +155,7 @@ const gelirAlanlari = (turler: [string, string][], ekstra: boolean): Alan[] => [
   { ad: 'tutar', etiket: 'Tutar (TL)', tur: 'sayi', zorunlu: true, ipucu: ekstra ? 'Bahis zararı eksi tutarla yazılır' : undefined },
   ...(ekstra ? [{ ad: 'baslangic', etiket: 'Tarih', tur: 'tarih' } as Alan] : [{ ad: 'gun', etiket: 'Ayın kaçında gelir', tur: 'sayi' } as Alan]),
   { ad: 'hesap_id', etiket: 'Yattığı hesap', tur: 'hesap' },
-  ...(ekstra ? [] : [{ ad: 'bitis', etiket: 'Bitiş tarihi', tur: 'tarih' } as Alan, { ad: 'aktif', etiket: 'Aktif', tur: 'onay' } as Alan]),
+  ...(ekstra ? [] : [{ ad: 'baslangic', etiket: 'Başlangıç tarihi', tur: 'tarih', ipucu: '3 aylık ve yıllık gelirlerde ilk gelirin tarihi; hangi aylara düştüğü buradan bulunur' } as Alan, { ad: 'bitis', etiket: 'Bitiş tarihi', tur: 'tarih' } as Alan, { ad: 'aktif', etiket: 'Aktif', tur: 'onay' } as Alan]),
   { ad: 'notlar', etiket: 'Not', tur: 'uzun' },
 ];
 const SABIT_GELIR: [string, string][] = [['maas', 'Maaş'], ['kira', 'Kira geliri'], ['faiz', 'Faiz geliri'], ['tarla', 'Tarla kirası'], ['diger', 'Diğer']];
@@ -165,7 +169,7 @@ const sabitGelirler: KayitAyari = {
     { baslik: 'Sıklık', goster: k => sec(PERIYOT, k.periyot) }, { baslik: 'Tutar', sayi: true, goster: k => tl(sayi(k.tutar)) },
     { baslik: 'Gün', goster: k => (k.gun ? String(k.gun) : '—') }, { baslik: 'Durum', goster: k => (k.aktif === false ? 'Pasif' : 'Aktif') },
   ],
-  filtre: { sabit: true }, sabit: { sabit: true }, sirala: 'ad',
+  filtre: { sabit: true }, sabit: { sabit: true }, sirala: 'ad', dogrula: baslangicDogrula,
   ozet: l => {
     const a = l.filter(k => k.aktif !== false);
     return [['Aylık eşdeğer', tl(a.reduce((t, k) => t + aylik(k), 0)), 'yıllık ve 3 aylık gelirler aya bölünür', 'vurgu'], ['Aktif kaynak', String(a.length)]];
@@ -197,6 +201,7 @@ const giderAyari = (tur: string, yeni: string, baslik: string, bos: string, gunE
     ...(doviz ? [{ ad: 'para_birimi', etiket: 'Para birimi', tur: 'secim', secenekler: PARA, zorunlu: true, varsayilan: 'TRY' } as Alan] : []),
     { ad: 'periyot', etiket: 'Ne sıklıkla', tur: 'secim', secenekler: PERIYOT, zorunlu: true, varsayilan: 'aylik' },
     { ad: 'gun', etiket: gunEtiketi, tur: 'sayi', ipucu: '1–31' },
+    { ad: 'baslangic', etiket: 'Başlangıç / ilk ödeme tarihi', tur: 'tarih', ipucu: '3 aylık, yıllık ve tek seferlik kalemlerde gerekli: hangi aya düştüğü buradan bulunur' },
     { ad: 'hesap_id', etiket: 'Ödenen hesap', tur: 'hesap' },
     ...(taksit ? [{ ad: 'taksit_toplam', etiket: 'Toplam taksit', tur: 'sayi' } as Alan, { ad: 'taksit_kalan', etiket: 'Kalan taksit', tur: 'sayi' } as Alan,
       { ad: 'bitis', etiket: 'Bitiş tarihi', tur: 'tarih' } as Alan] : []),
@@ -211,7 +216,7 @@ const giderAyari = (tur: string, yeni: string, baslik: string, bos: string, gunE
     ...(taksit ? [{ baslik: 'Kalan taksit', goster: (k: Kayit) => (k.taksit_kalan === null || k.taksit_kalan === undefined ? '—' : String(k.taksit_kalan)) }] : []),
     { baslik: 'Durum', goster: k => (k.aktif === false ? 'Pasif' : 'Aktif') },
   ],
-  filtre: { tur }, sabit: { tur }, sirala: 'ad',
+  filtre: { tur }, sabit: { tur }, sirala: 'ad', dogrula: baslangicDogrula,
   ozet: l => {
     const a = l.filter(k => k.aktif !== false && (k.para_birimi ?? 'TRY') === 'TRY');
     const diger = l.filter(k => k.aktif !== false && (k.para_birimi ?? 'TRY') !== 'TRY').length;

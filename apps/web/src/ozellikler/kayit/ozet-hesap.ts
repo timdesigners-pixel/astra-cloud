@@ -46,8 +46,9 @@ export function giderAyi(giderler: Kayit[], fisler: Kayit[], hareketler: Kayit[]
   const sabit = new Map<string, number>();
   let dovizli = 0;
   for (const k of giderler) {
+    if ((k.para_birimi ?? 'TRY') !== 'TRY') { if (k.aktif !== false && (k.periyot !== 'tek_sefer' || aydami(k.baslangic, ay))) dovizli++; continue; }
+    if (k.periyot === 'tek_sefer') { if (k.aktif !== false && aydami(k.baslangic, ay)) sabit.set('tek_sefer', (sabit.get('tek_sefer') ?? 0) + sayi(k.tutar)); continue; }
     if (!gecerli(k, ay, 'baslangic', 'bitis')) continue;
-    if ((k.para_birimi ?? 'TRY') !== 'TRY') { dovizli++; continue; }
     const tur = String(k.tur);
     sabit.set(tur, (sabit.get(tur) ?? 0) + aylikTutar(k));
   }

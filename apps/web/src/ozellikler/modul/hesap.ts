@@ -1,4 +1,5 @@
 /* Modül Merkezi sayfalarının saf hesapları (ekrandan bağımsız, test edilebilir). */
+import { ayaDenk } from '../kayit/tekrar';
 export type Satir = Record<string, unknown>;
 const n = (v: unknown) => (typeof v === 'number' ? v : Number(v ?? 0)) || 0;
 const iki = (x: number) => String(x).padStart(2, '0');
@@ -51,11 +52,9 @@ export function planHesapla(g: PlanGirdi, aySayisi = 12): PlanSatiri[] {
   const ayAdedi = (a: string, b: string) => { const [y1, m1] = a.split('-').map(Number), [y2, m2] = b.split('-').map(Number); return (y2! - y1!) * 12 + (m2! - m1!); };
   for (let i = 0; i < aySayisi; i++) {
     const ay = ayEkle(bas, i);
-    const giris = g.gelirler.filter(x => x.aktif !== false && x.sabit && x.periyot === 'aylik'
-      && (!x.baslangic || String(x.baslangic).slice(0, 7) <= ay) && (!x.bitis || String(x.bitis).slice(0, 7) >= ay)).reduce((t, x) => t + n(x.tutar), 0);
-    const gider = g.giderler.filter(x => x.aktif !== false && x.periyot === 'aylik' && (x.para_birimi ?? 'TRY') === 'TRY'
-      && (x.bitis ? String(x.bitis).slice(0, 7) >= ay : true)
-      && (x.taksit_kalan === null || x.taksit_kalan === undefined || i < n(x.taksit_kalan))).reduce((t, x) => t + n(x.tutar), 0);
+    const giris = g.gelirler.filter(x => x.aktif !== false && x.sabit && ayaDenk(x, ay)).reduce((t, x) => t + n(x.tutar), 0);
+    const gider = g.giderler.filter(x => x.aktif !== false && (x.para_birimi ?? 'TRY') === 'TRY' && ayaDenk(x, ay)
+      && (x.periyot !== 'aylik' || x.taksit_kalan === null || x.taksit_kalan === undefined || i < n(x.taksit_kalan))).reduce((t, x) => t + n(x.tutar), 0);
     const odeme = g.odemeler.filter(x => x.durum === 'bekliyor').filter(x => { const a = String(x.vade_tarihi).slice(0, 7); return i === 0 ? a <= ay : a === ay; }).reduce((t, x) => t + n(x.tutar), 0);
     const alinacak = g.alinacaklar.filter(x => x.durum === 'karar' && x.hedef_tarih).filter(x => { const a = String(x.hedef_tarih).slice(0, 7); return i === 0 ? a <= ay : a === ay; }).reduce((t, x) => t + n(x.tahmini_tutar), 0);
     const hedef = g.hedefler.filter(x => x.durum === 'aktif' && x.hedef_tarihi).reduce((t, x) => {

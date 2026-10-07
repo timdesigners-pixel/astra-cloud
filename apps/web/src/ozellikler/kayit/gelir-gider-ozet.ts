@@ -5,7 +5,7 @@ import { kayitlariGetir, type Kayit } from '../../veri/kayit';
 import { ayAdi, ayAnahtari, ayKaydir, gelirAyi, giderAyi, sonAylar } from './ozet-hesap';
 
 const GELIR_TUR: Record<string, string> = { maas: 'Maaş', kira: 'Kira geliri', faiz: 'Faiz geliri', tarla: 'Tarla kirası', ek_is: 'Ek iş', bahis: 'Bahis net sonucu', diger: 'Diğer' };
-const GIDER_TUR: Record<string, string> = { fatura: 'Faturalar', abonelik: 'Abonelikler', sabit: 'Sabit giderler' };
+const GIDER_TUR: Record<string, string> = { fatura: 'Faturalar', abonelik: 'Abonelikler', sabit: 'Sabit giderler', tek_sefer: 'Tek seferlik giderler' };
 
 type Hucre = [etiket: string, deger: string, not: string, sinif?: string];
 
@@ -87,7 +87,7 @@ export const gelirOzetiSayfasi = ozetSayfasi(async () => {
 
 export const giderOzetiSayfasi = ozetSayfasi(async () => {
   const [giderler, fisler, hareketler]: Kayit[][] = await Promise.all([
-    kayitlariGetir('giderler', ['tur', 'periyot', 'tutar', 'para_birimi', 'bitis', 'aktif'], {}, 'ad'),
+    kayitlariGetir('giderler', ['tur', 'periyot', 'tutar', 'para_birimi', 'baslangic', 'bitis', 'aktif'], {}, 'ad'),
     kayitlariGetir('fisler', ['tarih', 'toplam'], {}, 'tarih'),
     kayitlariGetir('hareketler', ['yon', 'tur', 'tutar', 'tarih'], {}, 'tarih'),
   ]);
