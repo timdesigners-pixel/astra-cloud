@@ -181,3 +181,44 @@ dialog.u-soru .uyari-ikon { color: var(--gold); }
   dialog.uyari, .uyari-ikon .u-halka, .uyari-ikon .u-cizgi, .uyari-ikon .u-nokta { animation-duration: .01ms; animation-delay: 0s; }
   .toast-sure, .uyari-sure i { animation: none; }
 }
+
+.sistem { display: flex; flex-direction: column; gap: 14px; }
+.sistem-bolum h2 { margin: 0 0 8px; font-size: var(--fs-4, 16px); }
+.sistem-satir { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.sistem-bolum h2 + .sistem-satir { border-top: 0; }
+.sistem-metin { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 260px; }
+.sistem-metin small { color: var(--dim); font-size: var(--fs-2); overflow-wrap: anywhere; }
+.sistem-dugme { display: flex; gap: 8px; }
+.kontrol { justify-content: flex-start; flex-wrap: nowrap; }
+.kontrol-ikon { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none; }
+.kontrol.tamam .kontrol-ikon { background: var(--green); color: var(--on-green); }
+.kontrol.sorun .kontrol-ikon { background: var(--red); color: var(--on-red); }
+.bm-liste { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.bm-oge { all: unset; box-sizing: border-box; display: flex; gap: 12px; align-items: center; width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-sm); cursor: pointer; }
+.bm-oge:hover { background: var(--kb-3); }
+.bm-oge:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.bm-ikon { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; flex: none; }
+.bm-kritik .bm-ikon { background: var(--red); color: var(--on-red); }
+.bm-uyari .bm-ikon { background: var(--gold); color: var(--on-gold); }
+.bm-bilgi .bm-ikon { background: var(--cyan); color: #04202a; }
+.bm-govde { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bm-govde small { color: var(--dim); overflow-wrap: anywhere; }
+.bell { position: relative; }
+.bell-say { position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--red); color: var(--on-red); font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; }
+
+.ms b.neg { color: var(--red); }
+
+.haber-sekme { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; }
+.haber-sekme .wpill { cursor: pointer; }
+.haber-sekme .wpill.secili { border-color: var(--gold); color: var(--gold); }
+.haber-liste { display: flex; flex-direction: column; }
+.haber-oge { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); color: inherit; text-decoration: none; }
+.haber-oge:first-child { border-top: 0; }
+.haber-oge:hover .haber-metin b { color: var(--gold); }
+.haber-oge:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.haber-oge img { width: 72px; height: 48px; object-fit: cover; border-radius: var(--r-sm); flex: none; background: var(--kb-3); }
+.haber-metin { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.haber-metin b { font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+.haber-metin small { color: var(--dim); font-size: var(--fs-2); }
+
+.sayfa-kap { display: contents; }
