@@ -111,3 +111,9 @@ a.todo-baslik { color: var(--cyan); }
 .zihin-sag { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .zihin-baslik { font-size: 20px; font-weight: 600; background: transparent; border: 0; border-bottom: 1px solid var(--line); color: var(--txt); padding: 6px 2px; }
 .zihin-metin { min-height: 52vh; resize: vertical; background: var(--kb-2); border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--txt); padding: 12px; font: inherit; line-height: 1.6; }
+
+/* Marka logosu */
+.g-logo { display: block; width: 168px; max-width: 46vw; height: auto; margin: 0 0 18px; }
+.sb-logo-box { display: grid; place-items: center; }
+.sb-logo-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+#nav .sb-brand .sb-logo-box { background: #111822; border: 1px solid rgba(224, 185, 104, .35); padding: 4px; }
