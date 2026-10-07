@@ -12,6 +12,7 @@ import { git } from '../../kabuk/yonlendirici';
 import { donem } from '../../kabuk/donem';
 import { tl } from '../../ortak/bicim';
 import { panelGetir, type Panel } from '../../veri/panel';
+import { okunmamislar } from '../../veri/bildirim-durum';
 
 const IPUCLARI = [
   'Su hayattır{n}, bugün bol su içtiğinden emin ol! 💧✨',
@@ -105,7 +106,7 @@ export function genelBakisSayfasi(kok: HTMLElement) {
     const renk = !p ? 'var(--dim)' : p.saglik >= 80 ? 'var(--green)' : p.saglik >= 60 ? 'var(--gold)' : 'var(--red)';
     const puan = karo('🎯', 'Finansal Sağlık', p ? `${p.saglik}/100` : '—', renk,
       p ? `${p.saglikEtiket} · seçili ay serbest bütçe ${tl(p.serbest)}` : 'hesaplanıyor…',
-      p ? `${p.uyarilar.length} bekleyen uyarı` : null);
+      p ? `${okunmamislar(p.bildirimler).length} okunmamış uyarı` : null);
     const gorev = karo('✓', 'Görevler', p ? `${p.todoAcik} açık` : '—', p && p.todoGecikmis ? 'var(--red)' : null,
       p ? `bugün ${p.todoBugun} · gecikmiş ${p.todoGecikmis}` : 'yükleniyor…');
     puan.style.cursor = 'pointer'; puan.addEventListener('click', () => git('sistem'));

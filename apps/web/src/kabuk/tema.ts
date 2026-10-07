@@ -1,5 +1,5 @@
 const TEMALAR = ['sistem', 'acik', 'koyu'] as const;
-type Tema = (typeof TEMALAR)[number];
+export type Tema = (typeof TEMALAR)[number];
 const ANAHTAR = 'astra.tema';
 
 /* Tema cihazın bir tercihidir, veri değildir; yalnız sessionStorage'da, yoksa koyu. */
@@ -25,10 +25,14 @@ export function temaUygula() {
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', koyuMu() ? '#0b0e11' : '#ffffff');
 }
 
-export function temaCevir() {
-  simdiki = TEMALAR[(TEMALAR.indexOf(simdiki) + 1) % TEMALAR.length]!;
+export function temaAyarla(v: Tema) {
+  simdiki = v;
   try { sessionStorage.setItem(ANAHTAR, simdiki); } catch { /* yok say */ }
   temaUygula();
+}
+
+export function temaCevir() {
+  temaAyarla(TEMALAR[(TEMALAR.indexOf(simdiki) + 1) % TEMALAR.length]!);
 }
 
 export const temaSimge = () => ({ sistem: '◐', acik: '☀', koyu: '☾' })[simdiki];

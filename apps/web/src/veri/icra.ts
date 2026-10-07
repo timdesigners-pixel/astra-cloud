@@ -38,6 +38,16 @@ export type IcraDosyasi = {
   uyap_tarihi: string | null;
 };
 
+/* Dosya durumu bakiyenin sayılıp sayılmayacağını belirler: kapalı, durdurulmuş, itiraz edilmiş, takipsiz,
+   infaz edilmiş ya da iptal edilmiş dosyaların bakiyesi 0 kabul edilir (veritabanındaki icra_bakiye_gecerli ile aynı kural). */
+const GECERSIZ_DURUM = /(durdur|itiraz|kapal|takipsiz|infaz|iptal)/;
+export function bakiyeGecerliMi(d: Pick<IcraDosyasi, 'durum' | 'uyap_durum'>): boolean {
+  const uyap = (d.uyap_durum ?? '').replace(/[İIı]/g, 'i').toLocaleLowerCase('tr');
+  return d.durum !== 'kapandi' && !GECERSIZ_DURUM.test(uyap);
+}
+export const gecerliBakiye = (d: Pick<IcraDosyasi, 'durum' | 'uyap_durum' | 'guncel_toplam_borc'>) =>
+  (bakiyeGecerliMi(d) ? (d.guncel_toplam_borc ?? 0) : 0);
+
 /* Dosya numarası sunucuda çözülür; liste yalnız oturum sahibinin kayıtlarını döndürür. */
 export async function icraDosyalariniGetir(): Promise<IcraDosyasi[]> {
   const { data, error } = await istemciAl().rpc('icra_dosyalari_listele');

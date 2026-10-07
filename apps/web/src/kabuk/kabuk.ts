@@ -5,7 +5,10 @@ import { duzMenu, duzMenuYaz, hepsiniAyarla, hubAcik, hubCevir, sekmeMerkeziniAc
 import { menuIkon } from './ikonlar';
 import { donem, donemDurumu, donemEtiketi, donemKaydir, donemeGit, buAy, donemDinle } from './donem';
 import { temaAd, temaCevir, temaSimge, temaUygula } from './tema';
-import { bildirimMerkeziAc } from '../ozellikler/sistem/bildirim-merkezi';
+import { bildirimMerkeziAcikMi, bildirimMerkeziDegistir, bildirimMerkeziKapat, bildirimMerkeziKur } from '../ozellikler/sistem/bildirim-merkezi';
+import { paletAc, paletAcikMi, paletBaglamKur, paletKapat } from '../ozellikler/palet/palet';
+import { durumYukle, okunmamislar } from '../veri/bildirim-durum';
+import { acilleriGonder } from '../veri/tarayici-bildirimi';
 import { panelGetir, panelSifirla, type Panel } from '../veri/panel';
 import { tl } from '../ortak/bicim';
 import { pencereKapatmaKur } from '../ortak/pencere';
@@ -84,7 +87,7 @@ function ustCiz() {
     + `<span class="mono" style="font-size:10px;padding:var(--sp-0) 8px;border-radius:var(--r-pill);white-space:nowrap;background:${zemin};color:${renk}">${d === 'bugun' ? 'bu ay' : d === 'gelecek' ? 'gelecek' : 'geçmiş'}</span>`
     + (d !== 'bugun' ? `<button class="pbtn adim" style="color:var(--cyan)" data-donem="bugun">⟳ bugün</button>` : '')
     + `<span style="flex:1;min-width:8px"></span>`
-    + `<div style="position:relative"><button class="bell" data-islem="bildirim" aria-label="${zilEtiketi()}" title="Bildirim Merkezi (N tuşu)">${ZIL}${panelSon && panelSon.uyarilar.length ? `<span class="bell-say" aria-hidden="true">${panelSon.uyarilar.length}</span>` : ''}</button></div>`;
+    + `<div style="position:relative"><button class="bell" data-islem="bildirim" aria-label="${zilEtiketi()}" title="Bildirim Merkezi (N tuşu)">${ZIL}${uyariSayisi() ? `<span class="bell-say" aria-hidden="true">${uyariSayisi()}</span>` : ''}</button></div>`;
 
   const kartta = aktifSekme() === 'genel';
   $('ministrip').innerHTML = ministripHtml(kartta);
@@ -94,7 +97,9 @@ function ustCiz() {
 /* ---------- canlı özet şeridi ve bildirim sayısı ---------- */
 let panelSon: Panel | null = null;
 let panelAy = '';
-const zilEtiketi = () => `${panelSon?.uyarilar.length ?? 0} bekleyen uyarı — Bildirim Merkezi (N)`;
+/* Zildeki sayı: kaldırılmamış ve okunmamış uyarılar. */
+const uyariSayisi = () => (panelSon ? okunmamislar(panelSon.bildirimler).length : 0);
+const zilEtiketi = () => `${uyariSayisi()} okunmamış uyarı — Bildirim Merkezi (N)`;
 
 function ministripHtml(kartta: boolean) {
   const p = panelSon && panelAy === donem() ? panelSon : null;
@@ -106,26 +111,42 @@ function ministripHtml(kartta: boolean) {
       + h('SAĞLIK', p ? `${p.saglik} · ${p.saglikEtiket}` : '—', 'genel', 'finansal sağlık skoru (100 üzerinden)'))
     + h('ANAPARA', p ? tl(p.anapara) : '—', 'v-ozet', 'mevduat anaparası')
     + h('BORÇ BİTİŞ', p ? (p.borcBitis ?? '—') : '—', 'm-sim', 'planlı son borç ödemesi')
-    + h('UYARI', p ? String(p.uyarilar.length) : '—', '!bildirim', 'Bildirim Merkezi', p && p.uyarilar.length ? 'neg' : '')
+    + h('UYARI', p ? String(uyariSayisi()) : '—', '!bildirim', 'Bildirim Merkezi', p && uyariSayisi() ? 'neg' : '')
     + h('YEDEK', p ? (p.yedek ?? 'yok') : '—', 'sistem', 'son yedek')
     + h('BÜTÜNLÜK', p ? (kontrolSorun ? `${kontrolSorun} sorun` : 'Tamam') : '—', 'sistem', 'veri tutarlılık denetimi', kontrolSorun ? 'neg' : '');
+}
+
+/* Zil ve üst şerit, panelin son hâline göre güncellenir. */
+function zilTazele() {
+  $('ministrip').innerHTML = ministripHtml(aktifSekme() === 'genel');
+  const zil = document.querySelector<HTMLElement>('#perbar .bell');
+  if (!zil) return;
+  zil.setAttribute('aria-label', zilEtiketi());
+  zil.querySelector('.bell-say')?.remove();
+  const n = uyariSayisi();
+  if (n) { const s = document.createElement('span'); s.className = 'bell-say'; s.setAttribute('aria-hidden', 'true'); s.textContent = String(n); zil.appendChild(s); }
 }
 
 function panelYukle() {
   if (!bagliMi()) return;
   const ay = donem();
-  panelGetir(ay).then(p => {
+  Promise.all([panelGetir(ay), durumYukle().catch(() => null)]).then(([p]) => {
     if (donem() !== ay) return;
     panelSon = p; panelAy = ay;
-    $('ministrip').innerHTML = ministripHtml(aktifSekme() === 'genel');
-    const zil = document.querySelector<HTMLElement>('#perbar .bell');
-    if (zil) {
-      zil.setAttribute('aria-label', zilEtiketi());
-      zil.querySelector('.bell-say')?.remove();
-      if (p.uyarilar.length) { const s = document.createElement('span'); s.className = 'bell-say'; s.setAttribute('aria-hidden', 'true'); s.textContent = String(p.uyarilar.length); zil.appendChild(s); }
-    }
+    zilTazele();
+    acilleriGonder(okunmamislar(p.bildirimler));
   }).catch(() => { /* şerit boş kalır; sayfalar kendi hatasını gösterir */ });
 }
+
+/* Komut paleti ve bildirim merkezi kabuğun işlerini buradan çağırır. */
+export const kabukKomutlari = {
+  yenile(sayfa = true) { menuCiz(); if (sayfa) sayfaCiz(); panelYukle(); },
+  gizlilik(v?: boolean) { gizlilik.acik = v ?? !gizlilik.acik; document.body.classList.toggle('gizli', gizlilik.acik); menuCiz(); },
+  bildirim() { bildirimMerkeziDegistir(); },
+  donem(k: 'bugun' | number) { if (k === 'bugun') donemeGit(buAy()); else donemKaydir(k); },
+  kisayol() { $('kbdhelp').classList.add('acik'); },
+  menuTur() { duzMenuYaz(!duzMenu()); menuCiz(); sayfaCiz(); },
+};
 
 /* ---------- sayfa başlığı ve gövde ---------- */
 function sayfaCiz() {
@@ -223,7 +244,7 @@ function olaylariBagla() {
     else if (islem === 'gizlilik') { gizlilik.acik = !gizlilik.acik; document.body.classList.toggle('gizli', gizlilik.acik); menuCiz(); }
     else if (islem === 'hub-ac' || islem === 'hub-kapat') { hepsiniAyarla(islem === 'hub-ac'); menuCiz(); }
     else if (islem === 'menu-tur') { duzMenuYaz(!duzMenu()); menuCiz(); sayfaCiz(); }
-    else if (islem === 'bildirim') bildirimMerkeziAc(panelSon);
+    else if (islem === 'bildirim') bildirimMerkeziDegistir();
     else if (islem === 'cekmece-kapat') $('mobdrawer').classList.remove('acik');
     else if (hedef.closest('#mobnav [data-tab="__more"]')) cekmeceAc();
   });
@@ -234,16 +255,31 @@ function olaylariBagla() {
     const t = e.target as HTMLElement;
     if (t.classList.contains('mdara')) cekmeceSuz((t as HTMLInputElement).value);
   });
+  /* Arama kutusuna odaklanmak komut paletini açar; yazılan metin palete taşınır. */
+  document.addEventListener('focusin', e => {
+    const t = e.target as HTMLInputElement;
+    if (t.id !== 'qbox' || document.getElementById('gate')) return;
+    const metin = t.value; t.value = ''; t.blur(); paletAc(metin, false);
+  });
   addEventListener('keydown', e => {
     const t = e.target as HTMLElement;
     if (document.getElementById('gate')) return;
+    /* Komut paleti: Ctrl+K / Ctrl+M (Mac'te ⌘) her yerde çalışır; yazı alanındayken de. */
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === 'k' || e.key === 'K' || e.key === 'm' || e.key === 'M')) {
+      e.preventDefault();
+      if (paletAcikMi()) paletKapat(); else { if (bildirimMerkeziAcikMi()) bildirimMerkeziKapat(); paletAc(); }
+      return;
+    }
+    if (e.key === 'Escape' && bildirimMerkeziAcikMi()) { bildirimMerkeziKapat(); return; }
+    if (paletAcikMi() || bildirimMerkeziAcikMi() && e.key !== 'n' && e.key !== 'N') return;
     if (t.matches('input, textarea, select, [contenteditable]') || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === '/') { e.preventDefault(); paletAc(); return; }
     if (/^[1-9]$/.test(e.key)) { const h = kisayolHedefi(Number(e.key)); if (h) git(h); }
     else if (e.key === 'ArrowLeft') donemKaydir(-1);
     else if (e.key === 'ArrowRight') donemKaydir(1);
     else if (e.key === 't' || e.key === 'T') donemeGit(buAy());
     else if (e.key === 'p' || e.key === 'P') { gizlilik.acik = !gizlilik.acik; document.body.classList.toggle('gizli', gizlilik.acik); menuCiz(); }
-    else if (e.key === 'n' || e.key === 'N') bildirimMerkeziAc(panelSon);
+    else if (e.key === 'n' || e.key === 'N') { e.preventDefault(); bildirimMerkeziDegistir(); }
     else if (e.key === '?') $('kbdhelp').classList.add('acik');
     else if (e.key === 'Escape') { $('kbdhelp').classList.remove('acik'); $('mobdrawer').classList.remove('acik'); }
   });
@@ -256,6 +292,19 @@ export function kabuguBaslat() {
   yonlendiriciDinle(k => { sekmeMerkeziniAc(k); hepsiniCiz(); });
   donemDinle(hepsiniCiz);
   document.addEventListener('astra:oturum', () => { sayfaCiz(); panelYukle(); });
+  document.addEventListener('astra:veri', () => { panelSifirla(); sayfaCiz(); panelYukle(); });
+  bildirimMerkeziKur({
+    panel: () => panelSon,
+    yenile: async () => {
+      panelSifirla();
+      const ay = donem();
+      const p = await panelGetir(ay);
+      if (donem() === ay) { panelSon = p; panelAy = ay; }
+      return p;
+    },
+    degisti: zilTazele,
+  });
+  paletBaglamKur({ panel: () => panelSon, donem });
   olaylariBagla();
   sekmeMerkeziniAc(aktifSekme());
   hepsiniCiz();

@@ -1,7 +1,7 @@
 import { el, katla } from '../../ortak/dom';
 import { gun, gunFarki, tl } from '../../ortak/bicim';
 import { hataMetni } from '../../veri/hata';
-import { icraDosyalariniGetir, type IcraDosyasi } from '../../veri/icra';
+import { bakiyeGecerliMi, gecerliBakiye, icraDosyalariniGetir, type IcraDosyasi } from '../../veri/icra';
 import { kisileriGetir } from '../../veri/kisiler';
 
 const ONCELIK: Record<number, string> = { 1: 'ACİL', 2: 'BÜYÜK', 3: 'KÜÇÜK', 4: 'BAĞLI' };
@@ -49,7 +49,8 @@ export function icraBorclariSayfasi(kok: HTMLElement) {
     if (s.yukleniyor || s.hata) return;
     const borclu = s.dosyalar.filter(d => acikMi(d) && d.taraf_rolu !== 'Alacaklı');
     const alacakli = s.dosyalar.filter(d => acikMi(d) && d.taraf_rolu === 'Alacaklı');
-    const topla = (l: IcraDosyasi[]) => l.reduce((t, d) => t + (d.guncel_toplam_borc ?? 0), 0);
+    const topla = (l: IcraDosyasi[]) => l.reduce((t, d) => t + gecerliBakiye(d), 0);
+    const sayilmayan = [...borclu, ...alacakli].filter(d => !bakiyeGecerliMi(d) && (d.guncel_toplam_borc ?? 0) > 0).length;
     const eski = borclu.filter(d => { const f = gunFarki(d.dogrulama_tarihi); return f === null || f > ESKI_GUN; }).length;
     const hucre = (etiket: string, deger: string, not: string, sinif = '') => {
       const h = el('div', 'icra-hucre ' + sinif);
@@ -58,7 +59,7 @@ export function icraBorclariSayfasi(kok: HTMLElement) {
     };
     ozet.append(
       hucre('Açık borç dosyası', String(borclu.length), `${s.dosyalar.length} dosyanın ${borclu.length}'i açık ve borçlu olduğun`),
-      hucre('Güncel toplam borç', tl(topla(borclu)), 'yalnız açık, borçlu olduğun dosyalar', 'vurgu'),
+      hucre('Güncel toplam borç', tl(topla(borclu)), sayilmayan ? `durdurulmuş / itiraz edilmiş ${sayilmayan} dosyanın bakiyesi 0 sayıldı` : 'yalnız açık, borçlu olduğun dosyalar', 'vurgu'),
       hucre('Alacaklı olduğum dosyalar', tl(topla(alacakli)), `${alacakli.length} açık dosya; borç toplamına karışmaz`),
       hucre('Doğrulaması eski', String(eski), `${ESKI_GUN} günden eski ya da hiç doğrulanmamış`, eski ? 'uyari' : ''),
     );
@@ -94,7 +95,9 @@ export function icraBorclariSayfasi(kok: HTMLElement) {
       const alacakliAd = d.taraf_rolu === 'Alacaklı' ? (d.karsi_taraf ?? '—') : (s.adlar.get(d.alacakli_id ?? '') ?? '—');
       taraf.appendChild(el('span', '', alacakliAd));
       if (d.taraf_rolu === 'Alacaklı') taraf.appendChild(el('small', 'takma', 'alacaklı olduğun dosya · borçlu'));
-      const borc = el('td', 'sayi gz', tl(d.guncel_toplam_borc));
+      const gecerli = bakiyeGecerliMi(d);
+      const borc = el('td', 'sayi gz', tl(gecerliBakiye(d)));
+      if (!gecerli && (d.guncel_toplam_borc ?? 0) > 0) { borc.append(document.createElement('br'), el('small', 'takma', `bakiye 0 sayılır · dosya rakamı ${tl(d.guncel_toplam_borc)}`)); }
       const f = gunFarki(d.dogrulama_tarihi);
       const dog = el('td', f !== null && f > ESKI_GUN ? 'eski' : '', d.dogrulama_tarihi ? `${gun(d.dogrulama_tarihi)} (${f} gün)` : 'yok');
       const dur = el('td'); dur.appendChild(el('span', 'pill', acikMi(d) ? 'Açık' : 'Kapalı'));
@@ -127,7 +130,7 @@ export function icraBorclariSayfasi(kok: HTMLElement) {
         ['Karşı taraf', d.karsi_taraf ?? ''], ['Özel durum', d.ozel_durum ?? ''], ['Diğer haciz sayısı', d.diger_haciz_sayisi ? String(d.diger_haciz_sayisi) : '']]),
       bolum('Tutarlar', [['Asıl alacak', tl(d.gercek_asil_alacak), true], ['Faiz', tl(d.faiz_tutari), true], ['Vekâlet ücreti', tl(d.vekalet_ucreti), true],
         ['Masraf', tl(d.masraf), true], ['Vergi', tl(d.vergi), true], ['Tahsil harcı', tl(d.tahsil_harci), true], ['Toplam alacak', tl(d.toplam_alacak), true],
-        ['Yatan para', tl(d.yatan_para), true], ['Tahsilat', tl(d.tahsilat), true], ['Reddiyat', tl(d.reddiyat), true], ['Güncel toplam borç', tl(d.guncel_toplam_borc), true]]),
+        ['Yatan para', tl(d.yatan_para), true], ['Tahsilat', tl(d.tahsilat), true], ['Reddiyat', tl(d.reddiyat), true], ['Güncel toplam borç (dosya rakamı)', tl(d.guncel_toplam_borc), true], ['Sayılan bakiye', bakiyeGecerliMi(d) ? tl(d.guncel_toplam_borc) : `${tl(0)} (durum: ${d.uyap_durum ?? 'kapalı'})`, true]]),
       bolum('Tarihler', [['Açılış', gun(d.acilis_tarihi)], ['Kapanış', gun(d.kapanis_tarihi)], ['Son işlem', gun(d.son_islem_tarihi)],
         ['Doğrulama', gun(d.dogrulama_tarihi)], ['Tebligat', gun(d.tebligat_tarihi)], ['UYAP', gun(d.uyap_tarihi)]]),
     );
