@@ -29,6 +29,9 @@ export const HUBLAR: Hub[] = [
   { id: 'hedef', glif: '☆', ad: 'Hayaller ve Hedefler', gruplar: [{ sekmeler: [
     s('h-alinacak', '☰', 'Alınacaklar Listesi'), s('h-begen', '♡', 'Beğendim Ürünler'), s('h-hedef', '⊙', 'Hedefler'),
   ] }] },
+  { id: 'saglik', glif: '♥', ad: 'Sağlık', gruplar: [{ sekmeler: [
+    s('s-ozet', '♥', 'Sağlık Özeti'), s('s-tahlil', '⚗', 'Tahliller'), s('s-cihaz', '⌚︎', 'Cihaz Senkronu'),
+  ] }] },
   { id: 'not', glif: '✓', ad: 'Notlar ve Yapılacaklar', gruplar: [{ sekmeler: [
     s('n-todo', '✓', "Todo's"), s('n-zihin', '❏', 'Zihin Sarayı'), s('n-liste', '≡', 'Listeler'),
   ] }] },
@@ -62,7 +65,7 @@ const ESKI_ADLAR: Record<string, string> = {
   gider: 'e-ozet', kazanc: 'g-ozet', abonelik: 'e-abone', gmail: 'e-fatura', mevduat: 'v-mevduat', yatirim: 'v-ozet',
   tahmin: 'm-plan', danisman: 'm-plan', karar: 'm-sim', strateji: 'm-sim', aylik: 'm-rapor', rapor: 'm-rapor',
   plan: 'e-alinacak', odemeplan: 'o-takvim', market: 'e-market', todo: 'n-todo', sirada: 'a-ajanda', veri: 'sistem',
-  asistan: 'genel',
+  asistan: 'genel', saglik: 's-ozet', tahlil: 's-tahlil', cihaz: 's-cihaz',
   odeme: 'app-odeme', tasarim: 'app-tasarim', karsilama: 'app-karsilama', telrehber: 'app-telrehber', oynatma: 'app-oynatma',
   pinterest: 'app-pinterest', ilgi: 'app-ilgi', dosya: 'app-dosya', marketliste: 'app-marketliste', kutuphane: 'app-kutuphane',
   bahis: 'app-bahis', hesapyon: 'app-hesapyon',

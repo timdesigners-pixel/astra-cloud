@@ -26,6 +26,9 @@ import { odemeSayfasi } from './odemeler/odemeler';
 import { modulMerkeziSayfasi } from './uygulamalar/modul';
 import { uygulamaSayfalari } from './uygulamalar/uygulama';
 import { dosyaYoneticisiSayfasi } from './dosyalar/dosyalar';
+import { saglikOzetiSayfasi } from './saglik/ozet';
+import { tahlilSayfasi } from './saglik/tahlil';
+import { cihazSayfasi } from './saglik/cihaz';
 
 /* Veriyle çalışan sayfalar; kaydı olmayan sekmeler kabukta yer tutucu gösterir. */
 export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
@@ -53,6 +56,9 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   'm-rapor': aylikRaporSayfasi,
   'm-plan': planlayiciSayfasi,
   'm-sim': simulasyonSayfasi,
+  's-ozet': saglikOzetiSayfasi,
+  's-tahlil': tahlilSayfasi,
+  's-cihaz': cihazSayfasi,
   'n-todo': todoSayfasi,
   'n-zihin': zihinSayfasi,
   'n-liste': listelerSayfasi,

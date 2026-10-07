@@ -8,6 +8,7 @@ type Oturum = { access_token: string; refresh_token: string };
 let istemci: SupabaseClient | null = null;
 
 export const bagliMi = () => istemci !== null;
+export const sunucuAdresi = () => (URL ?? '').replace(/\/$/, '');
 
 export function istemciAl(): SupabaseClient {
   if (!istemci) throw new Error('oturum yok');

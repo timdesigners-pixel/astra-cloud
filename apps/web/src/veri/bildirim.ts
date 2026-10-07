@@ -19,6 +19,8 @@ export type BildirimGirdi = {
   odemeler: Kayit[]; borclar: Kayit[]; todolar: Kayit[]; davalar: Kayit[]; ajanda: Kayit[];
   varliklar: Kayit[]; alinacaklar: Kayit[]; urunler: Kayit[];
   serbest: number; yedekGun: number | null; sorunlar: string[];
+  /* Son tahlil raporundaki referans dışı değerler (ad listesi) ve raporun tarihi. */
+  tahlilDisi?: { adlar: string[]; tarih: string };
 };
 
 const sayi = (v: unknown) => (typeof v === 'number' ? v : v === null || v === undefined || v === '' ? 0 : Number(v));
@@ -161,6 +163,14 @@ export function bildirimUret(g: BildirimGirdi, bugun: string): Bildirim[] {
       id: 'yedek-eski', kategori: 'diger', etiket: 'Yedek', seviye: 'cyan', acil: false, kalanGun: null, vade: 'Şimdi',
       baslik: g.yedekGun === null ? 'Henüz yedek alınmadı' : `Son yedek ${g.yedekGun} gün önce`, tutar: 0, rozet: 'YEDEK',
       not: 'Sistem Ayarları\'ndan yedeği indir.', ikon: '💾', sekme: 'sistem', sekmeAd: 'Sistem Ayarları',
+    });
+  }
+  if (g.tahlilDisi?.adlar.length) {
+    const n = g.tahlilDisi.adlar.length;
+    ekle({
+      id: 'tahlil-disi', kategori: 'diger', etiket: 'Sağlık', seviye: 'red', acil: false, kalanGun: null, vade: g.tahlilDisi.tarih,
+      baslik: `${n} tahlil değeri referans dışı`, tutar: 0, rozet: 'TAHLİL', not: g.tahlilDisi.adlar.slice(0, 4).join(', ') + (n > 4 ? ` ve ${n - 4} değer daha` : '') + '. Doktorunla değerlendir.',
+      ikon: '⚗', sekme: 's-tahlil', sekmeAd: 'Tahliller',
     });
   }
   g.sorunlar.forEach((s, i) => ekle({
