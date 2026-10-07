@@ -127,3 +127,10 @@ a.todo-baslik { color: var(--cyan); }
 .sim-girisler small { color: var(--dim); font-size: var(--fs-2); }
 .sim-sonuc { margin-top: 14px; }
 .icra td input[type="number"] { width: 110px; }
+
+/* Market */
+.fis-satirlar { display: grid; gap: 6px; margin: 10px 0; }
+.fis-satir { display: grid; grid-template-columns: minmax(120px, 2fr) minmax(70px, 1fr) minmax(80px, 1fr) auto auto; gap: 6px; align-items: center; }
+.fis-satir input { min-width: 0; }
+dialog.kutu:has(.fis-satirlar) { width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow-y: auto; }
+@media (max-width: 600px) { .fis-satir { grid-template-columns: 1fr 1fr; } }
