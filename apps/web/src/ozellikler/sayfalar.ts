@@ -13,6 +13,7 @@ import { ajandaSayfasi } from './ajanda/ajanda';
 import { BIRIKIM_SAYFALARI } from './kayit/birikim';
 import { birikimOzetiSayfasi } from './kayit/birikim-ozet';
 import { HEDEF_SAYFALARI } from './kayit/hedefler';
+import { gelirOzetiSayfasi, giderOzetiSayfasi } from './kayit/gelir-gider-ozet';
 import { borcOzetiSayfasi } from './kayit/borc-ozet';
 import { FINANS_SAYFALARI } from './kayit/finans';
 import { icraBorclariSayfasi } from './icra/icra';
@@ -32,6 +33,8 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   'b-icra': icraBorclariSayfasi,
   'k-icra': icraBorclariSayfasi,
   'b-ozet': borcOzetiSayfasi,
+  'g-ozet': gelirOzetiSayfasi,
+  'e-ozet': giderOzetiSayfasi,
   ...FINANS_SAYFALARI,
   ...BIRIKIM_SAYFALARI,
   ...HEDEF_SAYFALARI,
