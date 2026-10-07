@@ -18,7 +18,7 @@ export const UYGULAMALAR: Uygulama[] = [
   { kod: 'tasarim', sekme: 'app-tasarim', ad: 'Tasarım Atölyesi', yol: 'apps/tasarim-atolyesi/index.html', izin: 'clipboard-write *',
     not: 'Tasarım görsellerini HTML + Tailwind bileşenlerine dönüştüren atölye.' },
   { kod: 'dosya', sekme: 'app-dosya', ad: 'Dosya Yöneticisi', yol: 'apps/dosya-yoneticisi/index.html',
-    not: 'Bulut dosyalarında ve bu bilgisayardaki klasörlerde gezinme, önizleme.' },
+    not: 'Belgelerin klasörlerde saklandığı özel bulut; dava ve icra dosyalarına bağlanır. Eski arşiv ve bu bilgisayardaki klasörler de açılabilir.' },
   { kod: 'telrehber', sekme: 'app-telrehber', ad: 'Telefon Rehberi', yol: 'apps/telefon-rehberi/index.html',
     not: 'Model, fiyat ve özellik karşılaştırmalı telefon alım rehberi.' },
   { kod: 'kutuphane', sekme: 'app-kutuphane', ad: 'Bilgi Kütüphanesi',

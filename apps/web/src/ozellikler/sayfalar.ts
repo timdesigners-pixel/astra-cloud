@@ -25,6 +25,7 @@ import { kisilerSayfasi } from './kisiler/kisiler';
 import { odemeSayfasi } from './odemeler/odemeler';
 import { modulMerkeziSayfasi } from './uygulamalar/modul';
 import { uygulamaSayfalari } from './uygulamalar/uygulama';
+import { dosyaYoneticisiSayfasi } from './dosyalar/dosyalar';
 
 /* Veriyle çalışan sayfalar; kaydı olmayan sekmeler kabukta yer tutucu gösterir. */
 export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
@@ -63,5 +64,6 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   'o-sgk': odemeSayfasi('sgk'),
   hub: modulMerkeziSayfasi,
   ...uygulamaSayfalari,
+  'app-dosya': dosyaYoneticisiSayfasi,
   'app-kutuphane': kutuphaneSayfasi,
 };
