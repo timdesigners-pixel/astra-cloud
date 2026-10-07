@@ -1,13 +1,49 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" class="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
-<title>ASTRA FİNANS OS</title>
+<meta http-equiv="Content-Security-Policy" content="script-src-attr 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ASTRA FİNANS OS — Sermaye &amp; Borç Komuta Merkezi</title>
+<meta name="description" content="Sermaye dağıtımı, gider, borç, icra ve alınacaklar için tek komuta merkezi.">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0e11">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/icon-180.png">
 </head>
 <body>
-<main id="main"></main>
+<a href="#main" class="skiplink">İçeriğe atla</a>
+<div id="duyuru" role="status" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap"></div>
+<div id="perbarwrap"><div id="perbar"></div><div id="ministrip"></div></div>
+<nav id="mobnav" aria-label="Ana bölümler"></nav>
+<div id="mobdrawer" role="dialog" aria-label="Tüm modüller"></div>
+<div id="kbdhelp" data-kapat="kbdhelp"><div class="box">
+  <h2>Klavye Kısayolları</h2>
+  <div class="row"><span>Komut paleti — sayfa, işlem ve hızlı ekleme</span><kbd>Ctrl</kbd> + <kbd>K</kbd> · <kbd>M</kbd></div>
+  <div class="row"><span>Aramaya odaklan</span><kbd>/</kbd></div>
+  <div class="row"><span>Sekmeler arasında geç</span><kbd>1</kbd> … <kbd>9</kbd></div>
+  <div class="row"><span>Önceki / sonraki ay</span><kbd>←</kbd> <kbd>→</kbd></div>
+  <div class="row"><span>Bugüne dön</span><kbd>T</kbd></div>
+  <div class="row"><span>Bildirim Merkezi (Borç & Ödemeler)</span><kbd>N</kbd></div>
+  <div class="row"><span>Gizlilik modu</span><kbd>P</kbd></div>
+  <div class="row"><span>Geri al</span><kbd>Ctrl</kbd> + <kbd>Z</kbd></div>
+  <div class="row"><span>Bu pencere / kapat</span><kbd>?</kbd> <kbd>Esc</kbd></div>
+  <button class="btn ghost btn-close" data-kapat="kbdhelp">Kapat</button>
+</div></div>
+<header>
+  <div class="hkimlik">
+    <div class="eyebrow">Astra Xtreme OS · Finans Modülü</div>
+    <h1 data-tab="genel" title="Genel Bakış'a Dön">ASTRA <span class="g">FİNANS</span> OS</h1>
+    <div class="sub">Sermaye dağıtımı · gider · borç · yatırım · alınacaklar — tek komuta merkezi</div>
+  </div>
+  <div id="sayfabasi"></div>
+</header>
+<div class="shell">
+  <nav id="nav"></nav>
+  <main id="main"></main>
+</div>
+<div class="savechip" id="savechip">✓ kaydedildi</div>
 <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

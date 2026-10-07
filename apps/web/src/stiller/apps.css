@@ -1,0 +1,29 @@
+/* APPS — bağımsız uygulamaların çerçevesi (features/apps/apps.js).
+   İçerik kendi tasarımıyla çizilir; burada yalnız çerçeve boyutu var. */
+.app-cerceve {
+  display: block;
+  width: 100%;
+  /* Boy app-boy.js'te içeriğe göre ayarlanır; bu yalnız yüklenirkenki boy. */
+  height: calc(100vh - 170px);
+  min-height: 320px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--bg);
+  transition: opacity .12s ease-out;
+}
+/* Yüklenirken uygulamanın varsayılan BEYAZ zemini görünmesin (yanıp sönme): yüklenene dek saydam; yüklenmezse 2 sn sonra yine görünür. */
+.app-cerceve:not([data-hazir]) { opacity: 0; animation: app-goster .01s 2s forwards; }
+@keyframes app-goster { to { opacity: 1; } }
+.hubhead a.hubback { text-decoration: none; }
+
+/* Sayfaya gömülü (iframe'siz) APPS kabı — features/apps/dogal.js.
+   Sayfa giriş animasyonu kaba transform bırakırsa içerideki position:fixed
+   modallar ekrana değil kaba göre konumlanır; kapta transform/animasyon yok. */
+.dogal-app {
+  display: block;
+  transform: none !important;
+  animation: none !important;
+  filter: none !important;
+  contain: none !important;
+}

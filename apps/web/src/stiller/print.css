@@ -1,0 +1,124 @@
+/* ==========================================================================
+   YAZDIRMA
+   Kâğıt çıktısı: ekran paleti yerine gerçek siyah-beyaz.
+
+   Kaynak dosyalar sırayla birleştirildi; sıra kazanan kuralı belirlediği
+   için korunması zorunludur.
+   ========================================================================== */
+
+#printArea{display:none}
+@media print{
+  body{background:#fff!important;padding:0}
+  header,nav,main,.savechip,#perbarwrap,#ministrip,.shell{display:none!important}
+  #printArea{display:block;color:#111;font-family:var(--f-ui);font-size:11px;line-height:1.5;padding:8mm}
+  #printArea h1{font-size:22px;color:#0d1524;border-bottom:2px solid #2f5da0;padding-bottom:4mm;margin-bottom:2mm}
+  #printArea .pdate{color:#555;font-size:10px;margin-bottom:6mm}
+  #printArea h2{font-size:13.5px;color:#0d1524;border-left:4px solid #2f5da0;padding-left:6px;margin:6mm 0 2mm}
+  #printArea h3{font-size:12.5px;color:#046a77;margin:5mm 0 1.5mm}
+  #printArea table{width:100%;border-collapse:collapse;font-size:10px;margin:1mm 0 3mm}
+  #printArea th{background:#0d1524;color:#c4d9f9;text-align:left;padding:1.5mm 2mm;font-size:10px;text-transform:uppercase}
+  #printArea td{padding:1.3mm 2mm;border-bottom:.4pt solid #ddd}
+  #printArea tr:nth-child(even) td{background:#f6f8fa}
+  #printArea .r{text-align:right}
+  #printArea .pnote{margin-top:6mm;padding:3mm;background:#eef3fb;border-left:3px solid #2f5da0;font-size:10px;color:#555}
+  #printArea table,#printArea h3{page-break-inside:avoid}
+  /* — koyu rapor — */
+  #printArea.darkrep{padding:0;page:koyu}
+  /* Koyu rapor kenar boşluksuz basılır, sayfa zemini de koyudur; dolgu her
+     sayfa parçasında yinelenir. */
+  html:has(#printArea.darkrep),html:has(#printArea.darkrep) body{background:#0c0d11!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printArea.darkrep::before{display:none}
+  #printArea .drwrap{background:#0c0d11;color:#f4f5f7;padding:10mm 11mm;box-sizing:border-box;-webkit-box-decoration-break:clone;box-decoration-break:clone;font-family:var(--f-ui);font-size:10px;line-height:1.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .drhead{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.5pt solid #e0b968;padding-bottom:4mm;margin-bottom:5mm}
+  .dreyebrow{font-size:10px;letter-spacing:.35em;color:#2dd4bf;font-weight:700}
+  #printArea .drwrap h1{font-size:22px;color:#f4dc9e;margin:1mm 0 0;border:0;padding:0;letter-spacing:-.02em}
+  .drdate{text-align:right;color:#9297a4;font-size:10px;font-family:var(--f-mono)}
+  .drkpis{display:flex;gap:4mm;margin-bottom:6mm}
+  .drkpis>div{flex:1;background:#14161d;border:.6pt solid #262934;border-left:2.5pt solid #e0b968;border-radius:1mm;padding:3mm}
+  .drkpis i{display:block;font-style:normal;font-size:10px;letter-spacing:.15em;color:#9297a4;margin-bottom:1.5mm}
+  .drkpis b{font-size:13.5px;font-family:var(--f-mono)}
+  #printArea .drwrap .gold{color:#e0b968}#printArea .drwrap .cyan{color:#2dd4bf}#printArea .drwrap .green{color:#34d399}#printArea .drwrap .red{color:#ef6a6a}
+  #printArea .drwrap h2{font-size:12.5px;color:#e0b968;border-left:2.5pt solid #2dd4bf;padding-left:2.5mm;margin:4.5mm 0 1.8mm;page-break-after:avoid}
+  #printArea .drwrap table{width:100%;border-collapse:collapse;font-size:10px;margin-bottom:2mm}
+  #printArea .drwrap th{background:#1b1e27;color:#c4c8d2;text-align:left;padding:1.4mm 2mm;font-size:10px;letter-spacing:.08em;text-transform:uppercase;border-bottom:.6pt solid #353949}
+  #printArea .drwrap td{padding:1.15mm 2mm;border-bottom:.4pt solid #262934;color:#f4f5f7}
+  #printArea .drwrap tr:nth-child(even) td{background:#14161d}
+  #printArea .drwrap .r{text-align:right;font-family:var(--f-mono)}
+  #printArea .drwrap tr{page-break-inside:avoid}
+  .drnote{color:#90969d;font-size:10px;margin:1mm 0 2mm}
+  .drfoot{margin-top:7mm;padding-top:3mm;border-top:.6pt solid #22304a;color:#5d6980;font-size:10px;text-align:center;letter-spacing:.05em}
+}
+
+/* 060 · YAZDIRMA ÜSTBİLGİSİ. Çıktıda hangi döneme ait olduğu yalnız
+   içerikte geçiyordu; sayfa kenarında tarih ve dönem yoktu, iki ayın
+   çıktısı yan yana ayırt edilemiyordu. --yazdirma-donem'i render
+   çalışırken yazıyor (bkz. app/render.js). */
+@media print{
+  @page{ margin:14mm 12mm 16mm; }
+  @page koyu{ margin:0; }
+  #printArea::before{
+    content:'ASTRA FİNANS OS · ' var(--yazdirma-donem, '') ' · ' var(--yazdirma-tarih, '');
+    display:block; font-family:var(--f-mono); font-size:8px; letter-spacing:.12em;
+    color:#666; border-bottom:.4pt solid #ccc; padding-bottom:2mm; margin-bottom:4mm;
+  }
+}
+
+/* — acil durum kartı (218) — kapalı zarfta duracak tek belge; siyah-beyaz
+   çıktıda da okunsun diye aciliyet renkle birlikte metinle de yazılı. */
+@media print{
+  #printArea.acilkart{padding:0 2mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printArea.acilkart::before{display:none}
+  .acilkart .ak-bant{height:2.2mm;background:linear-gradient(90deg,#a52a2a 0 62%,#c9a24a 62% 100%);margin-bottom:5mm}
+  .acilkart .ak-bas{display:flex;justify-content:space-between;align-items:flex-start;gap:6mm;border-bottom:.8pt solid #0d1524;padding-bottom:4mm}
+  .acilkart .ak-ust{font-family:var(--f-mono);font-size:8px;letter-spacing:.3em;color:#a52a2a;font-weight:700}
+  .acilkart h1{font-size:26px;letter-spacing:-.02em;border:0;padding:0;margin:1mm 0 .5mm;color:#0d1524}
+  .acilkart .ak-alt{font-size:11px;color:#555}
+  .acilkart .ak-damga{border:1.4pt solid #a52a2a;color:#a52a2a;font-weight:800;font-size:10px;letter-spacing:.14em;
+    text-align:center;padding:2mm 3.5mm;transform:rotate(-3deg);border-radius:1mm;line-height:1.35;white-space:nowrap}
+  .acilkart .ak-damga small{display:block;font-weight:500;letter-spacing:.04em;font-size:8px;color:#555;margin-top:1mm}
+  .acilkart .ak-kpi,.acilkart .ak-para{display:flex;gap:3mm;margin:5mm 0 2mm}
+  .acilkart .ak-kpi>div,.acilkart .ak-para>div{flex:1;border:.6pt solid #d5dae2;border-top:2pt solid #0d1524;border-radius:1mm;padding:2.5mm 3mm;background:#f7f8fa}
+  .acilkart .ak-kpi>div.k{border-top-color:#a52a2a;background:#fbf1f1}
+  .acilkart .ak-kpi i,.acilkart .ak-para i{display:block;font-style:normal;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#666}
+  .acilkart .ak-kpi b,.acilkart .ak-para b{display:block;font-family:var(--f-mono);font-size:15px;color:#0d1524;margin:1mm 0 .5mm}
+  .acilkart .ak-kpi .k b,.acilkart .ak-para b.k{color:#a52a2a}
+  .acilkart .ak-kpi em,.acilkart .ak-para em{font-style:normal;font-size:8.5px;color:#777}
+  .acilkart h2{display:flex;align-items:center;gap:2mm;border:0;padding:0;margin:6mm 0 2mm;font-size:13px;page-break-after:avoid}
+  .acilkart h2>span{display:inline-grid;place-items:center;width:5.5mm;height:5.5mm;border-radius:50%;background:#0d1524;color:#fff;font-size:9.5px;font-family:var(--f-mono)}
+  .acilkart h2 small{margin-left:auto;font-weight:500;font-size:8.5px;color:#777;letter-spacing:.1em;text-transform:uppercase}
+  .acilkart .ak-iki{display:grid;grid-template-columns:1.35fr 1fr;gap:6mm;page-break-inside:avoid}
+  .acilkart .ak-adim{margin:0;padding-left:5mm;font-size:10px}
+  .acilkart .ak-adim li{margin-bottom:1.6mm;padding-left:1mm}
+  .acilkart .ak-adim li::marker{font-weight:700;color:#a52a2a}
+  .acilkart .ak-alan{margin-bottom:3mm}
+  .acilkart .ak-kisi{list-style:none;margin:0 0 3mm;padding:0}
+  .acilkart .ak-kisi li{border-bottom:.4pt solid #d5dae2;padding:1.4mm 0;font-size:10px;line-height:1.4}
+  .acilkart .ak-kisi em{font-style:normal;color:#666;font-size:8.5px}
+  .acilkart .ak-kisi .ak-mono{display:block}
+  .acilkart .ak-kisi small{display:block;color:#555;font-size:8.5px}
+  .acilkart .ak-alan i{display:block;font-style:normal;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#666}
+  .acilkart .ak-alan span{display:block;height:5.5mm;border-bottom:.5pt dotted #888}
+  .acilkart th{background:#0d1524;color:#fff}
+  .acilkart .ak-hap{display:inline-block;padding:.3mm 2mm;border-radius:3mm;font-size:8.5px;font-weight:700;font-family:var(--f-mono);white-space:nowrap}
+  .acilkart .ak-hap.k{background:#a52a2a;color:#fff}
+  .acilkart .ak-hap.a{background:#f3dfae;color:#6b4a00}
+  .acilkart .ak-hap.g{background:#e6e9ee;color:#333}
+  .acilkart .ak-kutu{display:inline-block;width:3.2mm;height:3.2mm;border:.8pt solid #333;border-radius:.5mm}
+  .acilkart .ak-top td{font-weight:700;border-top:.8pt solid #0d1524;background:#fff!important}
+  .acilkart .ak-mono{font-family:var(--f-mono);font-size:9.5px}
+  .acilkart .ak-bos{padding:2.5mm 3mm;background:#f7f8fa;border:.5pt dashed #bbb;border-radius:1mm;color:#555;font-size:10px}
+  .acilkart .ak-not{font-size:9px;color:#666;margin:-1mm 0 2mm}
+  .acilkart .ak-son{margin-top:7mm;padding:3mm 4mm;border:.6pt solid #d5dae2;border-left:2.5pt solid #a52a2a;background:#fbf7f7;font-size:9.5px;color:#444;page-break-inside:avoid}
+  .acilkart .ak-imza{display:flex;gap:10mm;margin-top:8mm}
+  .acilkart .ak-imza span{flex:1;border-top:.6pt solid #333;padding-top:1mm;font-size:8.5px;color:#666;letter-spacing:.06em}
+  /* Uzun tablolar sayfa arasında bölünebilsin (genel kural bütün tabloyu tek
+     sayfaya zorluyor, 25 satırlık tablo boş sayfa bırakıyordu); satır bölünmez,
+     başlık her sayfada tekrarlanır. */
+  .acilkart table{page-break-inside:auto}
+  .acilkart tr{page-break-inside:avoid}
+  .acilkart thead{display:table-header-group}
+  .acilkart td{vertical-align:top}
+  .acilkart .ak-adet{display:inline-block;margin-left:1.5mm;padding:0 1.5mm;border:.5pt solid #c9ced6;border-radius:2mm;font-size:8px;color:#555;font-family:var(--f-mono)}
+  .acilkart .ak-dosya td{font-size:9.5px}
+  .acilkart .ak-vekil{font-size:8.5px!important;color:#444;line-height:1.35}
+}

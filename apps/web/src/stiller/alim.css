@@ -1,0 +1,175 @@
+/* ==================================================================
+   ALINACAKLAR & ÖDEMELER — Komuta Paneli tasarımı
+   (src/features/purchases/purchases.js). Özet kartları genel.css'teki
+   km-kart ailesini kullanır; burada sayfaya özgü parçalar var.
+   ================================================================== */
+.al-bas { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: flex-start; justify-content: space-between; margin-bottom: var(--sp-3); }
+.al-bas h2 { display: flex; align-items: center; gap: 12px; margin: 0; font-size: clamp(24px, 3vw, 30px); font-weight: 800; letter-spacing: -.02em; }
+.al-bas h2 .lu { color: var(--gold); font-size: 28px; }
+.al-bas p { margin: 4px 0 0; color: var(--dim); font-size: var(--fs-4); }
+.al-eylem { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.al-eylem .btn { display: inline-flex; align-items: center; gap: 8px; }
+.al-ozet { cursor: default; }
+
+.al-karusel {
+  display: flex; gap: var(--sp-3); overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; padding-bottom: 6px; margin-bottom: var(--sp-3);
+}
+.al-panel {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
+  padding: var(--sp-3) var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0;
+}
+.al-kar { flex: 0 0 min(360px, 86%); scroll-snap-align: start; }
+.al-pbas {
+  display: flex; align-items: center; gap: 10px; margin: calc(-1 * var(--sp-3)) calc(-1 * var(--sp-4)) 4px;
+  padding: 12px var(--sp-4); border-bottom: 1px solid var(--line);
+}
+.al-pbas h3 { margin: 0; font-size: var(--fs-5); font-weight: 700; color: var(--txt); flex: 1; }
+.al-pbas > .lu { color: var(--gold); font-size: 18px; }
+.al-uc { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.al-uc div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.al-uc span { font-size: var(--fs-1); color: var(--dim); }
+.al-uc b { font-family: var(--f-num); font-size: var(--fs-num-md); font-weight: 700; }
+.al-uc small { font-size: var(--fs-1); color: var(--dim); }
+.al-altin { color: var(--gold); }
+.al-yesil { color: var(--green); }
+.al-kirmizi { color: var(--red); }
+.al-camgobegi { color: var(--cyan); }
+.al-bolum { display: flex; height: 8px; border-radius: var(--r-pill); overflow: hidden; background: var(--yuva); }
+.al-not { margin: 0; font-size: var(--fs-2); color: var(--dim); }
+.al-uyari {
+  margin: 0; font-size: var(--fs-2); padding: 8px 10px; border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--gold) 12%, transparent); color: var(--gold);
+}
+.al-uyari.iyi { background: color-mix(in srgb, var(--green) 12%, transparent); color: var(--green); }
+.al-liste { display: flex; flex-direction: column; }
+.al-satir { display: flex; align-items: center; gap: var(--sp-2); padding: 7px 0; border-bottom: 1px solid var(--line-soft); font-size: var(--fs-3); }
+.al-satir:last-child { border-bottom: 0; }
+.al-satir em { display: block; font-style: normal; font-size: var(--fs-1); color: var(--dim); }
+.al-satir b { font-family: var(--f-num); font-size: var(--fs-num-sm); text-align: right; white-space: nowrap; }
+.al-satir b em { font-family: var(--f-ui); }
+.al-form3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.al-form3 label, .al-iki label, .al-cek-govde > label {
+  font-family: var(--f-ui); display: flex; flex-direction: column; gap: 4px; margin: 0;
+  font-size: var(--fs-1); text-transform: none; letter-spacing: 0; color: var(--dim); font-weight: 600;
+}
+.al-karar {
+  display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: var(--r-sm);
+  background: var(--yuva); font-size: var(--fs-2); color: var(--dim);
+}
+.al-karar b { font-size: var(--fs-4); }
+
+.al-arac { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; justify-content: space-between; margin-bottom: var(--sp-3); }
+.al-cipler { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; max-width: 100%; }
+.al-cip {
+  flex: none; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--txt);
+  border-radius: var(--r-pill); padding: 6px 12px; font: inherit; font-size: var(--fs-3); font-weight: 600;
+}
+.al-cip i { width: 9px; height: 9px; border-radius: var(--r-pill); background: var(--vurgu); }
+.al-cip span { font-size: var(--fs-1); color: var(--dim); }
+.al-cip[aria-pressed="true"] { border-color: var(--vurgu); background: color-mix(in srgb, var(--vurgu) 14%, var(--surface)); }
+.al-arac-sag { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.al-ara {
+  display: flex; align-items: center; gap: 6px; margin: 0; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface);
+}
+.al-ara .lu { color: var(--dim); font-size: 16px; }
+.al-ara input { border: 0; background: none; padding: 8px 0; width: 150px; min-width: 0; }
+.al-gorunum { display: flex; border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; }
+.al-gorunum button { border: 0; background: var(--surface); padding: 8px 10px; cursor: pointer; color: var(--dim); display: grid; font-size: 18px; }
+.al-gorunum button[aria-pressed="true"] { background: color-mix(in srgb, var(--gold) 14%, var(--surface)); color: var(--gold); }
+
+.al-sepet {
+  position: sticky; top: calc(var(--ust, 0px) + 8px); z-index: 5; margin-bottom: var(--sp-3);
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-radius: var(--r); border: 1px solid color-mix(in srgb, var(--indigo) 45%, var(--line));
+  background: color-mix(in srgb, var(--indigo) 10%, var(--surface));
+}
+.al-sepet-sol { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: var(--fs-3); color: var(--dim); }
+.al-sepet-sol b { color: var(--txt); }
+.al-sepet-sol .lu { color: var(--indigo); font-size: 18px; }
+.al-sepet-sol .mono { font-weight: 700; font-size: var(--fs-num-md); }
+.al-sepet-sag { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.al-sepet-sag select { max-width: 150px; }
+
+.al-grup { display: flex; flex-direction: column; gap: var(--sp-3); margin-bottom: 32px; }
+.al-grup:last-child { margin-bottom: 0; }
+.al-grup-bas {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--r-sm);
+  background: var(--surface); border-left: 4px solid var(--vurgu);
+}
+.al-grup-bas b { color: var(--vurgu); font-size: var(--fs-5); }
+.al-grup-bas span { font-size: var(--fs-2); color: var(--dim); }
+.al-grup-bas .mono { margin-left: auto; }
+.al-urunler { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--sp-3); }
+.al-urun {
+  display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 14px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
+}
+.al-urun.secili { border-color: var(--indigo); box-shadow: inset 0 0 0 1px var(--indigo); }
+.al-urun.alindi { opacity: .5; }
+.al-urun-ust { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.al-kutu { width: 20px; height: 20px; margin: 0; accent-color: var(--indigo); cursor: pointer; flex: none; }
+.al-ad {
+  border: 0; background: none; padding: 0; text-align: left; cursor: pointer; color: var(--txt);
+  font: inherit; font-size: var(--fs-4); font-weight: 700; line-height: 1.35;
+}
+.al-ad:hover { color: var(--gold); }
+.al-fiyat { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.al-fiyat b { font-family: var(--f-num); font-size: var(--fs-num-lg); font-weight: 700; }
+.al-fiyat small { font-family: var(--f-num); font-size: var(--fs-1); color: var(--dim); white-space: nowrap; }
+.al-metrik { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.al-metrik div { display: flex; flex-direction: column; gap: 1px; min-width: 0; padding: 6px 8px; border-radius: var(--r-sm); background: var(--yuva); }
+.al-metrik span { font-size: var(--fs-0); font-weight: 700; letter-spacing: .04em; color: var(--dim); }
+.al-metrik b { font-family: var(--f-num); font-size: var(--fs-num-sm); }
+.al-durum { font-size: var(--fs-1); color: var(--dim); line-height: 1.4; }
+.al-urun-alt { display: flex; align-items: center; gap: 6px; margin-top: auto; }
+.al-alindi {
+  display: inline-flex; align-items: center; gap: 6px; margin: 0 auto 0 0; cursor: pointer;
+  font-family: var(--f-ui); font-size: var(--fs-2); text-transform: none; letter-spacing: 0; color: var(--dim); font-weight: 600;
+}
+.al-alindi input { width: 16px; height: 16px; margin: 0; accent-color: var(--green); }
+.al-ikon {
+  width: 32px; height: 32px; display: grid; place-items: center; flex: none; cursor: pointer;
+  border: 1px solid var(--line); background: var(--yuva); border-radius: var(--r-sm);
+  color: var(--txt); text-decoration: none; font-size: 16px; padding: 0;
+}
+.al-ikon:hover { border-color: var(--line2); }
+.al-ikon.altin { color: var(--gold); }
+
+/* base.css'teki body > * kuralı üst düzey kökleri z-index:1 yapar; çekmece
+   kökü sabit konumlu kayıt rozetlerinin üstünde kalmalı. */
+body > #alCekmeceKok { z-index: 60; }
+.al-arka { position: fixed; inset: 0; z-index: 60; background: rgba(5, 8, 14, .55); }
+.al-cekmece {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 61; width: min(440px, 100%);
+  display: flex; flex-direction: column; background: var(--surface); border-left: 1px solid var(--line);
+}
+.al-cekmece > .al-pbas { margin: 0; padding-top: max(14px, env(safe-area-inset-top, 0px)); }
+.al-cek-govde { flex: 1; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+.al-cek-govde textarea { resize: vertical; }
+.al-iki { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.al-cek-alt {
+  display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--line);
+  padding: 12px 18px max(12px, env(safe-area-inset-bottom, 0px));
+}
+.al-bosluk { flex: 1; }
+@media (max-width: 620px) {
+  .al-form3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .al-ara input { width: 110px; }
+}
+/* genel form biçimi (tam genişlik alan) araç satırını alt alta dizmesin */
+.al-arac-sag > * { flex: none; width: auto; margin: 0; }
+.al-arac-sag select { width: auto; min-width: 130px; padding-top: 8px; padding-bottom: 8px; }
+.al-sepet-sag > * { flex: none; width: auto; margin: 0; }
+
+/* Ürün resmi (kart + düzenleme çekmecesi önizlemesi) */
+.al-resim { aspect-ratio: 4 / 3; border-radius: var(--r-sm); overflow: hidden; background: var(--yuva); display: flex; align-items: center; justify-content: center; }
+.al-resim img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.al-resim[hidden] { display: none; }
+.al-resim-onizle { max-width: 240px; }
+.al-resim-onizle:empty { display: none; }
+
+/* Aylık Gider · İşlem açılır menüsü */
+.islem-sec { min-width: 120px; max-width: 170px; font-weight: 600; cursor: pointer; }
