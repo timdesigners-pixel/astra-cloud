@@ -203,6 +203,7 @@ function olaylariBagla() {
   });
   addEventListener('keydown', e => {
     const t = e.target as HTMLElement;
+    if (document.getElementById('gate')) return;
     if (t.matches('input, textarea, select, [contenteditable]') || e.ctrlKey || e.metaKey || e.altKey) return;
     if (/^[1-9]$/.test(e.key)) { const h = kisayolHedefi(Number(e.key)); if (h) git(h); }
     else if (e.key === 'ArrowLeft') donemKaydir(-1);

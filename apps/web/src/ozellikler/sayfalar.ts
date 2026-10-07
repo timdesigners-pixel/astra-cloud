@@ -1,4 +1,6 @@
 import { genelBakisSayfasi } from './genel/genel';
+import { borcOzetiSayfasi } from './kayit/borc-ozet';
+import { FINANS_SAYFALARI } from './kayit/finans';
 import { icraBorclariSayfasi } from './icra/icra';
 import { kisilerSayfasi } from './kisiler/kisiler';
 import { modulMerkeziSayfasi } from './uygulamalar/modul';
@@ -10,6 +12,8 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   'r-kisi': kisilerSayfasi,
   'b-icra': icraBorclariSayfasi,
   'k-icra': icraBorclariSayfasi,
+  'b-ozet': borcOzetiSayfasi,
+  ...FINANS_SAYFALARI,
   hub: modulMerkeziSayfasi,
   ...uygulamaSayfalari,
 };
