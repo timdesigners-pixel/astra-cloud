@@ -2,7 +2,8 @@ import { el, katla } from '../../ortak/dom';
 import { gun, gunFarki, tl } from '../../ortak/bicim';
 import { hataMetni } from '../../veri/hata';
 import { bakiyeGecerliMi, gecerliBakiye, icraDosyalariniGetir, type IcraDosyasi } from '../../veri/icra';
-import { kisileriGetir } from '../../veri/kisiler';
+import { kisileriGetir, type Kisi } from '../../veri/kisiler';
+import { icraDogrulaSihirbazi, icraFormu } from './icra-form';
 import { dosyaKlasoruAc } from '../dosyalar/dosyalar';
 
 const ONCELIK: Record<number, string> = { 1: 'ACİL', 2: 'BÜYÜK', 3: 'KÜÇÜK', 4: 'BAĞLI' };
@@ -12,6 +13,7 @@ const ESKI_GUN = 30;
 type Durum = {
   dosyalar: IcraDosyasi[];
   adlar: Map<string, string>;
+  kisiler: Kisi[];
   yukleniyor: boolean;
   hata: string;
   ara: string;
@@ -22,7 +24,7 @@ type Durum = {
 const acikMi = (d: IcraDosyasi) => d.durum === 'acik';
 
 export function icraBorclariSayfasi(kok: HTMLElement) {
-  const s: Durum = { dosyalar: [], adlar: new Map(), yukleniyor: true, hata: '', ara: '', durum: '', rol: '' };
+  const s: Durum = { dosyalar: [], adlar: new Map(), kisiler: [], yukleniyor: true, hata: '', ara: '', durum: '', rol: '' };
   const kart = el('section', 'card icra');
   kok.replaceChildren(kart);
 
@@ -35,7 +37,9 @@ export function icraBorclariSayfasi(kok: HTMLElement) {
   const rolSec = el('select'); rolSec.id = 'icra-rol'; rolSec.setAttribute('aria-label', 'Role göre süz');
   [['', 'Her iki rol'], ['Borçlu', 'Borçlu olduğum'], ['Alacaklı', 'Alacaklı olduğum']].forEach(([v, a]) => { const o = el('option', '', a); o.value = v!; rolSec.appendChild(o); });
   const say = el('span', 'tbar-count');
-  bar.append(ara, durumSec, rolSec, el('span', 'tbar-sp'), say);
+  const yeniD = el('button', 'btn primary sm', '+ Yeni icra dosyası'); yeniD.type = 'button'; yeniD.id = 'icra-yeni';
+  const dogrulaD = el('button', 'btn ghost sm', 'Sırayla doğrula'); dogrulaD.type = 'button'; dogrulaD.id = 'icra-dogrula'; dogrulaD.hidden = true;
+  bar.append(ara, durumSec, rolSec, el('span', 'tbar-sp'), say, dogrulaD, yeniD);
   const icerik = el('div', 'icra-icerik');
   kart.append(ozet, bar, icerik);
 
@@ -44,6 +48,17 @@ export function icraBorclariSayfasi(kok: HTMLElement) {
     return s.dosyalar.filter(d => (!s.durum || d.durum === s.durum) && (!s.rol || d.taraf_rolu === s.rol)
       && (!t || [d.dosya_no ?? '', d.icra_dairesi ?? '', s.adlar.get(d.alacakli_id ?? '') ?? '', d.karsi_taraf ?? ''].some(x => katla(x).includes(t))));
   };
+
+  const bayatlar = () => s.dosyalar.filter(d => acikMi(d) && d.taraf_rolu !== 'Alacaklı' && (() => { const f = gunFarki(d.dogrulama_tarihi); return f === null || f > ESKI_GUN; })())
+    .sort((a, b) => (b.guncel_toplam_borc ?? 0) - (a.guncel_toplam_borc ?? 0));
+  const kayitGuncelle = (d: IcraDosyasi) => { const i = s.dosyalar.findIndex(x => x.id === d.id); if (i >= 0) s.dosyalar[i] = d; else s.dosyalar.push(d); ciz(); };
+  const formAc = (mevcut?: IcraDosyasi) => icraFormu({
+    mevcut, kisiler: s.kisiler,
+    kaydedildi: (d, yeni) => { if (yeni) kayitGuncelle(d); else void yukle(); },
+    silindi: d => { s.dosyalar = s.dosyalar.filter(x => x.id !== d.id); ciz(); },
+  });
+  yeniD.addEventListener('click', () => formAc());
+  dogrulaD.addEventListener('click', () => { const l = bayatlar(); if (l.length) icraDogrulaSihirbazi({ liste: l, guncellendi: kayitGuncelle }); });
 
   function ozetCiz() {
     ozet.replaceChildren();
@@ -69,6 +84,8 @@ export function icraBorclariSayfasi(kok: HTMLElement) {
   function ciz() {
     const liste = gorunen();
     say.textContent = s.yukleniyor ? '' : `${liste.length} / ${s.dosyalar.length}`;
+    const nBayat = s.yukleniyor ? 0 : bayatlar().length;
+    dogrulaD.hidden = !nBayat; dogrulaD.textContent = `Sırayla doğrula (${nBayat})`;
     ozetCiz();
     icerik.replaceChildren();
     if (s.yukleniyor) { icerik.appendChild(el('p', 'bos', 'Yükleniyor…')); return; }
@@ -147,7 +164,9 @@ export function icraBorclariSayfasi(kok: HTMLElement) {
     belge.addEventListener('click', () => { dlg.close(); void dosyaKlasoruAc('icra', d.id); });
     const kapat = el('button', 'btn ghost', 'Kapat'); kapat.type = 'button';
     kapat.addEventListener('click', () => dlg.close());
-    dlg.append(belge, kapat);
+    const duzenle = el('button', 'btn', 'Düzenle'); duzenle.type = 'button';
+    duzenle.addEventListener('click', () => { dlg.close(); formAc(d); });
+    dlg.append(duzenle, belge, kapat);
     dlg.addEventListener('close', () => dlg.remove());
     document.body.appendChild(dlg);
     dlg.showModal();
@@ -158,6 +177,7 @@ export function icraBorclariSayfasi(kok: HTMLElement) {
     try {
       const [dosyalar, kisiler] = await Promise.all([icraDosyalariniGetir(), kisileriGetir()]);
       s.dosyalar = dosyalar;
+      s.kisiler = kisiler;
       s.adlar = new Map(kisiler.map(k => [k.id, k.ad]));
     } catch (e) { s.hata = hataMetni(e); }
     s.yukleniyor = false; ciz();

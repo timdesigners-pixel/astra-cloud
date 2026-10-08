@@ -1,4 +1,5 @@
 import type { Kayit } from './kayit';
+import { imzaDurumu, siradakiYukumluluk, ONEM_ADI, type Imza, type Yukumluluk } from './sureler';
 
 export type Kategori = 'borc' | 'gider' | 'hukuk' | 'todo' | 'diger';
 export type Seviye = 'red' | 'gold' | 'cyan';
@@ -21,6 +22,8 @@ export type BildirimGirdi = {
   serbest: number; yedekGun: number | null; sorunlar: string[];
   /* Son tahlil raporundaki referans dışı değerler (ad listesi) ve raporun tarihi. */
   tahlilDisi?: { adlar: string[]; tarih: string };
+  /* Her ay tekrarlayan sabit tarihler ve karakol imzası. */
+  sabitler?: Yukumluluk[]; imza?: Imza;
 };
 
 const sayi = (v: unknown) => (typeof v === 'number' ? v : v === null || v === undefined || v === '' ? 0 : Number(v));
@@ -141,6 +144,31 @@ export function bildirimUret(g: BildirimGirdi, bugun: string): Bildirim[] {
       not: 'Alınmaya karar verilen ürün', ikon: '🛒', sekme: 'h-alinacak', sekmeAd: 'Alınacaklar',
     });
   });
+
+  /* Sabit tarihli yükümlülükler: bir hafta öncesinden başlar. */
+  (g.sabitler ?? []).filter(y => y.aktif).forEach(y => {
+    const { tarih, kalan } = siradakiYukumluluk(y, bugun);
+    if (kalan > 7) return;
+    const d = vadeDurumu(kalan, tarih, 'BUGÜN!');
+    ekle({
+      id: `sabit-${y.id}`, kategori: y.tur === 'durusma' ? 'hukuk' : y.tur === 'odeme' || y.tur === 'vergi' ? 'borc' : 'diger', etiket: 'Sabit tarih',
+      seviye: y.onem === 'kritik' ? d.seviye : kalan <= 1 ? 'gold' : 'cyan', acil: y.onem === 'kritik' && d.acil, kalanGun: kalan, vade: d.vade,
+      baslik: y.ad, tutar: 0, rozet: kalan === 0 ? 'BUGÜN' : `${kalan} GÜN KALDI`, not: `Her ayın ${y.gun}. günü · ${ONEM_ADI[y.onem]}`,
+      ikon: '📌', sekme: 'k-sure', sekmeAd: 'Süreler ve İmza',
+    });
+  });
+  if (g.imza?.aktif) {
+    const i = imzaDurumu(g.imza, bugun.slice(0, 7), bugun);
+    if (i.durum === 'kacirildi' || i.durum === 'bugun' || i.durum === 'yaklasiyor') {
+      ekle({
+        id: 'karakol-imza', kategori: 'hukuk', etiket: 'Karakol imzası', seviye: i.durum === 'yaklasiyor' ? 'gold' : 'red', acil: i.durum !== 'yaklasiyor',
+        kalanGun: i.kalan, vade: kisaTarih(i.tarih), baslik: 'Karakol imzası', tutar: 0,
+        rozet: i.durum === 'kacirildi' ? `${Math.abs(i.kalan)} GÜN GEÇTİ` : i.durum === 'bugun' ? 'BUGÜN' : `${i.kalan} GÜN KALDI`,
+        not: i.durum === 'kacirildi' ? 'Bu ayın imzası işaretlenmedi.' : 'İmzaladıktan sonra Süreler ve İmza sayfasında işaretle.',
+        ikon: '✍️', sekme: 'k-sure', sekmeAd: 'Süreler ve İmza',
+      });
+    }
+  }
 
   if (g.serbest < 0) {
     ekle({

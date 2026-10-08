@@ -40,7 +40,7 @@ export const HUBLAR: Hub[] = [
     s('r-hesap', '▩', 'Banka Hesaplarım'), s('r-sifre', '◉', 'Hesaplar ve Şifreler'), s('r-iban', '▥', 'IBAN Rehberi'), s('r-kisi', '◍', 'Kişiler ve Kurumlar'),
   ] }] },
   { id: 'huk', glif: '§', ad: 'Hukuk', gruplar: [{ sekmeler: [
-    s('k-ceza', '§', 'Ceza Davaları'), s('k-hukuk', '⚖︎', 'Hukuk Davaları'), s('k-icra', '▲', 'İcra Dosyaları'), s('k-cbs', '▧', 'CBS Dosyaları'),
+    s('k-ceza', '§', 'Ceza Davaları'), s('k-hukuk', '⚖︎', 'Hukuk Davaları'), s('k-icra', '▲', 'İcra Dosyaları'), s('k-cbs', '▧', 'CBS Dosyaları'), s('k-sure', '⏳︎', 'Süreler ve İmza'),
   ] }] },
   { id: 'modul', glif: '⌘', ad: 'Modül Merkezi', gruplar: [
     { sekmeler: [
