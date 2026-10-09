@@ -5,8 +5,8 @@ import { gun, tl } from '../../ortak/bicim';
 import { bugunAnahtari } from '../../ortak/zaman';
 import { donem } from '../../kabuk/donem';
 import { hataMetni } from '../../veri/hata';
-import { gecerliBakiye, icraDosyalariniGetir } from '../../veri/icra';
-import { hacizlariGetir, planDurumu, planlariGetir } from '../../veri/icra-ek';
+import { bakiyeGecerliMi, gecerliBakiye, icraDosyalariniGetir, type IcraDosyasi } from '../../veri/icra';
+import { hacizAdi, hacizlariGetir, planDurumu, planlariGetir } from '../../veri/icra-ek';
 import { kayitlariGetir } from '../../veri/kayit';
 import { panelGetir } from '../../veri/panel';
 import { sureler } from '../../veri/sureler';
@@ -56,6 +56,45 @@ export async function genelRaporYazdir(): Promise<void> {
 
     if (panel.uyarilar.length) kok.append(el('h2', '', 'Uyarılar'), tablo(['Uyarı', 'Not'], panel.uyarilar.map(u => [u.baslik, u.not])));
     kok.appendChild(el('div', 'ry-not', 'Bu rapor uygulamadaki kayıtlardan üretilmiştir; ödeme öncesi UYAP doğrulaması yapılmalıdır. Yatırım ya da hukuk tavsiyesi değildir.'));
+    document.body.appendChild(kok); document.body.classList.add('rapor-yaziliyor');
+    const bitir = () => { kok.remove(); document.body.classList.remove('rapor-yaziliyor'); window.removeEventListener('afterprint', bitir); };
+    window.addEventListener('afterprint', bitir);
+    window.print();
+  } catch (e) { bildir(hataMetni(e), undefined, true); }
+}
+
+/* Tek icra dosyasının raporu: taraflar, tutarlar, süreler, hacizler, ödeme planı. */
+export async function icraDosyaRaporuYazdir(d: IcraDosyasi, adlar: Map<string, string>): Promise<void> {
+  if (document.body.classList.contains('gizli')) { bildir('Gizlilik modu açık; önce kapat', undefined, true); return; }
+  try {
+    const bugun = bugunAnahtari();
+    const [hacizler, planlar] = await Promise.all([hacizlariGetir(), planlariGetir()]);
+    const kok = el('div', 'rapor-yazdir');
+    const tablo = (basliklar: string[], satirlar: string[][]) => {
+      const t = el('table'), bs = el('tr'); basliklar.forEach(b => bs.appendChild(el('th', '', b))); t.appendChild(el('thead')).appendChild(bs);
+      const g = el('tbody'); satirlar.forEach(r => { const tr = el('tr'); r.forEach(c => tr.appendChild(el('td', '', c))); g.appendChild(tr); }); t.appendChild(g); return t;
+    };
+    const bas = el('div', 'ry-bas'), sol = el('div');
+    sol.append(el('div', 'ry-ust', 'ASTRA FİNANS OS · İCRA DOSYA RAPORU'), el('h1', '', `${d.dosya_no ?? '—'}`), el('div', 'ry-alt', `${d.icra_dairesi ?? ''} · ${new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}`));
+    bas.appendChild(sol); kok.appendChild(bas);
+    kok.append(el('h2', '', 'Taraflar ve durum'), tablo(['Alan', 'Değer'], [
+      ['Rol', d.taraf_rolu ?? ''], ['Takip türü / yolu', [d.takip_turu, d.takip_yolu].filter(Boolean).join(' · ')], ['UYAP durumu', d.uyap_durum ?? ''], ['Karşı taraf', d.karsi_taraf ?? ''],
+      ['Alacaklı', adlar.get(d.alacakli_id ?? '') ?? ''], ['Avukat', adlar.get(d.avukat_id ?? '') ?? ''], ['Açılış', gun(d.acilis_tarihi)], ['Son işlem', gun(d.son_islem_tarihi)], ['Son doğrulama', gun(d.dogrulama_tarihi)], ['Tebligat', gun(d.tebligat_tarihi)],
+    ].filter(r => r[1] && r[1] !== '—')));
+    kok.append(el('h2', '', 'Tutarlar'), tablo(['Kalem', 'Tutar'], [
+      ['Asıl alacak', tl(d.gercek_asil_alacak)], ['Faiz', tl(d.faiz_tutari)], ['Vekâlet ücreti', tl(d.vekalet_ucreti)], ['Masraf', tl(d.masraf)], ['Vergi', tl(d.vergi)], ['Tahsil harcı', tl(d.tahsil_harci)],
+      ['Toplam alacak', tl(d.toplam_alacak)], ['Yatan para', tl(d.yatan_para)], ['Tahsilat / reddiyat', `${tl(d.tahsilat)} / ${tl(d.reddiyat)}`], ['Güncel toplam borç', tl(d.guncel_toplam_borc)],
+      ['Sayılan bakiye', bakiyeGecerliMi(d) ? tl(d.guncel_toplam_borc) : `${tl(0)} (${d.uyap_durum ?? 'kapalı'})`],
+    ]));
+    const sr = d.tebligat_tarihi ? sureler(d.takip_turu, d.tebligat_tarihi, bugun) : [];
+    kok.append(el('h2', '', 'Süreler'), sr.length ? tablo(['Süre', 'Gün', 'Son gün', 'Kalan'], sr.map(s => [s.ad, String(s.gun), gun(s.son), s.kalan < 0 ? 'geçti' : s.kalan === 0 ? 'BUGÜN' : `${s.kalan} gün`])) : el('p', '', 'Tebliğ tarihi girilmemiş; süreler hesaplanamadı.'));
+    const hz = hacizler.filter(h => h.icra_id === d.id);
+    kok.append(el('h2', '', `Hacizler (${hz.filter(h => h.durum === 'aktif').length} aktif)`), hz.length ? tablo(['Tür', 'Hedef', 'Tutar', 'Tarih', 'Durum'], hz.map(h => [hacizAdi(h.tur), h.hedef ?? '', tl(h.tutar), gun(h.tarih), h.durum === 'aktif' ? 'aktif' : 'kalktı'])) : el('p', '', 'Haciz kaydı yok.'));
+    const pl = planlar.find(p => p.icra_id === d.id);
+    if (pl) { const st = planDurumu(pl, bugun); kok.append(el('h2', '', 'Anlaşılan ödeme planı'), el('p', '', `${tl(pl.taksit)} × ${pl.adet} taksit · başlangıç ${gun(pl.baslangic)} · ödenen ${tl(st.odenen)} / ${tl(st.toplam)} · kalan ${tl(st.kalan)}${st.durum === 'geride' ? ` · GERİDE ${tl(st.gecikme)}` : ''}`),
+      pl.odemeler.length ? tablo(['Tarih', 'Tutar'], pl.odemeler.map(o => [gun(o.tarih), tl(o.tutar)])) : el('p', '', 'Henüz ödeme girilmemiş.')); }
+    if (d.son_islemler.length) kok.append(el('h2', '', 'Son işlemler'), tablo(['İşlem'], d.son_islemler.map(x => [x])));
+    kok.appendChild(el('div', 'ry-not', 'Bu rapor uygulamadaki kayıtlardan üretilmiştir; ödeme öncesi UYAP doğrulaması yapılmalıdır.'));
     document.body.appendChild(kok); document.body.classList.add('rapor-yaziliyor');
     const bitir = () => { kok.remove(); document.body.classList.remove('rapor-yaziliyor'); window.removeEventListener('afterprint', bitir); };
     window.addEventListener('afterprint', bitir);

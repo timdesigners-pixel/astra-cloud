@@ -4,6 +4,11 @@ export type SurumKaydi = { surum: string; tarih: string; baslik: string; eklenen
 
 export const SURUM_GECMISI: SurumKaydi[] = [
   {
+    surum: 'v15.7.0', tarih: '2026-10-09', baslik: 'İcra dosya raporu ve kalan gider kalemleri',
+    eklenenler: ['İcra dosyası ayrıntısında "Dosya raporu": taraflar, tutarlar, süreler, hacizler ve ödeme planı tek sayfada yazdırılır'],
+    yapilanlar: ['Eski sistemden kalan iki gider kalemi (Ünal - Türk Telekom 6.950 TL, Bahis 5.000 TL) Ekim 2026 tek seferlik gider olarak eklendi', 'v15.6.0 yayınlandı (Sürüm geçmişi, Strateji Matrisi, Rutinler, Genel Durum Raporu)'],
+  },
+  {
     surum: 'v15.6.0', tarih: '2026-10-09', baslik: 'Sürüm geçmişi, Strateji Matrisi, Genel Durum Raporu ve Rutinler',
     eklenenler: [
       'Sistem Ayarları › Sürüm geçmişi ve güncellemeler: her sürümün notları açılır kapanır biçimde listelenir',
