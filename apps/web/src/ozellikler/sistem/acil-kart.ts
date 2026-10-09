@@ -31,7 +31,7 @@ export function acilHesapla(v: Veri, bugun: string) {
   });
   v.icra.filter(d => d.durum !== 'kapandi' && d.tebligat_tarihi).forEach(d => {
     sureler(d.takip_turu, d.tebligat_tarihi, bugun).filter(s => s.kalan >= 0 && s.kalan <= 30)
-      .forEach(s => tarihler.push({ tur: `${s.ad} süresi`, konu: `${d.karsi_taraf ?? ''} — ${d.dosya_no ?? ''}`, kalan: s.kalan, not: `${s.gun} günlük süre · ${d.takip_turu ?? ''}` }));
+      .forEach(s => tarihler.push({ tur: `${s.ad}`, konu: `${d.karsi_taraf ?? ''} — ${d.dosya_no ?? ''}`, kalan: s.kalan, not: `${s.gun} günlük süre · ${d.takip_turu ?? ''}` }));
   });
   v.sabitler.filter(y => y.aktif).forEach(y => {
     const s = siradakiYukumluluk(y, bugun);

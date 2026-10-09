@@ -5,6 +5,7 @@ import { MARKET_SAYFALARI } from './market/market';
 import { aylikRaporSayfasi } from './modul/rapor';
 import { planlayiciSayfasi } from './modul/planlayici';
 import { simulasyonSayfasi } from './modul/simulasyon';
+import { danismanSayfasi } from './modul/danisman';
 import { davaSayfasi } from './hukuk/davalar';
 import { surelerSayfasi } from './hukuk/sureler';
 import { listelerSayfasi } from './notlar/listeler';
@@ -62,6 +63,7 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   'm-rapor': aylikRaporSayfasi,
   'm-plan': planlayiciSayfasi,
   'm-sim': simulasyonSayfasi,
+  'm-danisman': danismanSayfasi,
   's-ozet': saglikOzetiSayfasi,
   's-tahlil': tahlilSayfasi,
   's-cihaz': cihazSayfasi,
