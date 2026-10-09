@@ -7,6 +7,7 @@ import { planlayiciSayfasi } from './modul/planlayici';
 import { simulasyonSayfasi } from './modul/simulasyon';
 import { danismanSayfasi } from './modul/danisman';
 import { aracSayfasi } from './modul/arac';
+import { asistanSayfasi } from './modul/asistan';
 import { davaSayfasi } from './hukuk/davalar';
 import { surelerSayfasi } from './hukuk/sureler';
 import { listelerSayfasi } from './notlar/listeler';
@@ -68,6 +69,7 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   'm-sim': simulasyonSayfasi,
   'm-danisman': danismanSayfasi,
   'm-arac': aracSayfasi,
+  'm-asistan': asistanSayfasi,
   's-ozet': saglikOzetiSayfasi,
   's-tahlil': tahlilSayfasi,
   's-cihaz': cihazSayfasi,

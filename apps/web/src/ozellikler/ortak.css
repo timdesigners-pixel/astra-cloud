@@ -286,3 +286,8 @@ dialog.kutu .bg-ozellik dt { color: var(--dim); }
 .dnm-rozet { font: 600 11px var(--f-mono); letter-spacing: .08em; padding: 2px 6px; border-radius: 4px; background: var(--line); }
 .dnm-tasarruf { margin-left: auto; font: 12px var(--f-mono); color: var(--green2, var(--green)); }
 .dnm-sirada { margin-top: 20px; } .dnm-blok { margin-top: 14px; } .dnm-blok h4 { margin: 0 0 6px; }
+.as-akis { min-height: 260px; max-height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 8px 0; }
+.as-mesaj { max-width: 85%; padding: 8px 12px; border-radius: 10px; white-space: pre-wrap; }
+.as-mesaj.user { align-self: flex-end; background: var(--line); }
+.as-mesaj.model { align-self: flex-start; border: 1px solid var(--line); }
+.as-form { display: flex; gap: 8px; align-items: flex-end; margin-top: 8px; } .as-form textarea { flex: 1; }
