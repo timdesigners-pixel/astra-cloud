@@ -50,7 +50,7 @@ export function uyapIceAktar(mevcut: IcraDosyasi[], bitti: () => void) {
       metin: `${plan.tarih} tarihli UYAP özeti: ${plan.paket.length} dosya. ${plan.guncel.length} mevcut dosya güncellenecek, ${plan.yeni.length} yeni dosya eklenecek. `
         + `${kapali} kapalı, ${itiraz} itirazla durmuş dosya var. ${plan.alacak.length} dosyada alacaklısın; bunlar borç toplamına katılmaz. `
         + `Açık icra borcu: ${tl(plan.oncekiToplam)} → ${tl(plan.yeniAcikToplam)}. Faiz oranı, notlar, tebliğ tarihi ve öncelik korunur; hiçbir kayıt silinmez.`,
-      evet: 'İçe aktar',
+      evet: 'İçe aktar', tehlike: false,
     });
     if (!evet) return;
     bildir('UYAP verisi işleniyor…');

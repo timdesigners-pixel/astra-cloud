@@ -16,7 +16,7 @@ export const HUBLAR: Hub[] = [
     s('g-ozet', '↗', 'Gelir Özeti'), s('g-sabit', '⟳', 'Sabit Gelirler'), s('g-ekstra', '+', 'Ekstra Gelirler'),
   ] }] },
   { id: 'gider', glif: '↓', ad: 'Giderler', gruplar: [{ sekmeler: [
-    s('e-ozet', '↓', 'Gider Özeti'), s('e-fatura', '▦', 'Faturalar'), s('e-abone', '⟳', 'Abonelikler'),
+    s('e-ozet', '↓', 'Gider Özeti'), s('e-fatura', '▦', 'Faturalar'), s('e-gmail', '✉', 'Gmail Faturaları'), s('e-abone', '⟳', 'Abonelikler'),
     s('e-sabit', '▤', 'Sabit Giderler'), s('e-alinacak', '☰', 'Alınacaklar'), s('e-market', '⊞', 'Market Alışverişi'),
   ] }] },
   { id: 'odeme', glif: '₺', ad: 'Ödemeler', gruplar: [{ sekmeler: [
@@ -62,7 +62,7 @@ export const HUBLAR: Hub[] = [
 const ESKI_ADLAR: Record<string, string> = {
   borc: 'b-ozet', kisi: 'b-kisi', vergisgk: 'b-vergi', icraborc: 'b-icra', taksit: 'o-takvim', sim: 'm-sim',
   hesaplar: 'r-hesap', limit: 'b-limit', kisiler: 'r-kisi', iban: 'r-iban', hukuk: 'k-hukuk',
-  gider: 'e-ozet', kazanc: 'g-ozet', abonelik: 'e-abone', gmail: 'e-fatura', mevduat: 'v-mevduat', yatirim: 'v-ozet',
+  gider: 'e-ozet', kazanc: 'g-ozet', abonelik: 'e-abone', gmail: 'e-gmail', mevduat: 'v-mevduat', yatirim: 'v-ozet',
   tahmin: 'm-plan', danisman: 'm-plan', karar: 'm-sim', strateji: 'm-sim', aylik: 'm-rapor', rapor: 'm-rapor',
   plan: 'e-alinacak', odemeplan: 'o-takvim', market: 'e-market', todo: 'n-todo', sirada: 'a-ajanda', veri: 'sistem',
   asistan: 'genel', saglik: 's-ozet', tahlil: 's-tahlil', cihaz: 's-cihaz',

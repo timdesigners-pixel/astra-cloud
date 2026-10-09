@@ -21,6 +21,7 @@ import { icraBorclariSayfasi } from './icra/icra';
 import { begenilerSayfasi } from './begeniler/begeniler';
 import { sistemSayfasi } from './sistem/sistem';
 import { acilKartSayfasi } from './sistem/acil-kart';
+import { gmailFaturaSayfasi } from './kayit/gmail-fatura';
 import { ibanSayfasi } from './iban/iban';
 import { sifrelerSayfasi } from './sifreler/sifreler';
 import { kisilerSayfasi } from './kisiler/kisiler';
@@ -40,6 +41,7 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   'r-iban': ibanSayfasi,
   sistem: sistemSayfasi,
   acil: acilKartSayfasi,
+  'e-gmail': gmailFaturaSayfasi,
   'h-begen': begenilerSayfasi,
   'b-icra': icraBorclariSayfasi,
   'k-icra': icraBorclariSayfasi,
