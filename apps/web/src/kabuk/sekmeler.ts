@@ -16,7 +16,7 @@ export const HUBLAR: Hub[] = [
     s('g-ozet', '↗', 'Gelir Özeti'), s('g-sabit', '⟳', 'Sabit Gelirler'), s('g-ekstra', '+', 'Ekstra Gelirler'),
   ] }] },
   { id: 'gider', glif: '↓', ad: 'Giderler', gruplar: [{ sekmeler: [
-    s('e-ozet', '↓', 'Gider Özeti'), s('e-fatura', '▦', 'Faturalar'), s('e-gmail', '✉', 'Gmail Faturaları'), s('e-abone', '⟳', 'Abonelikler'),
+    s('e-ozet', '↓', 'Gider Özeti'), s('e-fatura', '▦', 'Faturalar'), s('e-abone', '⟳', 'Abonelikler'),
     s('e-sabit', '▤', 'Sabit Giderler'), s('e-alinacak', '☰', 'Alınacaklar'), s('e-market', '⊞', 'Market Alışverişi'),
   ] }] },
   { id: 'odeme', glif: '₺', ad: 'Ödemeler', gruplar: [{ sekmeler: [
@@ -36,6 +36,7 @@ export const HUBLAR: Hub[] = [
     s('n-todo', '✓', "Todo's"), s('n-zihin', '❏', 'Zihin Sarayı'), s('n-liste', '≡', 'Listeler'), s('n-rutin', '↻', 'Rutinler'),
   ] }] },
   { id: 'ajanda', glif: '▦', ad: 'Ajanda', gruplar: [{ sekmeler: [s('a-ajanda', '▦', 'Ajanda')] }] },
+  { id: 'posta', glif: '✉', ad: 'E-posta', gruplar: [{ sekmeler: [s('p-kutu', '✉', 'E-posta Kutusu'), s('p-etiket', '#', 'Otomatik Etiketleyici'), s('e-gmail', '▦', 'Fatura Tarayıcı')] }] },
   { id: 'rehber', glif: '◍', ad: 'Rehber', gruplar: [{ sekmeler: [
     s('r-hesap', '▩', 'Banka Hesaplarım'), s('r-sifre', '◉', 'Hesaplar ve Şifreler'), s('r-iban', '▥', 'IBAN Rehberi'), s('r-kisi', '◍', 'Kişiler ve Kurumlar'),
   ] }] },

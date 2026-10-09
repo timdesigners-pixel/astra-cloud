@@ -4,7 +4,7 @@ import { gun, tl } from '../../ortak/bicim';
 import { hataMetni } from '../../veri/hata';
 import { kayitEkle, kayitlariGetir } from '../../veri/kayit';
 import {
-  baglimi, faturaAdaylariniBul, gmailBaglan, islenenleriGetir, islenenleriYaz, istemciKimligiGetir, istemciKimligiYaz, type FaturaAdayi,
+  baglimi, faturaAdaylariniBul, gmailBaglan, hesaplariGetir, hesaplariYaz, islenenleriGetir, islenenleriYaz, istemciKimligiGetir, istemciKimligiYaz, type FaturaAdayi,
 } from '../../veri/gmail';
 
 const GIDER_SUTUN = ['ad', 'tur', 'periyot', 'tutar', 'para_birimi', 'gun', 'baslangic', 'aktif', 'notlar'];
@@ -58,7 +58,7 @@ export function gmailFaturaSayfasi(kok: HTMLElement) {
           } catch (e) { dugme.disabled = false; bildir(hataMetni(e), undefined, true); }
         });
         const td = el('td'); td.appendChild(dugme);
-        tr.append(el('td', '', a.gonderen), el('td', '', a.konu.slice(0, 80)), el('td', 'sayi gz', a.tutar === null ? '—' : a.paraBirimi === 'TRY' ? tl(a.tutar) : `${a.tutar} ${a.paraBirimi}`),
+        tr.append(el('td', '', a.gonderen), el('td', '', `${a.konu.slice(0, 80)} · ${a.hesap}`), el('td', 'sayi gz', a.tutar === null ? '—' : a.paraBirimi === 'TRY' ? tl(a.tutar) : `${a.tutar} ${a.paraBirimi}`),
           el('td', '', a.vade ? gun(a.vade) : gun(a.tarih) + ' (ileti)'), el('td', '', a.kategori), td);
         g.appendChild(tr);
       });
@@ -70,7 +70,7 @@ export function gmailFaturaSayfasi(kok: HTMLElement) {
   async function tarat() {
     hata = ''; yukleniyor = true; ciz();
     try {
-      if (!baglimi()) await gmailBaglan(istemci);
+      if (!baglimi()) { const e = await gmailBaglan(istemci); const l = await hesaplariGetir(); if (!l.some(x => x.eposta === e)) await hesaplariYaz([...l, { eposta: e, ad: e }]); }
       adaylar = (await faturaAdaylariniBul(gunSayisi)).filter(a => a.tutar !== null).sort((x, y) => y.tarih.localeCompare(x.tarih));
     } catch (e) { hata = e instanceof Error ? e.message : hataMetni(e); }
     yukleniyor = false; ciz();

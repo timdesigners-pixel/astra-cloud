@@ -1,0 +1,11 @@
+.posta-chipler { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 14px; }
+.posta-chip { border: 1px solid var(--line); border-radius: 999px; padding: 4px 6px 4px 12px; display: inline-flex; gap: 8px; align-items: center; font-size: 12.5px; }
+.posta-chip.bagli { border-color: var(--green); }
+.posta-suzgec { align-items: end; }
+.posta-etiketler { display: flex; flex-wrap: wrap; gap: 4px; }
+.posta-etiket { font: 600 11px var(--f-mono); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c, var(--line)); color: var(--c, var(--dim)); }
+.posta-etiket.uygulanmis { background: color-mix(in srgb, var(--c, var(--dim)) 14%, transparent); }
+.posta tr.okunmamis td { font-weight: 600; }
+.posta-hesap-hucre { font-size: 11px; color: var(--dim); }
+.posta-toplu input { min-width: 180px; }
+.etiketleyici-onizleme h4 { margin: 14px 0 4px; }
