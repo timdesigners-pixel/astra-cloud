@@ -4,6 +4,8 @@ import { gelirAyi, giderAyi } from '../ozellikler/kayit/ozet-hesap';
 import { bugunAnahtari } from '../ortak/zaman';
 import { bildirimUret, type Bildirim } from './bildirim';
 import { durumHesapla } from './tahlil-katalog';
+import { sabitleriGetir, imzaGetir } from './sabitler';
+import type { Imza, Yukumluluk } from './sureler';
 
 const sayi = (v: unknown) => (typeof v === 'number' ? v : v === null || v === undefined || v === '' ? 0 : Number(v));
 const gunFarki = (t: string, bugun: string) => Math.round((Date.parse(t.slice(0, 10)) - Date.parse(bugun)) / 86400000);
@@ -13,7 +15,7 @@ export type Kontrol = { ad: string; tamam: boolean; not: string };
 export type Girdi = {
   borclar: Kayit[]; odemeler: Kayit[]; gelirler: Kayit[]; giderler: Kayit[]; fisler: Kayit[]; hareketler: Kayit[];
   varliklar: Kayit[]; todolar: Kayit[]; davalar: Kayit[]; urunler: Kayit[]; sonYedek: string | null;
-  ajanda?: Kayit[]; alinacaklar?: Kayit[]; tahliller?: Kayit[];
+  ajanda?: Kayit[]; alinacaklar?: Kayit[]; tahliller?: Kayit[]; sabitler?: Yukumluluk[]; imza?: Imza;
 };
 export type Panel = {
   gelir: number; gider: number; serbest: number; borc: number; anapara: number; borcBitis: string | null;
@@ -69,7 +71,7 @@ export function panelHesapla(g: Girdi, ay: string, bugun: string): Panel {
   const tahlilDisi = tahlilDisiBul(g.tahliller ?? [], bugun);
   const bildirimler = bildirimUret({
     odemeler: g.odemeler, borclar: g.borclar, todolar: g.todolar, davalar: g.davalar, ajanda: g.ajanda ?? [], varliklar: g.varliklar,
-    alinacaklar: g.alinacaklar ?? [], urunler: g.urunler, serbest, yedekGun, sorunlar: kontroller.filter(k => !k.tamam).map(k => k.ad), tahlilDisi,
+    alinacaklar: g.alinacaklar ?? [], urunler: g.urunler, serbest, yedekGun, sorunlar: kontroller.filter(k => !k.tamam).map(k => k.ad), tahlilDisi, sabitler: g.sabitler, imza: g.imza,
   }, bugun);
   return {
     gelir: gel.toplam, gider: gid.toplam, serbest, borc, anapara, borcBitis, saglik, saglikEtiket: saglikEtiketi(saglik), uyarilar, kontroller,
@@ -96,7 +98,7 @@ export function panelSifirla() { onbellek = null; }
 export function panelGetir(ay: string): Promise<Panel> {
   if (onbellek && onbellek.ay === ay && Date.now() - onbellek.zaman < 10000) return onbellek.veri;
   const veri = (async () => {
-    const [borclar, odemeler, gelirler, giderler, fisler, hareketler, varliklar, todolar, davalar, urunler, yedek, ajanda, alinacaklar, tahliller] = await Promise.all([
+    const [borclar, odemeler, gelirler, giderler, fisler, hareketler, varliklar, todolar, davalar, urunler, yedek, ajanda, alinacaklar, tahliller, sabitler, imza] = await Promise.all([
       kayitlariGetir('borclar', ['ad', 'yon', 'durum', 'guncel_borc'], {}, 'ad'),
       kayitlariGetir('odemeler', ['borc_id', 'hesap_id', 'vade_tarihi', 'tutar', 'durum', 'hareket_id', 'notlar'], {}, 'vade_tarihi'),
       kayitlariGetir('gelirler', ['tur', 'sabit', 'periyot', 'tutar', 'baslangic', 'bitis', 'aktif'], {}, 'ad'),
@@ -111,8 +113,10 @@ export function panelGetir(ay: string): Promise<Panel> {
       kayitlariGetir('ajanda_olaylari', ['baslik', 'tarih', 'saat', 'notlar', 'tamamlandi'], {}, 'tarih'),
       kayitlariGetir('alinacaklar', ['ad', 'tahmini_tutar', 'hedef_tarih', 'durum'], {}, 'olusturma'),
       kayitlariGetir('tahlil_degerleri', ['tarih', 'test', 'ad', 'deger', 'ref_alt', 'ref_ust'], {}, 'tarih').catch(() => [] as Kayit[]),
+      sabitleriGetir().catch(() => [] as Yukumluluk[]),
+      imzaGetir().catch(() => undefined),
     ]);
-    return panelHesapla({ borclar, odemeler, gelirler, giderler, fisler, hareketler, varliklar, todolar, davalar, urunler, ajanda, alinacaklar, tahliller, sonYedek: yedek?.deger?.tarih ?? null }, ay, bugunAnahtari());
+    return panelHesapla({ borclar, odemeler, gelirler, giderler, fisler, hareketler, varliklar, todolar, davalar, urunler, ajanda, alinacaklar, tahliller, sabitler, imza, sonYedek: yedek?.deger?.tarih ?? null }, ay, bugunAnahtari());
   })();
   onbellek = { ay, zaman: Date.now(), veri };
   veri.catch(() => { if (onbellek?.veri === veri) onbellek = null; });

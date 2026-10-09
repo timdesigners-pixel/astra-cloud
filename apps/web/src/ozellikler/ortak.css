@@ -70,7 +70,7 @@ dialog.kutu .bolum ul { margin: 0; padding-left: 18px; color: var(--txt); }
 .ajanda-chip.bitti { opacity: .5; text-decoration: line-through; }
 .ajanda-diger { font-size: 11px; color: var(--dim); }
 .t-odeme { --c: var(--red); } .t-gelir { --c: var(--green); } .t-gider { --c: var(--gold); }
-.t-alinacak { --c: var(--cyan); } .t-durusma { --c: var(--red); } .t-todo { --c: var(--green2, var(--green)); } .t-hedef { --c: var(--cyan2, var(--cyan)); } .t-etkinlik { --c: var(--txt); }
+.t-alinacak { --c: var(--cyan); } .t-durusma { --c: var(--red); } .t-todo { --c: var(--green2, var(--green)); } .t-hedef { --c: var(--cyan2, var(--cyan)); } .t-etkinlik { --c: var(--txt); } .t-sabit { --c: var(--gold, var(--cyan)); }
 .ajanda-detay { margin-top: 16px; }
 .ajanda-detay h3 { margin: 0 0 8px; }
 .ajanda-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
