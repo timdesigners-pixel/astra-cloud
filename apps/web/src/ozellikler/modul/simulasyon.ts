@@ -10,6 +10,37 @@ const sureYaz = (ay: number | null) => (ay === null ? 'kapanmıyor' : ay === 0 ?
 
 type Satir = SimBorc & { dahil: boolean };
 
+/* Borçsuzluğa en kısa yol: son kapanan borç yolun uzunluğunu belirler; günlük faiz kanaması sıralamayı belirler. */
+function kritikYol(secili: Satir[], r: SimSonuc): HTMLElement {
+  const kutu = el('div', 'kritik-yol');
+  kutu.appendChild(el('h3', '', 'Kritik yol'));
+  const sirali = secili.filter(s => r.kapanis.has(s.id)).sort((a, b) => r.kapanis.get(a.id)! - r.kapanis.get(b.id)!);
+  const acik = secili.filter(s => !r.kapanis.has(s.id));
+  const son = sirali[sirali.length - 1];
+  const ozet = el('div', 'icra-ozet');
+  const hucre = (et: string, d: string, not: string, sinif = '') => { const x = el('div', 'icra-hucre ' + sinif); x.append(el('span', 'et', et), el('b', 'gz', d), el('small', '', not)); ozet.appendChild(x); };
+  hucre('Toplam süre', r.ay === null ? 'plan yürümüyor' : sureYaz(r.ay), `${tl(secili.reduce((t, s) => t + s.bakiye, 0))} borç`, r.ay === null ? 'uyari' : 'vurgu');
+  hucre('Yolun sonu', son ? son.ad : '—', son ? `${r.kapanis.get(son.id)}. ay sonra kapanıyor` : '');
+  hucre('Kapanmayan borç', String(acik.length), acik.length ? 'bütçe yetmiyor' : 'hepsi kapanıyor', acik.length ? 'uyari' : '');
+  kutu.appendChild(ozet);
+
+  const tablo = (baslik: string, kolonlar: string[], satirlar: string[][], bos: string) => {
+    const k = el('div', 'kritik-kolon'); k.appendChild(el('h4', '', baslik));
+    if (!satirlar.length) { k.appendChild(el('p', 'bos', bos)); return k; }
+    const t = el('table'), bs = el('tr'); kolonlar.forEach(x => bs.appendChild(el('th', '', x)));
+    t.appendChild(el('thead')).appendChild(bs);
+    const g = el('tbody'); satirlar.forEach(sat => { const tr = el('tr'); sat.forEach((c, i) => tr.appendChild(el('td', i ? 'sayi' : '', c))); g.appendChild(tr); });
+    t.appendChild(g); const sarma = el('div', 'tablo-sarma'); sarma.appendChild(t); k.appendChild(sarma); return k;
+  };
+  const kanama = secili.filter(s => s.faizYillik > 0).map(s => ({ s, gunluk: s.bakiye * s.faizYillik / 100 / 365 })).sort((a, b) => b.gunluk - a.gunluk).slice(0, 6);
+  const iki = el('div', 'kritik-iki');
+  iki.append(
+    tablo('İlk kapanan beş borç', ['#', 'Borç', 'Kapanış'], sirali.slice(0, 5).map((s, i) => [String(i + 1), s.ad, `${r.kapanis.get(s.id)}. ay`]), 'Kapanan borç yok.'),
+    tablo('Günlük faiz kanaması', ['Borç', 'Günlük', 'Yıllık'], kanama.map(x => [x.s.ad, tl(x.gunluk), `%${x.s.faizYillik.toLocaleString('tr-TR')}`]), 'Faizli borç yok.'));
+  kutu.appendChild(iki);
+  return kutu;
+}
+
 export function simulasyonSayfasi(kok: HTMLElement) {
   const kart = el('section', 'card icra');
   kok.replaceChildren(kart);
@@ -80,7 +111,7 @@ export function simulasyonSayfasi(kok: HTMLElement) {
         });
         kapanis.appendChild(g);
         const sarma = el('div', 'tablo-sarma'); if (cig.kapanis.size) sarma.appendChild(kapanis);
-        sonuc.replaceChildren(kutular, sarma, aciklama);
+        sonuc.replaceChildren(kutular, sarma, aciklama, kritikYol(secili, cig));
       };
 
       ekGiris.addEventListener('input', () => { ek = Math.max(0, Number(ekGiris.value) || 0); hesapla(); });

@@ -1,0 +1,27 @@
+.acil-yazdir { display: none; }
+@media print {
+  body.acil-yaziliyor > *:not(.acil-yazdir) { display: none !important; }
+  body.acil-yaziliyor .acil-yazdir { display: block; color: #111; background: #fff; font: 11px/1.45 system-ui, sans-serif; padding: 0; }
+  .acil-yazdir h1 { font-size: 24px; margin: 2px 0; }
+  .acil-yazdir h2 { font-size: 13px; margin: 14px 0 6px; border-bottom: 1.5px solid #111; padding-bottom: 3px; }
+  .acil-yazdir h2 span { display: inline-block; background: #111; color: #fff; border-radius: 50%; width: 18px; height: 18px; text-align: center; line-height: 18px; margin-right: 6px; font-size: 11px; }
+  .acil-yazdir h3 { font-size: 11px; margin: 8px 0 3px; }
+  .acil-yazdir .ak-bas { display: flex; justify-content: space-between; align-items: flex-start; border-top: 6px solid #b00020; padding-top: 8px; }
+  .acil-yazdir .ak-ust { font-size: 9px; letter-spacing: .12em; color: #555; }
+  .acil-yazdir .ak-damga { border: 2px solid #b00020; color: #b00020; font-weight: 700; padding: 6px 10px; text-align: center; font-size: 10px; }
+  .acil-yazdir .ak-damga small { display: block; font-weight: 400; color: #555; }
+  .acil-yazdir .ak-kpi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+  .acil-yazdir .ak-kpi > div { border: 1px solid #999; padding: 6px 8px; }
+  .acil-yazdir .ak-kpi i { display: block; font-style: normal; font-size: 9px; color: #555; text-transform: uppercase; }
+  .acil-yazdir .ak-kpi b { display: block; font-size: 18px; }
+  .acil-yazdir .ak-kpi em { font-size: 9px; color: #555; font-style: normal; }
+  .acil-yazdir .ak-iki { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .acil-yazdir table { width: 100%; border-collapse: collapse; }
+  .acil-yazdir th, .acil-yazdir td { border: 1px solid #aaa; padding: 3px 5px; text-align: left; font-size: 10px; }
+  .acil-yazdir th { background: #eee; }
+  .acil-yazdir section { break-inside: avoid; }
+  .acil-yazdir .ak-kisi { margin: 0; padding-left: 16px; }
+  .acil-yazdir .ak-kisi small { display: block; color: #555; }
+  .acil-yazdir .ak-bos { color: #555; margin: 6px 0; }
+  .acil-yazdir .ak-alt-not { margin-top: 14px; font-size: 9px; color: #555; border-top: 1px solid #aaa; padding-top: 6px; }
+}

@@ -55,7 +55,7 @@ export const HUBLAR: Hub[] = [
       s('app-kutuphane', '❏', 'Bilgi Kütüphanesi'), s('app-oynatma', '▶', 'Oynatma Listelerim'), s('app-pinterest', '✧', 'Pinterest Panolarım'),
     ] },
   ] },
-  { id: 'sis', glif: '⚙︎', ad: 'Sistem', gruplar: [{ sekmeler: [s('sistem', '⚙︎', 'Sistem Ayarları')] }] },
+  { id: 'sis', glif: '⚙︎', ad: 'Sistem', gruplar: [{ sekmeler: [s('sistem', '⚙︎', 'Sistem Ayarları'), s('acil', '✚', 'Acil Durum Kartı')] }] },
 ];
 
 /* Eski adresler ve bağlantılar yeni sayfalara yönlenir. */
