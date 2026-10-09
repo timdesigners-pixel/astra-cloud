@@ -1,0 +1,11 @@
+.rapor-yazdir { display: none; }
+@media print {
+  body.rapor-yaziliyor > *:not(.rapor-yazdir) { display: none !important; }
+  body.rapor-yaziliyor .rapor-yazdir { display: block; color: #111; background: #fff; font: 11px/1.45 system-ui, sans-serif; }
+  .rapor-yazdir h1 { font-size: 24px; margin: 2px 0; } .rapor-yazdir h2 { font-size: 13px; margin: 14px 0 6px; border-bottom: 1.5px solid #111; padding-bottom: 3px; }
+  .rapor-yazdir .ry-bas { border-top: 6px solid #111; padding-top: 8px; } .rapor-yazdir .ry-ust { font-size: 9px; letter-spacing: .12em; color: #555; } .rapor-yazdir .ry-alt { color: #555; }
+  .rapor-yazdir .ry-kpi { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 10px 0; } .rapor-yazdir .ry-kpi > div { border: 1px solid #999; padding: 6px 8px; }
+  .rapor-yazdir .ry-kpi i { display: block; font-style: normal; font-size: 9px; color: #555; text-transform: uppercase; } .rapor-yazdir .ry-kpi b { font-size: 15px; }
+  .rapor-yazdir table { width: 100%; border-collapse: collapse; } .rapor-yazdir th, .rapor-yazdir td { border: 1px solid #aaa; padding: 3px 5px; text-align: left; font-size: 10px; } .rapor-yazdir th { background: #eee; }
+  .rapor-yazdir .ry-not { margin-top: 14px; font-size: 9px; color: #555; border-top: 1px solid #aaa; padding-top: 6px; }
+}

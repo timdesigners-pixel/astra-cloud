@@ -291,3 +291,10 @@ dialog.kutu .bg-ozellik dt { color: var(--dim); }
 .as-mesaj.user { align-self: flex-end; background: var(--line); }
 .as-mesaj.model { align-self: flex-start; border: 1px solid var(--line); }
 .as-form { display: flex; gap: 8px; align-items: flex-end; margin-top: 8px; } .as-form textarea { flex: 1; }
+.surum-kaydi { border-top: 1px solid var(--line); padding: 8px 0; }
+.surum-kaydi summary { cursor: pointer; display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.surum-tarih { font: 12px var(--f-mono); color: var(--dim); } .surum-baslik { color: var(--dim); }
+.surum-kaydi h3 { margin: 8px 0 2px; font-size: var(--fs-2); } .surum-kaydi ul { margin: 0 0 6px; padding-left: 20px; }
+.rutin-liste { list-style: none; margin: 6px 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.rutin-liste li { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+.rutin-liste li.tamam span { text-decoration: line-through; color: var(--dim); } .rutin-liste label { display: flex; gap: 8px; align-items: center; flex: 1; }

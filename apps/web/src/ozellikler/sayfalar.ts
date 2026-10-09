@@ -8,6 +8,8 @@ import { simulasyonSayfasi } from './modul/simulasyon';
 import { danismanSayfasi } from './modul/danisman';
 import { aracSayfasi } from './modul/arac';
 import { asistanSayfasi } from './modul/asistan';
+import { stratejiSayfasi } from './modul/strateji';
+import { rutinSayfasi } from './notlar/rutin';
 import { davaSayfasi } from './hukuk/davalar';
 import { surelerSayfasi } from './hukuk/sureler';
 import { listelerSayfasi } from './notlar/listeler';
@@ -70,6 +72,8 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   'm-danisman': danismanSayfasi,
   'm-arac': aracSayfasi,
   'm-asistan': asistanSayfasi,
+  'm-strateji': stratejiSayfasi,
+  'n-rutin': rutinSayfasi,
   's-ozet': saglikOzetiSayfasi,
   's-tahlil': tahlilSayfasi,
   's-cihaz': cihazSayfasi,

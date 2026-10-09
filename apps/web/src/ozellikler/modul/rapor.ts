@@ -3,6 +3,7 @@ import { tl } from '../../ortak/bicim';
 import { hataMetni } from '../../veri/hata';
 import { kayitlariGetir, type Kayit } from '../../veri/kayit';
 import { ayEkle, raporHesapla, type Rapor } from './hesap';
+import { genelRaporYazdir } from './genel-rapor';
 
 const AY_ADI = new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' });
 const adi = (ay: string) => { const [y, m] = ay.split('-').map(Number); return AY_ADI.format(new Date(y!, m! - 1, 1)); };
@@ -16,7 +17,9 @@ export function aylikRaporSayfasi(kok: HTMLElement) {
   const geri = el('button', 'btn ghost sm', '‹'); geri.type = 'button'; geri.setAttribute('aria-label', 'Önceki ay');
   const ileri = el('button', 'btn ghost sm', '›'); ileri.type = 'button'; ileri.setAttribute('aria-label', 'Sonraki ay');
   const baslik = el('b', 'ajanda-ay');
-  bar.append(geri, baslik, ileri);
+  const yaz = el('button', 'btn ghost sm', 'Genel durum raporunu yazdır'); yaz.type = 'button'; yaz.id = 'rapor-yazdir';
+  yaz.addEventListener('click', () => void genelRaporYazdir());
+  bar.append(geri, baslik, ileri, el('span', 'tbar-sp'), yaz);
   const icerik = el('div', 'rapor-icerik');
   kart.append(bar, icerik);
 
