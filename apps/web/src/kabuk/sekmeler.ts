@@ -24,7 +24,7 @@ export const HUBLAR: Hub[] = [
     s('o-kisi', '⇄', 'Kişi Borçları'), s('o-sgk', '▤', 'SGK Borçları'),
   ] }] },
   { id: 'birikim', glif: '△', ad: 'Birikim ve Yatırımlar', gruplar: [{ sekmeler: [
-    s('v-ozet', '△', 'Birikim Özeti'), s('v-bes', '◍', 'BES Hesabı'), s('v-mevduat', '%', 'Mevduat'), s('v-altin', '◆', 'Altın Birikimi'),
+    s('v-ozet', '△', 'Birikim Özeti'), s('v-bes', '◍', 'BES Hesabı'), s('v-mevduat', '%', 'Mevduat'), s('v-getiri', '≈', 'Getiri Motoru'), s('v-altin', '◆', 'Altın Birikimi'),
   ] }] },
   { id: 'hedef', glif: '☆', ad: 'Hayaller ve Hedefler', gruplar: [{ sekmeler: [
     s('h-alinacak', '☰', 'Alınacaklar Listesi'), s('h-begen', '♡', 'Beğendim Ürünler'), s('h-hedef', '⊙', 'Hedefler'),
@@ -45,7 +45,7 @@ export const HUBLAR: Hub[] = [
   { id: 'modul', glif: '⌘', ad: 'Modül Merkezi', gruplar: [
     { sekmeler: [
       s('m-plan', '☰', 'Planlayıcı'), s('m-rapor', '▦', 'Aylık Rapor'), s('m-stok', '⊞', 'Market Stok'),
-      s('m-liste', '≡', 'Alışveriş Listesi'), s('m-karsi', '⇄', 'Karşılaştırma Robotu'), s('m-sim', '⚡︎', 'Simülasyon Merkezi'), s('m-danisman', '✦', 'Danışman ve Sırada Ne Var'),
+      s('m-liste', '≡', 'Alışveriş Listesi'), s('m-karsi', '⇄', 'Karşılaştırma Robotu'), s('m-sim', '⚡︎', 'Simülasyon Merkezi'), s('m-danisman', '✦', 'Danışman ve Sırada Ne Var'), s('m-arac', '⇆', 'Araç'),
     ] },
     { ad: 'Uygulamalar', sekmeler: [
       s('hub', '⌘', 'Tüm Uygulamalar'),

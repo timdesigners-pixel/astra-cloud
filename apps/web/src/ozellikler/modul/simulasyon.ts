@@ -3,6 +3,10 @@ import { tl } from '../../ortak/bicim';
 import { hataMetni } from '../../veri/hata';
 import { kayitlariGetir } from '../../veri/kayit';
 import { simule, type SimBorc, type SimSonuc } from './hesap';
+import { donem } from '../../kabuk/donem';
+import { aylikEsdeger } from '../../veri/danisman';
+import { ayarOku, ayarYaz } from '../../veri/karsilama';
+import { panelGetir } from '../../veri/panel';
 
 const AY = new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' });
 const aySonra = (k: number) => AY.format(new Date(new Date().getFullYear(), new Date().getMonth() + k, 1));
@@ -41,6 +45,54 @@ function kritikYol(secili: Satir[], r: SimSonuc): HTMLElement {
   return kutu;
 }
 
+/* "Ne olursa" paneli: gelir ve çıkışlar değişirse serbest bütçe ve kasanın dayanma süresi ne olur. */
+type NeOlursa = { gelir: number; sabitGelir: number; kiraGeliri: number; gider: number; serbest: number; nakit: number };
+async function neOlursaVerisi(): Promise<NeOlursa> {
+  const [panel, gelirler, hesaplar, hareketler] = await Promise.all([
+    panelGetir(donem()),
+    kayitlariGetir('gelirler', ['ad', 'tur', 'sabit', 'periyot', 'tutar', 'aktif'], {}, 'ad'),
+    kayitlariGetir('hesaplar', ['tur', 'acilis_bakiyesi', 'aktif'], {}, 'ad'),
+    kayitlariGetir('hareketler', ['hesap_id', 'yon', 'tutar'], {}, 'tarih'),
+  ]);
+  const aktif = gelirler.filter(g => g.aktif !== false && g.sabit);
+  const vadesiz = new Set(hesaplar.filter(h => h.tur === 'vadesiz' && h.aktif !== false).map(h => h.id));
+  const nakit = hesaplar.filter(h => vadesiz.has(h.id)).reduce((t, h) => t + Number(h.acilis_bakiyesi), 0)
+    + hareketler.filter(h => vadesiz.has(String(h.hesap_id))).reduce((t, h) => t + (h.yon === 'giris' ? 1 : -1) * Number(h.tutar), 0);
+  return {
+    gelir: panel.gelir, sabitGelir: aktif.reduce((t, g) => t + aylikEsdeger(g), 0), nakit, gider: panel.gider, serbest: panel.serbest,
+    kiraGeliri: aktif.filter(g => /kira/i.test(String(g.ad)) || g.tur === 'kira').reduce((t, g) => t + aylikEsdeger(g), 0),
+  };
+}
+type Stres = { ay: number; gelirDusus: number };
+function neOlursaKarti(v: NeOlursa, stres: Stres, stresDegisti: (s: Stres) => void): HTMLElement {
+  const kutu = el('div', 'kritik-yol');
+  kutu.appendChild(el('h3', '', '"Ne olursa" paneli'));
+  kutu.appendChild(el('p', 'bos', `Taban: bu ayın serbest bütçesi ${tl(v.serbest)}. Her satır aynı hesabı tek bir şokla yeniden yapar.`));
+  const t = el('table'), bs = el('tr'); ['Senaryo', 'Serbest bütçe', 'Değişim', 'Not'].forEach(x => bs.appendChild(el('th', '', x)));
+  t.appendChild(el('thead')).appendChild(bs);
+  const g = el('tbody');
+  const satir = (ad: string, kayip: number, not: string) => {
+    const serbest = v.serbest - kayip, tr = el('tr');
+    tr.append(el('td', '', ad), el('td', 'sayi gz', tl(serbest)), el('td', 'sayi', kayip ? `−${tl(kayip)}` : '—'), el('td', '', not + (serbest < 0 ? ' · bütçe açığa düşer' : '')));
+    g.appendChild(tr);
+  };
+  satir('Maaş/ücret gelirine haciz (1/4)', v.sabitGelir * 0.25, 'İİK 83: gelirin dörtte biri kesilir');
+  satir('Kira geliri kesilirse', v.kiraGeliri, v.kiraGeliri ? 'kira kalemleri sabit gelirden çıkarılır' : 'kira geliri kaydı yok');
+  satir(`Sabit gelir %${stres.gelirDusus} düşerse`, v.sabitGelir * stres.gelirDusus / 100, 'aşağıdaki oranı değiştirebilirsin');
+  t.appendChild(g); const sarma = el('div', 'tablo-sarma'); sarma.appendChild(t); kutu.appendChild(sarma);
+
+  const cikis = v.gider, hic = v.gelir * (1 - stres.gelirDusus / 100);
+  const acik = Math.max(0, cikis - hic), dayanma = acik > 0 ? v.nakit / acik : Infinity;
+  const g2 = el('div', 'ic-grid');
+  const oran = el('input'); oran.type = 'number'; oran.min = '0'; oran.max = '100'; oran.value = String(stres.gelirDusus); oran.id = 'ne-oran'; oran.setAttribute('aria-label', 'Gelir düşüşü yüzdesi');
+  oran.addEventListener('change', () => stresDegisti({ ...stres, gelirDusus: Math.min(100, Math.max(0, Number(oran.value) || 0)) }));
+  const l = el('label', 'alan'); l.append(el('span', '', 'Gelir düşüşü (%)'), oran); g2.appendChild(l);
+  kutu.appendChild(g2);
+  kutu.appendChild(el('p', 'bos', `Stres testi: gelir %${stres.gelirDusus} düşer, çıkışlar (${tl(cikis)}) aynı kalırsa aylık açık ${tl(acik)}. Vadesiz hesaplarda ${tl(v.nakit)} var → `
+    + (acik <= 0 ? 'açık oluşmaz.' : `yaklaşık ${dayanma.toFixed(1).replace('.', ',')} ay dayanır${dayanma < stres.ay ? ` (hedef ${stres.ay} ay; yastık yetersiz)` : ''}.`)));
+  return kutu;
+}
+
 export function simulasyonSayfasi(kok: HTMLElement) {
   const kart = el('section', 'card icra');
   kok.replaceChildren(kart);
@@ -59,6 +111,17 @@ export function simulasyonSayfasi(kok: HTMLElement) {
       if (!satirlar.length) { kart.replaceChildren(el('p', 'bos', 'Açık borç yok. Borçlar menüsünden borç ekleyince burada senaryo çalıştırabilirsin.')); return; }
 
       let ek = 0;
+      const neOlursa = el('div');
+      let stres: Stres = { ay: 3, gelirDusus: 25 };
+      const stresKaydet = () => ayarYaz('simulasyon_stres', stres).catch(() => undefined);
+      const neCiz = async () => {
+        try {
+          const [veri, kayitli] = await Promise.all([neOlursaVerisi(), ayarOku<Partial<Stres>>('simulasyon_stres')]);
+          stres = { ...stres, ...(kayitli?.deger ?? {}) };
+          neOlursa.replaceChildren(neOlursaKarti(veri, stres, y => { stres = y; void stresKaydet(); void neCiz(); }));
+        } catch (e) { neOlursa.replaceChildren(el('p', 'bos hata', hataMetni(e))); }
+      };
+      void neCiz();
       const girisler = el('div', 'sim-girisler');
       const ekGiris = el('input'); ekGiris.type = 'number'; ekGiris.min = '0'; ekGiris.step = '100'; ekGiris.id = 'sim-ek'; ekGiris.value = '0';
       const ekEtiket = el('label', 'alan'); ekEtiket.append(el('span', '', 'Aylık ek ödeme (TL)'), ekGiris, el('small', '', 'Mevcut taksitlerin üstüne ayırabileceğin tutar'));
@@ -111,7 +174,7 @@ export function simulasyonSayfasi(kok: HTMLElement) {
         });
         kapanis.appendChild(g);
         const sarma = el('div', 'tablo-sarma'); if (cig.kapanis.size) sarma.appendChild(kapanis);
-        sonuc.replaceChildren(kutular, sarma, aciklama, kritikYol(secili, cig));
+        sonuc.replaceChildren(kutular, sarma, aciklama, kritikYol(secili, cig), neOlursa);
       };
 
       ekGiris.addEventListener('input', () => { ek = Math.max(0, Number(ekGiris.value) || 0); hesapla(); });
