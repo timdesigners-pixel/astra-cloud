@@ -24,6 +24,9 @@ export type BildirimGirdi = {
   tahlilDisi?: { adlar: string[]; tarih: string };
   /* Her ay tekrarlayan sabit tarihler ve karakol imzası. */
   sabitler?: Yukumluluk[]; imza?: Imza;
+  /* Tebliği girilmiş icra dosyalarının süreleri ve anlaşılan taksit planında geride kalanlar. */
+  icraSureleri?: { id: string; ad: string; sure: string; kalan: number; son: string }[];
+  icraPlanlari?: { id: string; ad: string; gecikme: number; geride: number }[];
 };
 
 const sayi = (v: unknown) => (typeof v === 'number' ? v : v === null || v === undefined || v === '' ? 0 : Number(v));
@@ -157,6 +160,16 @@ export function bildirimUret(g: BildirimGirdi, bugun: string): Bildirim[] {
       ikon: '📌', sekme: 'k-sure', sekmeAd: 'Süreler ve İmza',
     });
   });
+  (g.icraSureleri ?? []).filter(x => x.kalan >= 0 && x.kalan <= 3).forEach(x => ekle({
+    id: `icra-sure-${x.id}-${x.sure}`, kategori: 'hukuk', etiket: 'İcra süresi', seviye: 'red', acil: true, kalanGun: x.kalan, vade: kisaTarih(x.son),
+    baslik: `${x.ad} — ${x.sure}`, tutar: 0, rozet: x.kalan === 0 ? 'SON GÜN' : `${x.kalan} GÜN KALDI`,
+    not: 'Süre kaçarsa itiraz/ödeme hakkı kaybedilebilir.', ikon: '⚖', sekme: 'k-sure', sekmeAd: 'Süreler ve İmza',
+  }));
+  (g.icraPlanlari ?? []).filter(x => x.gecikme > 0.5).forEach(x => ekle({
+    id: `icra-plan-${x.id}`, kategori: 'borc', etiket: 'İcra taksiti', seviye: 'red', acil: true, kalanGun: -1, vade: 'Geride',
+    baslik: `${x.ad} — taksit planında geride`, tutar: x.gecikme, rozet: 'TAKSİT GERİDE',
+    not: `Plana göre ${tl(x.gecikme)} ödenmemiş görünüyor. Tek taksit kaçarsa plan bozulabilir.`, ikon: '▲', sekme: 'b-icra', sekmeAd: 'İcra Dosyaları',
+  }));
   if (g.imza?.aktif) {
     const i = imzaDurumu(g.imza, bugun.slice(0, 7), bugun);
     if (i.durum === 'kacirildi' || i.durum === 'bugun' || i.durum === 'yaklasiyor') {

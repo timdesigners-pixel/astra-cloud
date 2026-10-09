@@ -5,6 +5,11 @@ import { MARKET_SAYFALARI } from './market/market';
 import { aylikRaporSayfasi } from './modul/rapor';
 import { planlayiciSayfasi } from './modul/planlayici';
 import { simulasyonSayfasi } from './modul/simulasyon';
+import { danismanSayfasi } from './modul/danisman';
+import { aracSayfasi } from './modul/arac';
+import { asistanSayfasi } from './modul/asistan';
+import { stratejiSayfasi } from './modul/strateji';
+import { rutinSayfasi } from './notlar/rutin';
 import { davaSayfasi } from './hukuk/davalar';
 import { surelerSayfasi } from './hukuk/sureler';
 import { listelerSayfasi } from './notlar/listeler';
@@ -20,6 +25,9 @@ import { FINANS_SAYFALARI } from './kayit/finans';
 import { icraBorclariSayfasi } from './icra/icra';
 import { begenilerSayfasi } from './begeniler/begeniler';
 import { sistemSayfasi } from './sistem/sistem';
+import { acilKartSayfasi } from './sistem/acil-kart';
+import { gmailFaturaSayfasi } from './kayit/gmail-fatura';
+import { getiriSayfasi } from './kayit/getiri';
 import { ibanSayfasi } from './iban/iban';
 import { sifrelerSayfasi } from './sifreler/sifreler';
 import { kisilerSayfasi } from './kisiler/kisiler';
@@ -38,6 +46,9 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   'r-sifre': sifrelerSayfasi,
   'r-iban': ibanSayfasi,
   sistem: sistemSayfasi,
+  acil: acilKartSayfasi,
+  'e-gmail': gmailFaturaSayfasi,
+  'v-getiri': getiriSayfasi,
   'h-begen': begenilerSayfasi,
   'b-icra': icraBorclariSayfasi,
   'k-icra': icraBorclariSayfasi,
@@ -58,6 +69,11 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   'm-rapor': aylikRaporSayfasi,
   'm-plan': planlayiciSayfasi,
   'm-sim': simulasyonSayfasi,
+  'm-danisman': danismanSayfasi,
+  'm-arac': aracSayfasi,
+  'm-asistan': asistanSayfasi,
+  'm-strateji': stratejiSayfasi,
+  'n-rutin': rutinSayfasi,
   's-ozet': saglikOzetiSayfasi,
   's-tahlil': tahlilSayfasi,
   's-cihaz': cihazSayfasi,

@@ -9,6 +9,7 @@ import {
   type Odeme, type OdemeBorcu,
 } from '../../veri/odemeler';
 import { onayla } from '../../ortak/uyari';
+import { planYukleFormu } from './plan-yukle';
 
 const bugunStr = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
 
@@ -40,7 +41,8 @@ export function odemeSayfasi(tur: string) {
     const say = el('span', 'tbar-count');
     const yeni = el('button', 'btn primary sm', '+ Yeni ödeme'); yeni.type = 'button'; yeni.id = 'odeme-yeni';
     const taksit = el('button', 'btn ghost sm', '+ Taksit planı'); taksit.type = 'button'; taksit.id = 'odeme-taksit';
-    bar.append(sec, el('span', 'tbar-sp'), say, taksit, yeni);
+    const planD = el('button', 'btn ghost sm', 'Plan yükle'); planD.type = 'button'; planD.id = 'odeme-plan';
+    bar.append(sec, el('span', 'tbar-sp'), say, planD, taksit, yeni);
     const icerik = el('div', 'icra-icerik');
     kart.append(ozet, bar, icerik);
 
@@ -235,6 +237,10 @@ export function odemeSayfasi(tur: string) {
     sec.addEventListener('change', () => { s.goster = sec.value as Durum['goster']; ciz(); });
     yeni.addEventListener('click', () => yeniForm(false));
     taksit.addEventListener('click', () => yeniForm(true));
+    planD.addEventListener('click', () => planYukleFormu({
+      borclar: acikBorclar().map(b => [b.id, b.ad] as [string, string]), odemeler: s.odemeler,
+      eklendi: yeni => { s.odemeler = [...s.odemeler, ...yeni].sort((a, b) => a.vade_tarihi.localeCompare(b.vade_tarihi)); ciz(); },
+    }));
     void yukle();
   };
 }

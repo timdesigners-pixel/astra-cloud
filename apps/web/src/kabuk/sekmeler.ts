@@ -16,7 +16,7 @@ export const HUBLAR: Hub[] = [
     s('g-ozet', '↗', 'Gelir Özeti'), s('g-sabit', '⟳', 'Sabit Gelirler'), s('g-ekstra', '+', 'Ekstra Gelirler'),
   ] }] },
   { id: 'gider', glif: '↓', ad: 'Giderler', gruplar: [{ sekmeler: [
-    s('e-ozet', '↓', 'Gider Özeti'), s('e-fatura', '▦', 'Faturalar'), s('e-abone', '⟳', 'Abonelikler'),
+    s('e-ozet', '↓', 'Gider Özeti'), s('e-fatura', '▦', 'Faturalar'), s('e-gmail', '✉', 'Gmail Faturaları'), s('e-abone', '⟳', 'Abonelikler'),
     s('e-sabit', '▤', 'Sabit Giderler'), s('e-alinacak', '☰', 'Alınacaklar'), s('e-market', '⊞', 'Market Alışverişi'),
   ] }] },
   { id: 'odeme', glif: '₺', ad: 'Ödemeler', gruplar: [{ sekmeler: [
@@ -24,7 +24,7 @@ export const HUBLAR: Hub[] = [
     s('o-kisi', '⇄', 'Kişi Borçları'), s('o-sgk', '▤', 'SGK Borçları'),
   ] }] },
   { id: 'birikim', glif: '△', ad: 'Birikim ve Yatırımlar', gruplar: [{ sekmeler: [
-    s('v-ozet', '△', 'Birikim Özeti'), s('v-bes', '◍', 'BES Hesabı'), s('v-mevduat', '%', 'Mevduat'), s('v-altin', '◆', 'Altın Birikimi'),
+    s('v-ozet', '△', 'Birikim Özeti'), s('v-bes', '◍', 'BES Hesabı'), s('v-mevduat', '%', 'Mevduat'), s('v-getiri', '≈', 'Getiri Motoru'), s('v-altin', '◆', 'Altın Birikimi'),
   ] }] },
   { id: 'hedef', glif: '☆', ad: 'Hayaller ve Hedefler', gruplar: [{ sekmeler: [
     s('h-alinacak', '☰', 'Alınacaklar Listesi'), s('h-begen', '♡', 'Beğendim Ürünler'), s('h-hedef', '⊙', 'Hedefler'),
@@ -33,7 +33,7 @@ export const HUBLAR: Hub[] = [
     s('s-ozet', '♥', 'Sağlık Özeti'), s('s-tahlil', '⚗', 'Tahliller'), s('s-cihaz', '⌚︎', 'Cihaz Senkronu'),
   ] }] },
   { id: 'not', glif: '✓', ad: 'Notlar ve Yapılacaklar', gruplar: [{ sekmeler: [
-    s('n-todo', '✓', "Todo's"), s('n-zihin', '❏', 'Zihin Sarayı'), s('n-liste', '≡', 'Listeler'),
+    s('n-todo', '✓', "Todo's"), s('n-zihin', '❏', 'Zihin Sarayı'), s('n-liste', '≡', 'Listeler'), s('n-rutin', '↻', 'Rutinler'),
   ] }] },
   { id: 'ajanda', glif: '▦', ad: 'Ajanda', gruplar: [{ sekmeler: [s('a-ajanda', '▦', 'Ajanda')] }] },
   { id: 'rehber', glif: '◍', ad: 'Rehber', gruplar: [{ sekmeler: [
@@ -45,7 +45,7 @@ export const HUBLAR: Hub[] = [
   { id: 'modul', glif: '⌘', ad: 'Modül Merkezi', gruplar: [
     { sekmeler: [
       s('m-plan', '☰', 'Planlayıcı'), s('m-rapor', '▦', 'Aylık Rapor'), s('m-stok', '⊞', 'Market Stok'),
-      s('m-liste', '≡', 'Alışveriş Listesi'), s('m-karsi', '⇄', 'Karşılaştırma Robotu'), s('m-sim', '⚡︎', 'Simülasyon Merkezi'),
+      s('m-liste', '≡', 'Alışveriş Listesi'), s('m-karsi', '⇄', 'Karşılaştırma Robotu'), s('m-sim', '⚡︎', 'Simülasyon Merkezi'), s('m-danisman', '✦', 'Danışman ve Sırada Ne Var'), s('m-arac', '⇆', 'Araç'), s('m-asistan', '◉', 'Yapay Zekâ Danışman'), s('m-strateji', '⊞', 'Strateji Matrisi'),
     ] },
     { ad: 'Uygulamalar', sekmeler: [
       s('hub', '⌘', 'Tüm Uygulamalar'),
@@ -55,17 +55,17 @@ export const HUBLAR: Hub[] = [
       s('app-kutuphane', '❏', 'Bilgi Kütüphanesi'), s('app-oynatma', '▶', 'Oynatma Listelerim'), s('app-pinterest', '✧', 'Pinterest Panolarım'),
     ] },
   ] },
-  { id: 'sis', glif: '⚙︎', ad: 'Sistem', gruplar: [{ sekmeler: [s('sistem', '⚙︎', 'Sistem Ayarları')] }] },
+  { id: 'sis', glif: '⚙︎', ad: 'Sistem', gruplar: [{ sekmeler: [s('sistem', '⚙︎', 'Sistem Ayarları'), s('acil', '✚', 'Acil Durum Kartı')] }] },
 ];
 
 /* Eski adresler ve bağlantılar yeni sayfalara yönlenir. */
 const ESKI_ADLAR: Record<string, string> = {
   borc: 'b-ozet', kisi: 'b-kisi', vergisgk: 'b-vergi', icraborc: 'b-icra', taksit: 'o-takvim', sim: 'm-sim',
   hesaplar: 'r-hesap', limit: 'b-limit', kisiler: 'r-kisi', iban: 'r-iban', hukuk: 'k-hukuk',
-  gider: 'e-ozet', kazanc: 'g-ozet', abonelik: 'e-abone', gmail: 'e-fatura', mevduat: 'v-mevduat', yatirim: 'v-ozet',
-  tahmin: 'm-plan', danisman: 'm-plan', karar: 'm-sim', strateji: 'm-sim', aylik: 'm-rapor', rapor: 'm-rapor',
-  plan: 'e-alinacak', odemeplan: 'o-takvim', market: 'e-market', todo: 'n-todo', sirada: 'a-ajanda', veri: 'sistem',
-  asistan: 'genel', saglik: 's-ozet', tahlil: 's-tahlil', cihaz: 's-cihaz',
+  gider: 'e-ozet', kazanc: 'g-ozet', abonelik: 'e-abone', gmail: 'e-gmail', mevduat: 'v-mevduat', yatirim: 'v-ozet',
+  tahmin: 'm-plan', danisman: 'm-danisman', karar: 'm-sim', strateji: 'm-strateji', aylik: 'm-rapor', rapor: 'm-rapor',
+  plan: 'e-alinacak', odemeplan: 'o-takvim', market: 'e-market', todo: 'n-todo', sirada: 'm-danisman', veri: 'sistem',
+  asistan: 'm-asistan', saglik: 's-ozet', tahlil: 's-tahlil', cihaz: 's-cihaz',
   odeme: 'app-odeme', tasarim: 'app-tasarim', karsilama: 'app-karsilama', telrehber: 'app-telrehber', oynatma: 'app-oynatma',
   pinterest: 'app-pinterest', ilgi: 'app-ilgi', dosya: 'app-dosya', marketliste: 'app-marketliste', kutuphane: 'app-kutuphane',
   bahis: 'app-bahis', hesapyon: 'app-hesapyon',

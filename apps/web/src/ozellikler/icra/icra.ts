@@ -5,6 +5,8 @@ import { bakiyeGecerliMi, gecerliBakiye, icraDosyalariniGetir, type IcraDosyasi 
 import { kisileriGetir, type Kisi } from '../../veri/kisiler';
 import { icraDogrulaSihirbazi, icraFormu } from './icra-form';
 import { dosyaKlasoruAc } from '../dosyalar/dosyalar';
+import { icraEkBolumleri } from './icra-ek';
+import { uyapIceAktar } from './icra-uyap';
 
 const ONCELIK: Record<number, string> = { 1: 'ACİL', 2: 'BÜYÜK', 3: 'KÜÇÜK', 4: 'BAĞLI' };
 /* Doğrulama tarihi bu günden eskiyse uyarı çıkar (sistem kuralı: 30 gün). */
@@ -39,7 +41,8 @@ export function icraBorclariSayfasi(kok: HTMLElement) {
   const say = el('span', 'tbar-count');
   const yeniD = el('button', 'btn primary sm', '+ Yeni icra dosyası'); yeniD.type = 'button'; yeniD.id = 'icra-yeni';
   const dogrulaD = el('button', 'btn ghost sm', 'Sırayla doğrula'); dogrulaD.type = 'button'; dogrulaD.id = 'icra-dogrula'; dogrulaD.hidden = true;
-  bar.append(ara, durumSec, rolSec, el('span', 'tbar-sp'), say, dogrulaD, yeniD);
+  const uyapD = el('button', 'btn ghost sm', 'UYAP içe aktar'); uyapD.type = 'button'; uyapD.id = 'icra-uyap';
+  bar.append(ara, durumSec, rolSec, el('span', 'tbar-sp'), say, dogrulaD, uyapD, yeniD);
   const icerik = el('div', 'icra-icerik');
   kart.append(ozet, bar, icerik);
 
@@ -58,6 +61,7 @@ export function icraBorclariSayfasi(kok: HTMLElement) {
     silindi: d => { s.dosyalar = s.dosyalar.filter(x => x.id !== d.id); ciz(); },
   });
   yeniD.addEventListener('click', () => formAc());
+  uyapD.addEventListener('click', () => uyapIceAktar(s.dosyalar, () => void yukle()));
   dogrulaD.addEventListener('click', () => { const l = bayatlar(); if (l.length) icraDogrulaSihirbazi({ liste: l, guncellendi: kayitGuncelle }); });
 
   function ozetCiz() {
@@ -160,6 +164,7 @@ export function icraBorclariSayfasi(kok: HTMLElement) {
       const b = el('section', 'bolum'); b.appendChild(el('h3', '', 'Son işlemler'));
       const ul = el('ul'); d.son_islemler.forEach(x => ul.appendChild(el('li', '', x))); b.appendChild(ul); dlg.appendChild(b);
     }
+    dlg.append(...icraEkBolumleri(d));
     const belge = el('button', 'btn', '📂 Belgeler'); belge.type = 'button';
     belge.addEventListener('click', () => { dlg.close(); void dosyaKlasoruAc('icra', d.id); });
     const kapat = el('button', 'btn ghost', 'Kapat'); kapat.type = 'button';

@@ -2,6 +2,7 @@ import { el } from '../../ortak/dom';
 import { bildir } from '../../ortak/bildirim';
 import { bugunAnahtari } from '../../ortak/zaman';
 import { SURUM } from '../../kapi/surum';
+import { SURUM_GECMISI } from '../../kapi/surum-gecmisi';
 import { donem } from '../../kabuk/donem';
 import { duzMenu } from '../../kabuk/menu-durum';
 import { temaAd } from '../../kabuk/tema';
@@ -93,7 +94,16 @@ export function sistemSayfasi(kok: HTMLElement) {
     const hakkinda = bolum('Oturum ve sürüm',
       satir('Kilitle', 'Oturum yalnız bellekte tutulur; kilitleyince PIN yeniden istenir', kilit),
       satir('Sürüm', `${SURUM} · veriler bulutta saklanır, hassas alanlar sunucuda şifrelenir`));
-    kart.replaceChildren(gorunum, yedek, kontrol, hakkinda);
+    const gecmis = bolum('Sürüm geçmişi ve güncellemeler');
+    gecmis.appendChild(el('p', 'bos', `Şu anki sürüm ${SURUM}. Her sürümün eklenenleri ve yapılanları burada kayıtlıdır.`));
+    SURUM_GECMISI.forEach((k, i) => {
+      const d = el('details', 'surum-kaydi'); d.dataset.surum = k.surum; if (i === 0) d.open = true;
+      const ozet = el('summary'); ozet.append(el('b', '', k.surum), el('span', 'surum-tarih', k.tarih), el('span', 'surum-baslik', k.baslik)); d.appendChild(ozet);
+      const liste = (baslik: string, l: string[]) => { if (!l.length) return; d.appendChild(el('h3', '', baslik)); const ul = el('ul'); l.forEach(x => ul.appendChild(el('li', '', x))); d.appendChild(ul); };
+      liste('Eklenenler', k.eklenenler); liste('Yapılanlar', k.yapilanlar);
+      gecmis.appendChild(d);
+    });
+    kart.replaceChildren(gorunum, yedek, kontrol, hakkinda, gecmis);
   }
 
   async function yedekAl() {
