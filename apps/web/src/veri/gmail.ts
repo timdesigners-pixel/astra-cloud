@@ -1,19 +1,22 @@
 import { ayarOku, ayarYaz } from './karsilama';
 import { CakismaHatasi } from './hata';
 
-/* Gmail'den fatura bulma: yalnız okuma izni. Google ile bağlanma, kullanıcının kendi OAuth istemci kimliğiyle yapılır;
-   erişim jetonu yalnız bellekte tutulur (saklanmaz). */
+/* Gmail bağlantısı: birden çok hesap, okuma + etiketleme izni (gmail.modify; iletiler silinmez, gönderilmez).
+   Google ile bağlanma, kullanıcının kendi OAuth istemci kimliğiyle yapılır; erişim jetonları yalnız bellekte tutulur (saklanmaz). */
 const API = 'https://gmail.googleapis.com/gmail/v1/users/me';
-const KAPSAM = 'https://www.googleapis.com/auth/gmail.readonly';
+const KAPSAM = 'https://www.googleapis.com/auth/gmail.modify';
 const GSI = 'https://accounts.google.com/gsi/client';
 
-type TokenIstemci = { requestAccessToken: (o?: { prompt?: string }) => void };
-type GoogleKutuphane = { accounts: { oauth2: { initTokenClient: (o: { client_id: string; scope: string; callback: (r: { access_token?: string; error?: string; expires_in?: number }) => void; error_callback?: (e: { type?: string }) => void }) => TokenIstemci } } };
+type TokenYaniti = { access_token?: string; error?: string; expires_in?: number };
+type TokenIstemci = { requestAccessToken: (o?: { prompt?: string; hint?: string }) => void };
+type GoogleKutuphane = { accounts: { oauth2: { initTokenClient: (o: { client_id: string; scope: string; callback: (r: TokenYaniti) => void; error_callback?: (e: { type?: string }) => void }) => TokenIstemci } } };
 declare global { interface Window { google?: GoogleKutuphane } }
 
-let jeton: { deger: string; bitis: number } | null = null;
-export const baglimi = () => !!jeton && jeton.bitis > Date.now() + 30000;
-export function baglantiKes() { jeton = null; }
+const jetonlar = new Map<string, { deger: string; bitis: number }>();
+const gecerli = (j: { bitis: number } | undefined) => !!j && j.bitis > Date.now() + 30000;
+export const baglananHesaplar = () => [...jetonlar.entries()].filter(([, j]) => gecerli(j)).map(([e]) => e);
+export const baglimi = (hesap?: string) => (hesap ? gecerli(jetonlar.get(hesap)) : baglananHesaplar().length > 0);
+export function baglantiKes(hesap?: string) { if (hesap) jetonlar.delete(hesap); else jetonlar.clear(); }
 
 function gsiYukle(): Promise<GoogleKutuphane> {
   if (window.google?.accounts) return Promise.resolve(window.google);
@@ -25,27 +28,39 @@ function gsiYukle(): Promise<GoogleKutuphane> {
   });
 }
 
-export async function gmailBaglan(istemciKimligi: string): Promise<void> {
+/* Hesap seçtirir (ya da ipucu verilen hesabı açar), jetonu alır, e-posta adresini Gmail profilinden öğrenir. Dönen değer bağlanan hesabın adresi. */
+export async function gmailBaglan(istemciKimligi: string, ipucu?: string): Promise<string> {
   const g = await gsiYukle();
-  await new Promise<void>((coz, red) => {
+  const yanit = await new Promise<TokenYaniti>((coz, red) => {
     g.accounts.oauth2.initTokenClient({
       client_id: istemciKimligi, scope: KAPSAM,
-      callback: r => {
-        if (r.access_token) { jeton = { deger: r.access_token, bitis: Date.now() + (r.expires_in ?? 3600) * 1000 }; coz(); }
-        else red(new Error(r.error === 'access_denied' ? 'İzin verilmedi' : `Google bağlantısı kurulamadı${r.error ? ` (${r.error})` : ''}`));
-      },
+      callback: r => (r.access_token ? coz(r) : red(new Error(r.error === 'access_denied' ? 'İzin verilmedi' : `Google bağlantısı kurulamadı${r.error ? ` (${r.error})` : ''}`))),
       error_callback: e => red(new Error(e.type === 'popup_closed' ? 'Pencere kapatıldı' : 'Google penceresi açılamadı')),
-    }).requestAccessToken({ prompt: '' });
+    }).requestAccessToken(ipucu ? { prompt: '', hint: ipucu } : { prompt: 'select_account' });
   });
+  const r = await fetch(`${API}/profile`, { headers: { Authorization: `Bearer ${yanit.access_token}` } });
+  const p = await r.json().catch(() => ({})) as { emailAddress?: string; error?: { message?: string } };
+  if (!r.ok || !p.emailAddress) throw new Error(p.error?.message ?? 'Hesap bilgisi alınamadı');
+  const eposta = p.emailAddress.toLowerCase();
+  jetonlar.set(eposta, { deger: yanit.access_token!, bitis: Date.now() + (yanit.expires_in ?? 3600) * 1000 });
+  return eposta;
 }
 
-async function istek<T>(yol: string): Promise<T> {
-  if (!baglimi()) throw new Error('Gmail bağlı değil');
-  const r = await fetch(`${API}${yol}`, { headers: { Authorization: `Bearer ${jeton!.deger}` } });
-  if (r.status === 401) { jeton = null; throw new Error('Gmail oturumu doldu, yeniden bağlan'); }
-  if (!r.ok) { const e = await r.json().catch(() => ({})) as { error?: { message?: string } }; throw new Error(e.error?.message ?? `Gmail isteği başarısız (${r.status})`); }
-  return r.json() as Promise<T>;
+export class OturumDoldu extends Error { constructor(public hesap: string) { super(`${hesap} oturumu doldu, yeniden bağla`); } }
+export async function gmailIstek<T>(hesap: string, yol: string, init?: { method?: 'POST'; govde?: unknown }): Promise<T> {
+  const j = jetonlar.get(hesap);
+  if (!gecerli(j)) throw new OturumDoldu(hesap);
+  const r = await fetch(`${API}${yol}`, {
+    method: init?.method ?? 'GET', headers: { Authorization: `Bearer ${j!.deger}`, ...(init?.govde !== undefined ? { 'Content-Type': 'application/json' } : {}) },
+    ...(init?.govde !== undefined ? { body: JSON.stringify(init.govde) } : {}),
+  });
+  if (r.status === 401) { jetonlar.delete(hesap); throw new OturumDoldu(hesap); }
+  if (r.status === 204) return {} as T;
+  const v = await r.json().catch(() => ({})) as { error?: { message?: string } };
+  if (!r.ok) throw new Error(v.error?.message ?? `Gmail isteği başarısız (${r.status})`);
+  return v as T;
 }
+const istek = <T,>(hesap: string, yol: string) => gmailIstek<T>(hesap, yol);
 
 type Parca = { mimeType?: string; body?: { data?: string }; parts?: Parca[]; headers?: { name: string; value: string }[] };
 const b64 = (d: string) => { try { const b = atob(d.replace(/-/g, '+').replace(/_/g, '/')); return new TextDecoder().decode(Uint8Array.from(b, c => c.charCodeAt(0))); } catch { return ''; } };
@@ -62,7 +77,7 @@ function govde(p: Parca | undefined): string {
 
 /* ——— Çözümleme (saf) ——— */
 export type FaturaAdayi = {
-  id: string; konu: string; gonderen: string; tarih: string; tutar: number | null; paraBirimi: string; faturaNo: string; vade: string | null; kategori: string;
+  id: string; hesap: string; konu: string; gonderen: string; tarih: string; tutar: number | null; paraBirimi: string; faturaNo: string; vade: string | null; kategori: string;
 };
 const sayiYap = (ham: string) => {
   let t = ham.replace(/\s+/g, '');
@@ -91,17 +106,21 @@ export const gonderenAdi = (g: string) => (g.match(/^"?([^"<]+?)"?\s*</)?.[1] ??
 export const FATURA_SORGUSU = '(fatura OR e-fatura OR "son ödeme" OR ekstre OR "ödenecek tutar") -in:sent -in:trash';
 
 export async function faturaAdaylariniBul(gun: number, enCok = 40): Promise<FaturaAdayi[]> {
-  const liste = await istek<{ messages?: { id: string }[] }>(`/messages?${new URLSearchParams({ q: `newer_than:${gun}d ${FATURA_SORGUSU}`, maxResults: String(enCok) })}`);
-  const sonuc = await Promise.all((liste.messages ?? []).map(async x => {
-    try {
-      const d = await istek<{ id: string; internalDate?: string; payload?: Parca }>(`/messages/${x.id}?format=full`);
-      const baslik = (n: string) => d.payload?.headers?.find(h => h.name.toLowerCase() === n)?.value ?? '';
-      const konu = baslik('subject') || '(Konusuz)', gonderen = baslik('from');
-      const c = faturaCoz(govde(d.payload), konu, gonderen);
-      return { id: d.id, konu, gonderen: gonderenAdi(gonderen), tarih: new Date(Number(d.internalDate ?? Date.now())).toISOString().slice(0, 10), ...c } as FaturaAdayi;
-    } catch { return null; }
-  }));
-  return sonuc.filter((x): x is FaturaAdayi => !!x);
+  const tum: FaturaAdayi[] = [];
+  for (const hesap of baglananHesaplar()) {
+    const liste = await istek<{ messages?: { id: string }[] }>(hesap, `/messages?${new URLSearchParams({ q: `newer_than:${gun}d ${FATURA_SORGUSU}`, maxResults: String(enCok) })}`);
+    const sonuc = await Promise.all((liste.messages ?? []).map(async x => {
+      try {
+        const d = await istek<{ id: string; internalDate?: string; payload?: Parca }>(hesap, `/messages/${x.id}?format=full`);
+        const baslik = (n: string) => d.payload?.headers?.find(h => h.name.toLowerCase() === n)?.value ?? '';
+        const konu = baslik('subject') || '(Konusuz)', gonderen = baslik('from');
+        const c = faturaCoz(govde(d.payload), konu, gonderen);
+        return { id: d.id, hesap, konu, gonderen: gonderenAdi(gonderen), tarih: new Date(Number(d.internalDate ?? Date.now())).toISOString().slice(0, 10), ...c } as FaturaAdayi;
+      } catch { return null; }
+    }));
+    tum.push(...sonuc.filter((x): x is FaturaAdayi => !!x));
+  }
+  return tum;
 }
 
 /* ——— ayarlar: istemci kimliği ve işlenmiş iletiler ——— */
@@ -112,3 +131,11 @@ export const istemciKimligiGetir = async () => (await ayarOku<{ id?: string }>('
 export const istemciKimligiYaz = (id: string) => yaz('gmail_istemci', { id: id.trim() });
 export const islenenleriGetir = async () => (await ayarOku<{ idler?: string[] }>('gmail_islenen'))?.deger?.idler ?? [];
 export const islenenleriYaz = (idler: string[]) => yaz('gmail_islenen', { idler: idler.slice(-500) });
+
+/* Bilinen hesaplar (yalnız adresler; jeton saklanmaz) — bir sonraki oturumda hızlı yeniden bağlanmak için. */
+export type KayitliHesap = { eposta: string; ad: string };
+export async function hesaplariGetir(): Promise<KayitliHesap[]> {
+  const a = await ayarOku<{ liste?: KayitliHesap[] }>('gmail_hesaplar');
+  return (a?.deger?.liste ?? []).filter(x => x && typeof x.eposta === 'string');
+}
+export const hesaplariYaz = (liste: KayitliHesap[]) => yaz('gmail_hesaplar', { liste });

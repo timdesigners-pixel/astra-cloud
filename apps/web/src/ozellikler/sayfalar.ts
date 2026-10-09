@@ -27,6 +27,8 @@ import { begenilerSayfasi } from './begeniler/begeniler';
 import { sistemSayfasi } from './sistem/sistem';
 import { acilKartSayfasi } from './sistem/acil-kart';
 import { gmailFaturaSayfasi } from './kayit/gmail-fatura';
+import { postaKutusuSayfasi } from './posta/kutu';
+import { etiketleyiciSayfasi } from './posta/etiketleyici';
 import { getiriSayfasi } from './kayit/getiri';
 import { ibanSayfasi } from './iban/iban';
 import { sifrelerSayfasi } from './sifreler/sifreler';
@@ -48,6 +50,8 @@ export const SAYFALAR: Record<string, (kok: HTMLElement) => void> = {
   sistem: sistemSayfasi,
   acil: acilKartSayfasi,
   'e-gmail': gmailFaturaSayfasi,
+  'p-kutu': postaKutusuSayfasi,
+  'p-etiket': etiketleyiciSayfasi,
   'v-getiri': getiriSayfasi,
   'h-begen': begenilerSayfasi,
   'b-icra': icraBorclariSayfasi,

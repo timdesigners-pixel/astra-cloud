@@ -4,6 +4,23 @@ export type SurumKaydi = { surum: string; tarih: string; baslik: string; eklenen
 
 export const SURUM_GECMISI: SurumKaydi[] = [
   {
+    surum: 'v15.8.0', tarih: '2026-10-09', baslik: 'E-posta: çoklu hesap, süzgeç, etiketleme ve otomatik etiketleyici',
+    eklenenler: [
+      'E-posta menüsü: E-posta Kutusu, Otomatik Etiketleyici ve Fatura Tarayıcı',
+      'Birden çok Gmail hesabı bağlama: hesap seçici, hesap listesi (yalnız adresler saklanır), tek tıkla yeniden bağlanma ve hesabı çıkarma',
+      'E-posta Kutusu: tüm hesaplarda ya da seçili hesapta gönderen, konu, kelime, tarih, okunmamış, ekli, Gmail etiketi ve Astra etiketi süzgeçleri',
+      'Seçili iletilere toplu Gmail etiketi ekleme ve kaldırma (etiket yoksa oluşturulur)',
+      'Otomatik gelişmiş etiketleyici: gönderen, konu ve içerik ipuçlarını puanlar; 17 hazır kategori (Hukuk / İcra, Fatura, Banka, Ödeme Bekliyor, Güvenlik, Kargo…) ve nedenini gösterir',
+      'Önizleme ve onayla "Astra/…" etiketi yazma; işlenen iletiler tekrar etiketlenmez; sayfa açıkken dakikada bir yeni iletileri kendiliğinden etiketleme seçeneği',
+      'Kendi kurallarım: gönderen, konu ve içerik sözcüklerine göre kural tanımlama; tekrar eden gönderenlerden kural önerisi',
+    ],
+    yapilanlar: [
+      'Gmail izni gmail.modify oldu (okuma ve etiketleme); iletiler silinmez, taşınmaz, gönderilmez, okundu yapılmaz',
+      'Fatura Tarayıcı artık bağlı tüm hesapları tarar',
+      'Eski sistemdeki üç Gmail hesabı hesap listesine eklendi',
+    ],
+  },
+  {
     surum: 'v15.7.0', tarih: '2026-10-09', baslik: 'İcra dosya raporu ve kalan gider kalemleri',
     eklenenler: ['İcra dosyası ayrıntısında "Dosya raporu": taraflar, tutarlar, süreler, hacizler ve ödeme planı tek sayfada yazdırılır'],
     yapilanlar: ['Eski sistemden kalan iki gider kalemi (Ünal - Türk Telekom 6.950 TL, Bahis 5.000 TL) Ekim 2026 tek seferlik gider olarak eklendi', 'v15.6.0 yayınlandı (Sürüm geçmişi, Strateji Matrisi, Rutinler, Genel Durum Raporu)'],
