@@ -7,6 +7,7 @@ import { icraDogrulaSihirbazi, icraFormu } from './icra-form';
 import { dosyaKlasoruAc } from '../dosyalar/dosyalar';
 import { icraEkBolumleri } from './icra-ek';
 import { uyapIceAktar } from './icra-uyap';
+import { icraDosyaRaporuYazdir } from '../modul/genel-rapor';
 
 const ONCELIK: Record<number, string> = { 1: 'ACİL', 2: 'BÜYÜK', 3: 'KÜÇÜK', 4: 'BAĞLI' };
 /* Doğrulama tarihi bu günden eskiyse uyarı çıkar (sistem kuralı: 30 gün). */
@@ -171,7 +172,9 @@ export function icraBorclariSayfasi(kok: HTMLElement) {
     kapat.addEventListener('click', () => dlg.close());
     const duzenle = el('button', 'btn', 'Düzenle'); duzenle.type = 'button';
     duzenle.addEventListener('click', () => { dlg.close(); formAc(d); });
-    dlg.append(duzenle, belge, kapat);
+    const rapor = el('button', 'btn', '⎙ Dosya raporu'); rapor.type = 'button'; rapor.id = 'icra-rapor';
+    rapor.addEventListener('click', () => void icraDosyaRaporuYazdir(d, s.adlar));
+    dlg.append(duzenle, belge, rapor, kapat);
     dlg.addEventListener('close', () => dlg.remove());
     document.body.appendChild(dlg);
     dlg.showModal();
