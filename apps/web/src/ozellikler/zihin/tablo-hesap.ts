@@ -5,11 +5,15 @@ export type Tablo = { sutunlar: Sutun[]; satirlar: string[][]; basSatir?: boolea
 export const BICIM: Record<string, string> = { metin: 'Metin', sayi: 'Sayı', para: 'Para ₺', yuzde: 'Yüzde', tarih: 'Tarih' };
 export const sayisal = (b?: string) => b === 'sayi' || b === 'para' || b === 'yuzde';
 
-/* "1.234,50", "1,234.50", "%12", "₺99" gibi yazımları sayıya çevirir; okunamazsa NaN. */
+/* "1.234,50", "1,234.50", "%12", "₺99" gibi yazımları sayıya çevirir; okunamazsa NaN.
+   Tek ayraç kuralı (tr-TR): yalnız virgül → ondalık ('1,234' → 1.234); yalnız nokta → 3 haneli grup
+   binlik ('1.234' → 1234), aksi ondalık ('1.5' → 1.5). Birden çok 3 haneli virgül grubu belirsiz değildir,
+   binlik sayılır ('1,234,567' → 1234567). İki ayraç birlikteyse sondaki ondalıktır. */
 export function sayiOku(v: unknown): number {
   let s = String(v ?? '').replace(/[\s₺%]|TL|TRY/gi, '');
   if (!s) return NaN;
   if (s.includes(',') && s.includes('.')) s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+  else if (/^-?\d{1,3}(,\d{3}){2,}$/.test(s)) s = s.replace(/,/g, '');
   else if (s.includes(',')) s = s.replace(',', '.');
   else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
   return Number(s);

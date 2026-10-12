@@ -50,11 +50,77 @@ describe('sayiOku', () => {
   it('sayı girdisini aynen döner', () => {
     expect(sayiOku(5)).toBe(5);
   });
+
+  /* Karakterizasyon: tr-TR tek ayraç kuralı. */
+  it("yalnız virgül varsa ondalık sayar: '1,234' → 1.234 (DEĞİŞMEZ, binlik değil)", () => {
+    expect(sayiOku('1,234')).toBeCloseTo(1.234, 10);
+  });
+  it('yalnız virgüllü küçük ondalıkları okur', () => {
+    expect(sayiOku('0,5')).toBeCloseTo(0.5, 10);
+    expect(sayiOku('1,5')).toBeCloseTo(1.5, 10);
+  });
+  it('negatif yalnız virgüllü ondalıkta işareti korur', () => {
+    expect(sayiOku('-1,234')).toBeCloseTo(-1.234, 10);
+  });
+  it('iki ayraç birlikteyse sondaki ondalıktır (virgül sonda)', () => {
+    expect(sayiOku('1.234,5')).toBeCloseTo(1234.5, 10);
+    expect(sayiOku('1.234.567,89')).toBeCloseTo(1234567.89, 6);
+  });
+  it('iki ayraç birlikteyse sondaki ondalıktır (nokta sonda)', () => {
+    expect(sayiOku('1,234.5')).toBeCloseTo(1234.5, 10);
+    expect(sayiOku('1,234,567.89')).toBeCloseTo(1234567.89, 6);
+  });
+  it('çok gruplu noktayı binlik sayar', () => {
+    expect(sayiOku('12.345.678')).toBe(12345678);
+  });
+  it('üç haneli olmayan nokta grubunu ondalık sayar', () => {
+    expect(sayiOku('1.2345')).toBeCloseTo(1.2345, 10);
+  });
+  it('baş grubu 4 haneli noktalı girdiyi ondalık sayar', () => {
+    expect(sayiOku('1234.567')).toBeCloseTo(1234.567, 10);
+  });
+  it('araya giren boşluğu atar', () => {
+    expect(sayiOku('1 234,5')).toBeCloseTo(1234.5, 10);
+  });
+  it('yüzde ve lira işaretiyle birlikte okur', () => {
+    expect(sayiOku('12,5%')).toBeCloseTo(12.5, 10);
+    expect(sayiOku('₺1.234,50')).toBeCloseTo(1234.5, 10);
+  });
+
+  /* Yeni davranış: yalnız virgül + birden çok 3 haneli grup → binlik. */
+  it("çok gruplu yalnız virgülü binlik sayar: '1,234,567' → 1234567", () => {
+    expect(sayiOku('1,234,567')).toBe(1234567);
+  });
+  it('dört gruplu yalnız virgülü binlik sayar', () => {
+    expect(sayiOku('1,234,567,890')).toBe(1234567890);
+  });
+  it('negatif çok gruplu virgülü binlik sayar', () => {
+    expect(sayiOku('-1,234,567')).toBe(-1234567);
+  });
+  it('baş grubu 2 haneli çok gruplu virgülü binlik sayar', () => {
+    expect(sayiOku('12,345,678')).toBe(12345678);
+  });
+  it('lira işaretli çok gruplu virgülü binlik sayar', () => {
+    expect(sayiOku('₺1,234,567')).toBe(1234567);
+  });
+  it("tek 3 haneli virgül grubu hâlâ ondalıktır: '1,234' → 1.234 (binliğe genişletme tek grubu ETKİLEMEZ)", () => {
+    expect(sayiOku('1,234')).toBeCloseTo(1.234, 10);
+    expect(sayiOku('1,234')).not.toBe(1234);
+  });
+  it("düzensiz gruplu virgül binlik sayılmaz: '1,23,456' → NaN", () => {
+    expect(sayiOku('1,23,456')).toBeNaN();
+  });
+  it("baş grubu 4 haneli çok gruplu virgül binlik sayılmaz: '1234,567,890' → NaN", () => {
+    expect(sayiOku('1234,567,890')).toBeNaN();
+  });
 });
 
 describe('sutunToplam', () => {
   it('okunamayan hücreyi atlayarak toplar', () => {
     expect(sutunToplam({ satirlar: [['1.000,50'], ['x'], ['2']] }, 0)).toBe(1002.5);
+  });
+  it("tek ayraç sözleşmesi: '1,234' (1.234) ile '1.234' (1234) birlikte 1235.234 toplar", () => {
+    expect(sutunToplam({ satirlar: [['1,234'], ['1.234']] }, 0)).toBeCloseTo(1235.234, 10);
   });
   it('boş satır listesi için 0 döner', () => {
     expect(sutunToplam({ satirlar: [] }, 0)).toBe(0);
