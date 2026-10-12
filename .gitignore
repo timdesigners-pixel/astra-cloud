@@ -3,3 +3,9 @@ dist
 .env
 .env.*
 !.env.example
+
+# Claude pipeline cikti ve onbellek dosyalari
+.claude/output/*/*
+!.claude/output/*/.gitkeep
+.claude/.cache/
+.claude/memory/usage.jsonl
