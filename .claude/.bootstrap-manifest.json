@@ -1,0 +1,152 @@
+{
+  "version": "9.2.0",
+  "generated": "2026-10-12T09:41:55Z",
+  "files": {
+    "agents/analyst.md": {
+      "source": "template"
+    },
+    "agents/api-documenter.md": {
+      "source": "user"
+    },
+    "agents/devops.md": {
+      "source": "template"
+    },
+    "agents/migration-manager.md": {
+      "source": "user"
+    },
+    "agents/node-architect.md": {
+      "source": "template"
+    },
+    "agents/node-developer.md": {
+      "source": "template"
+    },
+    "agents/node-reviewer.md": {
+      "source": "template"
+    },
+    "agents/node-test-developer.md": {
+      "source": "template"
+    },
+    "agents/performance-engineer.md": {
+      "source": "user"
+    },
+    "agents/qa-engineer.md": {
+      "source": "template"
+    },
+    "agents/storage-architect.md": {
+      "source": "template"
+    },
+    "skills/architecture/SKILL.md": {
+      "source": "template"
+    },
+    "skills/caching/SKILL.md": {
+      "source": "user"
+    },
+    "skills/code-style/SKILL.md": {
+      "source": "template"
+    },
+    "skills/logging/SKILL.md": {
+      "source": "user"
+    },
+    "skills/memory/SKILL.md": {
+      "source": "template"
+    },
+    "skills/monitoring/SKILL.md": {
+      "source": "user"
+    },
+    "skills/notifications/SKILL.md": {
+      "source": "user"
+    },
+    "skills/p/SKILL.md": {
+      "source": "template"
+    },
+    "skills/pipeline/SKILL.md": {
+      "source": "template"
+    },
+    "skills/playwright/SKILL.md": {
+      "source": "user"
+    },
+    "skills/storage/SKILL.md": {
+      "source": "template"
+    },
+    "skills/testing/SKILL.md": {
+      "source": "template"
+    },
+    "pipelines/api-docs.md": {
+      "source": "template"
+    },
+    "pipelines/brainstorm.md": {
+      "source": "template"
+    },
+    "pipelines/deploy.md": {
+      "source": "user"
+    },
+    "pipelines/fix-code.md": {
+      "source": "template"
+    },
+    "pipelines/full-feature.md": {
+      "source": "template"
+    },
+    "pipelines/generate-types.md": {
+      "source": "user"
+    },
+    "pipelines/migration.md": {
+      "source": "user"
+    },
+    "pipelines/new-code.md": {
+      "source": "template"
+    },
+    "pipelines/qa-docs.md": {
+      "source": "template"
+    },
+    "pipelines/review.md": {
+      "source": "template"
+    },
+    "pipelines/seed-data.md": {
+      "source": "user"
+    },
+    "pipelines/tests.md": {
+      "source": "template"
+    },
+    "scripts/verify-bootstrap.sh": {
+      "source": "template"
+    }
+  },
+  "hashes": {
+    "agents/analyst.md": "sha256:905b5b25d6dcb525e3b9df9b54ed49a2090bc8117dd4a68c163e97a750d53d36",
+    "agents/api-documenter.md": "sha256:7a38fd06bce5d0aa7b3349b181bac611c17d3bde436428509a1d6d17577303f2",
+    "agents/devops.md": "sha256:b2e21f9c9d0fd8f09ac11bc95615aae2fe5e0118f03a9e720d34d8705968635f",
+    "agents/migration-manager.md": "sha256:09366f47593ed65878251232293fa9f048456c37aec9fbe9d8329952dc11ce95",
+    "agents/node-architect.md": "sha256:0820ec087d4c7a1d665f9703375051191668da310c7db9cdee0e0944bec09afc",
+    "agents/node-developer.md": "sha256:08d98e60e5bc2a41af311ab8d2169d4f308c092d56428bf374487b5cce43bae3",
+    "agents/node-reviewer.md": "sha256:40864d34890d2dadb6ac5a8570c9661cdc95b1637370f8849077cd0a1ee35bba",
+    "agents/node-test-developer.md": "sha256:f906eea5671eebde5b9009d13557dd83064538c2c559a12e1f028fe96e2b11e7",
+    "agents/performance-engineer.md": "sha256:f46566d110177b5adddea08105fef303ca5404673fff90ead1fa938c83d18cc2",
+    "agents/qa-engineer.md": "sha256:24ffd2881a49cfbb006ba0dc686ed9fbf4cbec7febbf43082a55dcfd87109114",
+    "agents/storage-architect.md": "sha256:03fe6c83dc93cf0d7edfaa1eea40e566a06d031d33e4f6b923ac12ecd1cb88f8",
+    "skills/architecture/SKILL.md": "sha256:f6ed646d02a64f7f816a973a27c8ab40c10005e8e3d791dc134967a589243a0f",
+    "skills/caching/SKILL.md": "sha256:efcf079a696ed11c9ea891430bb59b0ace9a8284786a40fb825fed0aabf905e8",
+    "skills/code-style/SKILL.md": "sha256:df18e47f506d868f5be3fe03adeb07a474db5757fe467068ded3459828a2d685",
+    "skills/logging/SKILL.md": "sha256:2e995ad5d4749d60df99f17c41cf03c745a02d6b085374fa39ad5df241b1511d",
+    "skills/memory/SKILL.md": "sha256:558bff228299bf553126c11ab18735c7dc3858bfaee0d5e7845dd6fbc9d92372",
+    "skills/monitoring/SKILL.md": "sha256:28662c4e40d9bca86f98a4a5c9a3de87d39f6eded6aadb571da0a8a6c41f7da5",
+    "skills/notifications/SKILL.md": "sha256:2d40e0946f4670e7b3963cbdf5b4db96d42a414354e6edbc58cdaf3d943c4686",
+    "skills/p/SKILL.md": "sha256:2e432581e4687d8b14434a7eadd15cca42affb517deedae7deaca882e4200fb5",
+    "skills/pipeline/SKILL.md": "sha256:25a0c2cb8c0d09b54ca0a47f0949d28a4122d031290e7d734fcf016b1574e858",
+    "skills/playwright/SKILL.md": "sha256:af5f1590e3ced234cc1d2da8b4418da6305b930ff132b255b4fb9b87592e9cda",
+    "skills/storage/SKILL.md": "sha256:dcd7a8aeb8390537aa4f50233f41bc686c23a70af1efe8bdbb1bf20d488bf2bd",
+    "skills/testing/SKILL.md": "sha256:edf4ecb9d553d280f59b160ff837cb8df68bef0660fbd9191fa256b7dfcb6eb9",
+    "pipelines/api-docs.md": "sha256:6e746296717ee87f2d4feb092ba4b58bcdaa3781f4eb03d9a0d6e968495c31f4",
+    "pipelines/brainstorm.md": "sha256:d2bf9ee46521fdab6a108be5bbff17b1e801958f6477bd0a2372840aad5e1833",
+    "pipelines/deploy.md": "sha256:98ecbf692aa7596cfdef3847792d1889d96dac111cee2f9ce445fc9b8e7c9d68",
+    "pipelines/fix-code.md": "sha256:52deefe8cfb9f0c918ca7bfe20f53c3d8e3f031aa06c93afc568ec5241abb085",
+    "pipelines/full-feature.md": "sha256:622d721d7318779a828db341385ebe4b88f8b97f60430699ebe0ff2e17f236e2",
+    "pipelines/generate-types.md": "sha256:0ffafe1cef019a8f054a0581e66001461975e29c92c963a6a3beb966a84df5ce",
+    "pipelines/migration.md": "sha256:bd5b225eab3488dea31680721e6939264081c8b53e655764b8159dd952fb0ff5",
+    "pipelines/new-code.md": "sha256:db465979f838c7127af4524b2ccfd0a6e20490de7102ae635d044014185978c9",
+    "pipelines/qa-docs.md": "sha256:951b1ac26329e3653d9c56392473cb9d2b640251d24bdc6c950b784e9a9d8e3d",
+    "pipelines/review.md": "sha256:f55359fa19b2afae5d7e57d9d51924301f0ba88906664fb912fa5ecb5b89c7b5",
+    "pipelines/seed-data.md": "sha256:0b5f1966f409c0d36431a74a8220fbd24ddb1cc471a7c304a438717be5a72f02",
+    "pipelines/tests.md": "sha256:4bd5a9a3c40bcd6c79c9d61dbe6101829ff4689ddc617106b27a0d18559995f0",
+    "scripts/verify-bootstrap.sh": "sha256:4b214327818481bd463bd5aa01bc9e71ab536d2864303b0208d36a0aaa13740c"
+  }
+}

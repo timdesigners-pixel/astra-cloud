@@ -1,0 +1,84 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write",
+      "Edit",
+      "Read(.claude/**)",
+      "Edit(.claude/**)",
+      "WebSearch",
+      "WebFetch",
+      "Bash(wc:*)",
+      "Bash(sort:*)",
+      "Bash(du:*)",
+      "Bash(touch:*)",
+      "Bash(test:*)",
+      "Bash(mkdir:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git fetch:*)",
+      "Bash(git reset:*)",
+      "Bash(git checkout:*)",
+      "Bash(git clean:*)",
+      "Bash(git branch -D:*)",
+      "Bash(git stash:*)",
+      "Bash(make:*)",
+      "Bash(curl:*)",
+      "Bash(chmod:*)",
+      "Bash(bash:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(pnpm:*)",
+      "Bash(tsc:*)",
+      "mcp__github__*",
+      "mcp__plugin_playwright_playwright__*",
+      "mcp__plugin_context7_context7__*"
+    ],
+    "deny": [
+      "Bash(*npm install -g*)",
+      "Bash(*npm i -g*)",
+      "Bash(*yarn global add*)",
+      "Bash(*pnpm add -g*)",
+      "Bash(*curl*|*bash*)",
+      "Bash(*curl*|*sh*)",
+      "Bash(*wget*|*bash*)",
+      "Bash(*wget*|*sh*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Task|Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/scripts/hooks/track-agent.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/scripts/hooks/maintain-memory.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/scripts/hooks/update-schema.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
