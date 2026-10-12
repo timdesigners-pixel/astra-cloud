@@ -1,0 +1,25 @@
+{
+  "pipeline": "tests",
+  "task": "vitest-kurulumu",
+  "mode": "sequential",
+  "started_at": "2026-10-12T00:00:00Z",
+  "phases": {
+    "1": {
+      "name": "ANALYZE",
+      "status": "completed"
+    },
+    "2": {
+      "name": "GENERATE",
+      "status": "completed"
+    },
+    "3": {
+      "name": "VERIFY",
+      "status": "completed"
+    },
+    "4": {
+      "name": "REVIEW",
+      "status": "completed"
+    }
+  },
+  "status": "done"
+}
