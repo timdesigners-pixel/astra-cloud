@@ -8,7 +8,7 @@ user-invocable: false
 
 ## Node
 
-> **Состояние:** тестовой инфраструктуры пока нет (`test_frameworks`/`test_cmds` пусты, `frontend_test: none`). CI (`.github/workflows/ci.yml`) запускает только `pnpm tip` (tsc) и `pnpm build`. Пакет `packages/ortak-test` зарезервирован под общие тест-хелперы (seed-данные, фиксированное время, golden), сейчас — заглушка.
+> **Состояние:** Vitest подключён (`vitest` ^3.2.4 в `apps/web`, конфиг `apps/web/vitest.config.ts`, TZ=Europe/Istanbul). Скрипты: `pnpm test` (корень → `pnpm -r run test`), `pnpm --filter @astra/web test:izle` (watch). CI (`.github/workflows/ci.yml`): `pnpm tip` → `pnpm test` → `pnpm build`. Пример: `ozellikler/zihin/tablo-hesap.test.ts`. Coverage и DOM-окружение пока не подключены. Пакет `packages/ortak-test` зарезервирован под общие тест-хелперы, сейчас — заглушка.
 
 ### Фреймворк (рекомендуемый)
 - Test runner: **Vitest** (нативен для Vite, ESM/TS без доп. настройки)
@@ -17,10 +17,10 @@ user-invocable: false
 - Coverage: `@vitest/coverage-v8` (только после согласования зависимости)
 - DOM-окружение (если нужно): `happy-dom` через `// @vitest-environment happy-dom` (после согласования)
 
-Подключение при первом тесте: `vitest` в devDependencies пакета, скрипт `"test": "vitest run"`, в корне `"test": "pnpm -r run test"`; добавить шаг `pnpm test` в CI.
+Подключение уже выполнено (см. Состояние); новые тесты кладутся рядом с модулем как `<modul>.test.ts`.
 
 ### Команды
-- Запуск всех: `pnpm test` (после подключения) или `pnpm --filter @astra/web exec vitest run`
+- Запуск всех: `pnpm test` или `pnpm --filter @astra/web exec vitest run`
 - Один файл: `pnpm --filter @astra/web exec vitest run src/ozellikler/kayit/ozet-hesap.test.ts`
 - С coverage: `pnpm --filter @astra/web exec vitest run --coverage`
 - Watch: `pnpm --filter @astra/web exec vitest`

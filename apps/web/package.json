@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 3000",
     "build": "vite build",
-    "tip": "tsc -p ."
+    "tip": "tsc -p .",
+    "test": "vitest run",
+    "test:izle": "vitest"
   },
   "dependencies": {
     "@astra/alan": "workspace:*",
@@ -14,6 +16,7 @@
     "@supabase/supabase-js": "^2"
   },
   "devDependencies": {
-    "vite": "^7.0.0"
+    "vite": "^7.0.0",
+    "vitest": "^3.2.4"
   }
 }

@@ -8,7 +8,7 @@
 
 ## Key Paths
 - Source: apps/web/src, packages/*/src
-- Tests: packages/ortak-test/src
+- Tests: Vitest (apps/web/vitest.config.ts), тесты рядом с модулем `*.test.ts`; общие хелперы — packages/ortak-test/src; запуск `pnpm test`
 - Migrations: supabase/migrations
 
 ## Active Decisions
@@ -18,4 +18,4 @@
 —
 
 ## Last Updated
-2026-10-12
+2026-10-12 (vitest-kurulumu)
