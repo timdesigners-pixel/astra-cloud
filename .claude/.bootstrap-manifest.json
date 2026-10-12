@@ -1,6 +1,6 @@
 {
   "version": "9.2.0",
-  "generated": "2026-10-12T09:41:55Z",
+  "generated": "2026-10-12T10:08:16Z",
   "files": {
     "agents/analyst.md": {
       "source": "template"
@@ -134,7 +134,7 @@
     "skills/pipeline/SKILL.md": "sha256:25a0c2cb8c0d09b54ca0a47f0949d28a4122d031290e7d734fcf016b1574e858",
     "skills/playwright/SKILL.md": "sha256:af5f1590e3ced234cc1d2da8b4418da6305b930ff132b255b4fb9b87592e9cda",
     "skills/storage/SKILL.md": "sha256:dcd7a8aeb8390537aa4f50233f41bc686c23a70af1efe8bdbb1bf20d488bf2bd",
-    "skills/testing/SKILL.md": "sha256:edf4ecb9d553d280f59b160ff837cb8df68bef0660fbd9191fa256b7dfcb6eb9",
+    "skills/testing/SKILL.md": "sha256:f27f1050374997983e647bfbb452544543e8118e2e197d335bdc97535b51bc3c",
     "pipelines/api-docs.md": "sha256:6e746296717ee87f2d4feb092ba4b58bcdaa3781f4eb03d9a0d6e968495c31f4",
     "pipelines/brainstorm.md": "sha256:d2bf9ee46521fdab6a108be5bbff17b1e801958f6477bd0a2372840aad5e1833",
     "pipelines/deploy.md": "sha256:98ecbf692aa7596cfdef3847792d1889d96dac111cee2f9ce445fc9b8e7c9d68",

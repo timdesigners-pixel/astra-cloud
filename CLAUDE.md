@@ -4,13 +4,14 @@
 **astra-cloud** (ASTRA FİNANS OS v15) — персональная "финансовая ОС" одного владельца (single-tenant, вход по PIN).
 pnpm monorepo: SPA на vanilla TypeScript (strict) + Vite 7 без UI-фреймворка (`apps/web`), Vercel Serverless API (`apps/web/api/*.js`),
 Supabase (Postgres + RLS + pgcrypto, Auth, Storage, Deno Edge Functions `pin-giris`, `saglik-esitle`). Деплой — Vercel Git-интеграция,
-CI — GitHub Actions (`pnpm tip` + `pnpm build`). Решения фиксируются в `docs/KARAR-KAYDI.md`.
+CI — GitHub Actions (`pnpm tip` + `pnpm test` + `pnpm build`). Решения фиксируются в `docs/KARAR-KAYDI.md`.
 
 ## Commands
 - `pnpm install` — установка зависимостей (pnpm 10, Node 22)
 - `pnpm dev` — dev-сервер Vite (`@astra/web`, 0.0.0.0:3000)
 - `pnpm build` — production-сборка фронтенда
 - `pnpm tip` — проверка типов (`tsc -p .` во всех пакетах; то же выполняет CI)
+- `pnpm test` — тесты Vitest (`vitest run` в `apps/web`; CI: tip → test → build)
 
 ## Architecture
 - `apps/web/src/` — SPA: `kapi/` (PIN-ворота, версия), `kabuk/` (оболочка, меню, роутер `?tab=`), `ozellikler/<feature>/` (страницы + `*-hesap.ts`), `veri/` (data-access, Supabase-клиент), `ortak/` (UI-утилиты), `stiller/` (CSS)
@@ -110,7 +111,7 @@ CI — GitHub Actions (`pnpm tip` + `pnpm build`). Решения фиксиру
 
 ## Key Paths
 - Source: `apps/web/src/` (API: `apps/web/api/`, Edge Functions: `supabase/functions/`, пакеты: `packages/`)
-- Tests: тестов пока нет (рекомендуется `apps/web/src/**/*.test.ts` + `packages/ortak-test/`)
+- Tests: Vitest — `apps/web/src/**/*.test.ts` рядом с кодом (`apps/web/vitest.config.ts`); общие хелперы — `packages/ortak-test/`
 - Database: `supabase/migrations/`
 - Memory: `.claude/memory/`
 - Pipelines: `.claude/pipelines/`
