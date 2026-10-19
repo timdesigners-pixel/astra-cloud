@@ -1,0 +1,19 @@
+{
+  "name": "@astra/aktarim",
+  "version": "15.0.0",
+  "private": true,
+  "type": "module",
+  "description": "ASTRA-OS verisini astra-cloud'a aktaran komut satırı aracı (kuru çalıştırma varsayılan)",
+  "engines": { "node": ">=22.6" },
+  "scripts": {
+    "aktar": "node --experimental-strip-types src/cli.ts",
+    "tip": "tsc -p .",
+    "test": "vitest run",
+    "test:izle": "vitest"
+  },
+  "devDependencies": {
+    "@astra/ortak-test": "workspace:*",
+    "@types/node": "^22.0.0",
+    "vitest": "^3.2.4"
+  }
+}

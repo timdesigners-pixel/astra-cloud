@@ -1,0 +1,6 @@
+# Aktarım girdi/yedek/durum dosyaları ve raporlar depoya girmez (kişisel finans verisi olabilir)
+*.yedek.json
+*.durum.json
+astra-*.json
+aktarim-rapor*.json
+rapor/
