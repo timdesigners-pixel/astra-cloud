@@ -92,11 +92,7 @@ mark[data-renk="mor"]{background:color-mix(in srgb, var(--violet) 32%, transpare
 .zg-nokta button.on{background:var(--gold); width:18px; border-radius:var(--r-xs)}
 .zg-sayac{position:absolute; top:8px; right:10px; font-size:var(--fs-1); padding:2px 7px; border-radius:var(--r-md); background:color-mix(in srgb, var(--bg) 75%, transparent); color:var(--txt)}
 
-/* ---- liste kartı ---- */
-  background:linear-gradient(90deg, color-mix(in srgb, var(--gold) 7%, transparent), transparent 60%)}
-
 /* ---- görev sayfası ---- */
-  padding:18px 34px 80px; box-shadow:-24px 0 64px -20px rgba(0,0,0,.8); color:var(--txt)}
 .tp-baslik-satir{display:flex; align-items:center; gap:10px; margin:6px 0 10px}
 .tp-simge{width:46px; height:46px; flex:0 0 auto; border-radius:var(--r-sm); border:1px dashed var(--line2); background:var(--surface); color:var(--gold); font-size:22px; cursor:pointer; font-family:var(--f-mono)}
 .tp-baslik{flex:1; min-width:0; font-size:var(--fs-7); font-weight:700; background:transparent; border:0; border-bottom:1px solid transparent; color:var(--txt); padding:4px 0}
