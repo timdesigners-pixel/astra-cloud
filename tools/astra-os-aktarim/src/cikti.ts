@@ -1,7 +1,7 @@
 /* TEK ÇIKTI KAPISI: `console.*` ve `process.stdout` yalnız bu dosyada kullanılır (katman testi tarar). Kabul edilen içerik:
    doğrulanmış `Rapor` (beyaz liste), süzülmüş `GuvenliHata`, `Ilerleme` (sayı/aşama). Serbest metin kabul edilmez.
    Son savunma: çıktı metninde IBAN biçimi bulunursa yazılmaz (SIZINTI_ENGELLENDI; hata metni değer içermez). */
-import { writeFileSync } from 'node:fs';
+import { closeSync, fchmodSync, openSync, writeFileSync } from 'node:fs';
 import type { GuvenliHata } from './guvenlik/sir-koruma.ts';
 import { raporJsonu, raporMetni } from './rapor/rapor-metni.ts';
 import type { Rapor } from './rapor/rapor-sema.ts';
@@ -51,7 +51,15 @@ export function raporYazdir(rapor: Rapor, json: boolean): void {
 export function raporDosyasiYaz(yol: string, rapor: Rapor): void {
   const metin = raporJsonu(rapor);
   if (IBAN_BICIMI.test(metin.replace(/\s+/g, ' '))) throw new CiktiHatasi();
-  writeFileSync(yol, `${metin}\n`, { encoding: 'utf8', mode: 0o600 });
+  /* `mode` yalnız yeni dosyada geçerli: var olan (ör. 0644) dosyanın iznini de sıkılaştır.
+     Yol yerine açık tanıtıcı (fd) üzerinden `fchmodSync`: yazmadan ÖNCE izin daraltılır, yol yarışı olmaz. */
+  const fd = openSync(yol, 'w', 0o600);
+  try {
+    fchmodSync(fd, 0o600);
+    writeFileSync(fd, `${metin}\n`, { encoding: 'utf8' });
+  } finally {
+    closeSync(fd);
+  }
 }
 
 export function hataYazdir(hata: GuvenliHata): void {

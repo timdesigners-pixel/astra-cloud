@@ -20,14 +20,19 @@ export function girdiCoz(metin: string): SemaSonucu {
   if (temiz === '') throw new GirdiHatasi('GIRDI_BOS');
   let kok: unknown = jsonCoz(temiz);
 
-  for (let derinlik = 0; derinlik < AZAMI_ZARF_DERINLIGI; derinlik++) {
+  /* En çok AZAMI_ZARF_DERINLIGI açma adımı; dördüncü adımın sonucu da denetlenir (bu yüzden <=).
+     Son turda yalnız denetim yapılır, yeni açma denenirse sınır aşılmış sayılır (sonsuz iç içe zarf). */
+  for (let derinlik = 0; derinlik <= AZAMI_ZARF_DERINLIGI; derinlik++) {
+    const acilabilir = derinlik < AZAMI_ZARF_DERINLIGI;
     /* jsonb metin olarak dışa aktarılmış olabilir: JSON içinde JSON metni. */
     if (typeof kok === 'string') {
+      if (!acilabilir) break;
       kok = jsonCoz(kok);
       continue;
     }
     /* SQL/REST çıktısı tek satırlık dizi olabilir: [{durum: S}]. */
     if (Array.isArray(kok) && kok.length === 1) {
+      if (!acilabilir) break;
       kok = kok[0];
       continue;
     }
@@ -35,6 +40,7 @@ export function girdiCoz(metin: string): SemaSonucu {
 
     if (kok.v === 1 || kok.v === 2) throw new GirdiHatasi('SIFRELI_GIRDI');
     if (semaKokuMu(kok)) return semaAyristir(kok);
+    if (!acilabilir) break;
 
     if (kok.v === 0 && (typeof kok.m === 'string' || duzNesneMi(kok.m))) {
       kok = kok.m;
