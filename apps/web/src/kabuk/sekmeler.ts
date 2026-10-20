@@ -51,7 +51,7 @@ export const HUBLAR: Hub[] = [
     { ad: 'Uygulamalar', sekmeler: [
       s('hub', '⌘', 'Tüm Uygulamalar'),
       s('app-odeme', '▤', 'Ödeme Raporu'), s('app-hesapyon', '▩', 'Hesap Yöneticisi'), s('app-bahis', '♠', 'Bahis Dünyası'),
-      s('app-marketliste', '⊞', 'Market Listesi'), s('app-karsilama', '☀', 'Günlük Karşılama'), s('app-ilgi', '★', 'İlgi Çekici Ürünler'),
+      s('app-marketliste', '⊞', 'Market Listesi'), s('app-karsilama', '☀', 'Günlük Karşılama'),
       s('app-tasarim', '✎', 'Tasarım Atölyesi'), s('app-dosya', '▦', 'Dosya Yöneticisi'), s('app-telrehber', '☎', 'Telefon Rehberi'),
       s('app-kutuphane', '❏', 'Bilgi Kütüphanesi'), s('app-oynatma', '▶', 'Oynatma Listelerim'), s('app-pinterest', '✧', 'Pinterest Panolarım'),
     ] },
@@ -68,7 +68,7 @@ const ESKI_ADLAR: Record<string, string> = {
   plan: 'e-alinacak', odemeplan: 'o-takvim', market: 'e-market', todo: 'n-todo', sirada: 'm-danisman', veri: 'sistem',
   asistan: 'm-asistan', saglik: 's-ozet', tahlil: 's-tahlil', cihaz: 's-cihaz',
   odeme: 'app-odeme', tasarim: 'app-tasarim', karsilama: 'app-karsilama', telrehber: 'app-telrehber', oynatma: 'app-oynatma',
-  pinterest: 'app-pinterest', ilgi: 'app-ilgi', dosya: 'app-dosya', marketliste: 'app-marketliste', kutuphane: 'app-kutuphane',
+  pinterest: 'app-pinterest', ilgi: 'h-begen', 'app-ilgi': 'h-begen', dosya: 'app-dosya', marketliste: 'app-marketliste', kutuphane: 'app-kutuphane',
   bahis: 'app-bahis', hesapyon: 'app-hesapyon',
 };
 

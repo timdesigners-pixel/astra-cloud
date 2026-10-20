@@ -13,8 +13,6 @@ export const UYGULAMALAR: Uygulama[] = [
     not: 'Alışveriş listesi; yakındaki marketlerde en uygun fiyat.' },
   { kod: 'karsilama', sekme: 'app-karsilama', ad: 'Günlük Karşılama', yol: 'apps/gunluk-karsilama/index.html',
     not: 'Hava, döviz, görevler, saatlik ajanda, sağlık ve bütçe panosu.' },
-  { kod: 'ilgi', sekme: 'app-ilgi', ad: 'İlgi Çekici Ürünler', yol: 'apps/ilgi-urunler/index.html',
-    not: 'Takip edilen ürünler. Aynı ürünler ve veriler artık Hayaller ve Hedefler › Beğendiğim Ürünler sayfasında; burası eski görünümdür.' },
   { kod: 'tasarim', sekme: 'app-tasarim', ad: 'Tasarım Atölyesi', yol: 'apps/tasarim-atolyesi/index.html', izin: 'clipboard-write *',
     not: 'Tasarım görsellerini HTML + Tailwind bileşenlerine dönüştüren atölye.' },
   { kod: 'dosya', sekme: 'app-dosya', ad: 'Dosya Yöneticisi', yol: 'apps/dosya-yoneticisi/index.html',

@@ -4,6 +4,17 @@ export type SurumKaydi = { surum: string; tarih: string; baslik: string; eklenen
 
 export const SURUM_GECMISI: SurumKaydi[] = [
   {
+    surum: 'v15.8.1', tarih: '2026-10-20', baslik: 'İlgi Çekici Ürünler menüden kalktı, sayı okuma düzeltmesi',
+    eklenenler: [],
+    yapilanlar: [
+      'İlgi Çekici Ürünler uygulaması menüden kaldırıldı; veri Beğendiğim Ürünler sayfasında, eski adres bu sayfaya yönlenir',
+      'Zihin tablolarında sayı okuma: birden çok binlik gruplu yazım (1,234,567) artık 1234567 okunur; 1,234 eskisi gibi kalır',
+      'Zihin Sarayı stil dosyasındaki sahipsiz artıklar temizlendi (derleme uyarısı giderildi)',
+      'Vitest test altyapısı kuruldu',
+      'Eski sistemden veri aktarım aracı (tools/astra-os-aktarim) eklendi; canlı veriyle henüz çalıştırılmadı',
+    ],
+  },
+  {
     surum: 'v15.8.0', tarih: '2026-10-09', baslik: 'E-posta: çoklu hesap, süzgeç, etiketleme ve otomatik etiketleyici',
     eklenenler: [
       'E-posta menüsü: E-posta Kutusu, Otomatik Etiketleyici ve Fatura Tarayıcı',

@@ -45,11 +45,12 @@
 
 ## Modül Merkezi ve uygulamalar
 - "AI & Teknoloji Üssü" kaldırıldı; AI Danışman & Ses, Dashboard merkezine taşındı.
-- Modül Merkezi üst menü merkezidir: Tüm Uygulamalar sayfası ve 12 uygulama sayfası. Eski `?tab=karsilama` gibi adresler yeni adlara yönlenir.
+- Modül Merkezi üst menü merkezidir: Tüm Uygulamalar sayfası ve 11 uygulama sayfası (sayı `UYGULAMALAR` dizisinden gelir). Eski `?tab=karsilama` gibi adresler yeni adlara yönlenir.
+- İlgi Çekici Ürünler uygulaması menüden ve katalogtan kaldırıldı; veri Beğendiğim Ürünler'de (`begeniler`). Eski `?tab=ilgi` ve `?tab=app-ilgi` adresleri Beğendiğim Ürünler sayfasına (`h-begen`) yönlenir. `public/apps/ilgi-urunler/` klasörü olduğu gibi duruyor, `uygulama_durumu` kayıtlarına dokunulmadı.
 - Uygulamalar `public/apps/` altında, kaynak dosyalar değiştirilmeden; her biri sandbox çerçevede çalışır (allow-same-origin yok).
 - Uygulama kayıtları `uygulama_durumu` tablosunda şifreli tutulur; istemci tabloya değil yalnız `uygulama_durumu_oku/yaz/sil` işlevlerine erişir.
 - Servis uçları (market fiyatı, Gemini) yeni sunucuda henüz yok; köprü "servis bağlı değil" yanıtı verir.
-- Geçici bağımlılıklar: oynatma/pinterest verisi, dosya yöneticisi, telefon rehberi ve ilgi ürünleri eski projenin depolamasından okur.
+- Eski proje bağımlılığı: ilgi ürünleri menüden kaldırıldı (eski proje adresi yalnız kullanılmayan `public/apps/ilgi-urunler/` dosyasında kalır). Telefon rehberi, dosya yöneticisi ve oynatma/pinterest kodu yeni projeye yönlendirildi (`vercel.json` yeniden yazımı); yeni projedeki `apps` ve `dosyalar` kovalarının dolu olduğu henüz doğrulanmadı. Oynatma/pinterest dosyaları `tools/astra-os-aktarim` `statik-yukle` komutuyla yüklenecek (henüz çalıştırılmadı).
 
 ## Onaylanan menü ve veri planı
 - Menü 12 merkez ve onaylanan sayfalar olarak yeniden kuruldu; eski adresler yeni sayfalara yönlenir.
