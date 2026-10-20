@@ -3,4 +3,4 @@
 *.durum.json
 astra-*.json
 aktarim-rapor*.json
-rapor/
+/rapor/
