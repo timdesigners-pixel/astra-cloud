@@ -4,5 +4,8 @@
   "private": true,
   "type": "module",
   "main": "src/index.ts",
-  "scripts": { "tip": "tsc -p ." }
+  "scripts": { "tip": "tsc -p .", "test": "vitest run" },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
 }
