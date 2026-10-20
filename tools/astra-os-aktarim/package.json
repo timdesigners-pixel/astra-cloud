@@ -11,6 +11,9 @@
     "test": "vitest run",
     "test:izle": "vitest"
   },
+  "dependencies": {
+    "@supabase/supabase-js": "^2"
+  },
   "devDependencies": {
     "@astra/ortak-test": "workspace:*",
     "@types/node": "^22.0.0",
