@@ -2,13 +2,13 @@
 
 ASTRA-OS verisini astra-cloud (Supabase) tarafına aktaran komut satırı aracı. **Kuru çalıştırma varsayılandır**; gerçek yazma yalnız kuru çalıştırmanın ürettiği onay koduyla yapılır. Plan: `.claude/output/plans/astra-os-veri-entegrasyonu.md`.
 
-Şu an **dalga a** (uygulama durumları + `begeniler`) çalışır. Dalga b (finans) ve c (hukuk) dönüştürücüleri ve yazıcı yöntemleri sonraki görevlerdedir (`DALGA_YAZICI_YOK`). `statik-yukle` T6 görevinde yazılacaktır (komut adı rezerve).
+Şu an **dalga a** (uygulama durumları + `begeniler`) çalışır. Dalga b (finans) ve c (hukuk) dönüştürücüleri ve yazıcı yöntemleri sonraki görevlerdedir (`DALGA_YAZICI_YOK`). `statik-yukle` (Oynatma Listelerim ve Pinterest Panolarım statik JSON'ları → Storage `apps` kovası) çalışır; rehberi aşağıdadır.
 
 ## Güvenlik ilkeleri
 
 - Araç hiçbir kayıt **değerini** (ad, tutar, IBAN, dosya no, parola) çıktıya, rapora, günlüğe veya hata metnine yazmaz; yalnız sayı, sabit kod ve kısa kimlik (onay kodu, aktarım kimliği) yazar. Tek çıktı kapısı `src/cikti.ts`'dir.
 - Kimlik bilgisi yalnız **ortam değişkeninden** (PIN için ayrıca etkileşimli terminalde yankısız istemden) okunur; argümana, dosyaya, rapora yazılmaz. `--pin`, `--parola`, `--token` gibi bayraklar reddedilir.
-- Oturum **kullanıcı oturumudur** (PIN → `pin-giris` → authenticated JWT); servis rolü anahtarı kullanılmaz. Jeton yalnız bellekte durur.
+- Oturum **kullanıcı oturumudur** (PIN → `pin-giris` → authenticated JWT); servis rolü anahtarı yalnız `statik-yukle --onay` komutunda (Storage, veritabanı çağrısı yok) kullanılır. Jeton yalnız bellekte durur.
 - PIN ile giriş **tek denemedir**, otomatik yeniden deneme yoktur (sunucu art arda yanlış denemede hesabı kilitler). Yanlış PIN'de kalan deneme sayısı yazılır.
 - Hedefteki mevcut satır **asla güncellenmez**; yalnız ekleme, eşleşme yazma ve `silindi_at` ile gizleme yapılır.
 - Her ağ isteği 30 sn zaman aşımına tabidir; ilk hatada yazma durur ve o ana kadarki sayılar raporlanır.
@@ -25,7 +25,7 @@ ASTRA-OS verisini astra-cloud (Supabase) tarafına aktaran komut satırı aracı
 | `ASTRA_SUPABASE_ANON` | `yaz`, `dogrula`, `geri-al`, `yetim-tara` | anon (kamusal) anahtar |
 | `ASTRA_PIN` | `yaz`, `dogrula`, `geri-al`, `yetim-tara` | isteğe bağlı; yoksa etkileşimli terminalde yankısız sorulur, etkileşimsiz ortamda `OTURUM_HATASI neden=PIN_YOK` |
 
-`ASTRA_SERVIS_ANAHTARI` yalnız ileride `statik-yukle` için kullanılacaktır; bu komutlar okumaz.
+| `ASTRA_SERVIS_ANAHTARI` | yalnız `statik-yukle --onay` | servis rolü anahtarı; **yalnız ortam değişkeni** (argüman/dosya/rapor yok). Onay kodu doğrulanmadan okunmaz. Bu komutta `ASTRA_SUPABASE_ANON` da tanımlı olmalıdır (ortak ayar okuyucusu ister). Diğer komutlar okumaz. |
 
 ## Girdi dosyası güvenliği (R-9)
 
@@ -65,6 +65,30 @@ Komutlar kökten: `pnpm --filter @astra/aktarim aktar <komut> [seçenekler]` (No
    ```
    `<uuid>`: `yaz` çıktısındaki `aktarim_id`. Eşleşmeler ve aracın yazdığı satırlar `silindi_at` ile gizlenir (fiziksel silme yok). **Sahiplenilen satırlara dokunulmaz.** `uygulama_durumu` anahtarları kullanıcı verisi olabileceğinden bayraksız silinmez; yalnız `--uygulama-durumlarini-sil` ile ve yalnız aracın kendi yazdığı anahtarlar silinir. Geri alındıktan sonra aynı kodla yeniden `yaz` satırları yeniden oluşturur (eşleşme güncellenir).
 
+## Çalıştırma rehberi — statik yükleme (`statik-yukle`)
+
+Oynatma Listelerim (`oynatma-listelerim`) ve Pinterest Panolarım (`pinterest-panolarim`) JSON'ları (`hero.json`, `kucuk.json`, `detay/NN.json`) Storage `apps` kovasına, kova içinde aynı yolla yüklenir (`apps/oynatma-listelerim/detay/00.json`). `index.html` dahil değildir (legacy uygulama kodu CL'de zaten var). **Beyaz liste dışı hiçbir yol yüklenmez** (kişisel/finansal belge bu kovaya konmaz; H-12: kova public kalır, içerik kişisel ilgi alanını açığa vurabilir); `..`, mutlak yol, ters bölü ve sembolik bağlantı reddedilir.
+
+1. **Kuru çalıştırma** (varsayılan; ağ ve kimlik yok, hiçbir şey yazılmaz). `--kaynak` eski repo kökü ya da `public/apps` yoludur:
+   ```
+   export ASTRA_SUPABASE_URL=https://<ref>.supabase.co
+   pnpm --filter @astra/aktarim aktar statik-yukle --kaynak ~/astra-os
+   ```
+   Çıktı: uygulama başına dosya/`detay` sayısı ve bayt, toplam, en büyük dosya, kova sınırı (50 MB), yok sayılan girdi sayısı, sorun kodları (`JSON_GECERSIZ`, `BOYUT_SINIRI_ASILDI`, `DOSYA_YOK`, ...) ve `ONAY_KODU ONAY-statik-<12 hex>`. İçerik değeri yazdırılmaz. Sorun varsa onay kodu **verilmez** ve çıkış kodu 1'dir. Beklenen: Oynatma `hero + kucuk + 32 detay` (34), Pinterest `hero + kucuk + 24 detay` (26).
+2. **Onay kodu**; dosya yolu + sha256 + hedef ana makine + araç sürümüne bağlıdır. Dosyalar ya da hedef proje değişirse kod tutmaz.
+3. **Yükleme** (servis anahtarı yalnız ortam değişkeni; bu terminal oturumuyla sınırlı tutun):
+   ```
+   export ASTRA_SUPABASE_ANON=...        # anon anahtar (ortak ayar okuyucusu ister)
+   export ASTRA_SERVIS_ANAHTARI=...      # servis rolü anahtarı; komut satırına/dosyaya YAZMAYIN
+   pnpm --filter @astra/aktarim aktar statik-yukle --kaynak ~/astra-os --onay ONAY-statik-xxxxxxxxxxxx
+   unset ASTRA_SERVIS_ANAHTARI          # İŞ BİTİNCE hemen; gerekirse terminali kapatın
+   ```
+   Yanlış ya da boş kodda **hiçbir yükleme yapılmaz** (servis anahtarı bile okunmaz). Yükleme `upsert:false` iledir: hedefte aynı yolda nesne varsa **ezilmez**, `NESNE_VAR` sayılır; boyut/sha256 farklıysa ayrıca `NESNE_FARKLI` uyarısı verilir (araç yine yazmaz; elle inceleyin). Yüklenen her nesne genel adresten geri indirilip boyut + sha256 doğrulanır; fark ya da hata olursa **ilk hatada durur** ve o ana kadarki sayılar yazılır (`STATIK_YUKLE_YARIM`, çıkış 1). Yeniden çalıştırmak güvenlidir (yüklenenler `NESNE_VAR/ayni` sayılır).
+4. **Doğrulayın**: `YUKLENEN dogrulanan` = `dosya`; `NESNE_VAR farkli=0`. İsterseniz genel adresten bir dosyayı tarayıcıda açın.
+5. **Anahtarı kaldırın**: `unset ASTRA_SERVIS_ANAHTARI`; gerekirse Supabase panelinden anahtarı yenileyin.
+
+**Kapsam dışı (reddedilir, çıkış 2):** `--kova dosyalar` (`KAPSAM_DISI_DOSYALAR_KOVASI`: kaynak depoda yok; kova→kova kopyası ayrı iş) ve `--ilgi` (`KAPSAM_DISI_ILGI`: H-4 ile `ilgi-urunler` menüden kaldırıldı, veri `begeniler`'de).
+
 ### Yetim tarama (çökme penceresi)
 
 Satır yazıldı ama eşleşmesi yazılamadıysa (ağ kopması, zaman aşımı) satır "yetim"dir:
@@ -84,9 +108,9 @@ pnpm --filter @astra/aktarim aktar yetim-tara --yetim-temizle --baslangic <aynı
 | `dogrula` | kaynak–hedef kontrol toplamı; fark → çıkış 1 |
 | `geri-al` | `--aktarim <uuid>` veya `--dalga`; onay kodlu |
 | `yetim-tara` | eşleşmesiz aktarım satırları; `--yetim-temizle` onaylı |
-| `statik-yukle` | rezerve (T6) — çalışmaz, `KOMUT_T6_GOREVI` verir |
+| `statik-yukle` | `--kaynak <yol>`; varsayılan kuru çalıştırma (tarama + `ONAY-statik-...`); `--onay` ile `apps` kovasına yükleme (servis anahtarı) |
 
-Seçenekler: `--girdi <yol>` `--dalga a|b|c` `--ilgi <yol>` `--rapor <yol>` `--onay <kod>` `--aktarim <uuid>` `--uygulama-durumlarini-sil` `--yetim-temizle` `--baslangic <ISO>` `--json` `--sessiz` `--yardim`.
+Seçenekler: `--girdi <yol>` `--kaynak <yol>` `--kova apps` `--dalga a|b|c` `--ilgi <yol>` `--rapor <yol>` `--onay <kod>` `--aktarim <uuid>` `--uygulama-durumlarini-sil` `--yetim-temizle` `--baslangic <ISO>` `--json` `--sessiz` `--yardim`.
 
 Çıkış kodları: **0** başarılı · **1** doğrulama farkı ya da hata · **2** kullanım hatası (bilinmeyen komut/bayrak, eksik ortam değişkeni, eksik zorunlu seçenek).
 

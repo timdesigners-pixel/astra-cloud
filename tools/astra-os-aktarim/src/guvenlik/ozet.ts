@@ -20,6 +20,11 @@ export function sha256Hex(metin: string): string {
   return o.hex();
 }
 
+/* Ham bayt özeti (dosya içeriği): UTF-8 dönüşümü olmadan bayt sadakati; statik yükleme doğrulaması için. */
+export function sha256HexBayt(bayt: Uint8Array): string {
+  return createHash('sha256').update(bayt).digest('hex');
+}
+
 /* Sabit süreli metin eşitliği (onay kodu karşılaştırması). Uzunluk farkı doğrudan false. */
 export function sabitSureliEsitMi(a: string, b: string): boolean {
   const x = Buffer.from(a, 'utf8');

@@ -12,7 +12,12 @@ export type KullanimHataKodu =
   | 'AKTARIM_GEREKLI'
   | 'AKTARIM_GECERSIZ'
   | 'BASLANGIC_GEREKLI'
-  | 'BASLANGIC_GECERSIZ';
+  | 'BASLANGIC_GECERSIZ'
+  | 'KAYNAK_GEREKLI'
+  | 'KOVA_GECERSIZ'
+  /* statik-yukle kapsamı dışı: `dosyalar` kovası kaynak depoda yok (kova→kova kopyası ayrı iştir); `ilgi` H-4 ile menüden kaldırıldı. */
+  | 'KAPSAM_DISI_DOSYALAR_KOVASI'
+  | 'KAPSAM_DISI_ILGI';
 
 /* Kullanım hatası → çıkış kodu 2. */
 export class KullanimHatasi extends Error {
@@ -25,7 +30,14 @@ export class KullanimHatasi extends Error {
   }
 }
 
-export type KomutHataKodu = 'ONAY_UYUSMADI' | 'DALGA_YAZICI_YOK' | 'DESTEKLENMEYEN_TABLO' | 'KOMUT_T6_GOREVI';
+export type KomutHataKodu =
+  | 'ONAY_UYUSMADI'
+  | 'DALGA_YAZICI_YOK'
+  | 'DESTEKLENMEYEN_TABLO'
+  | 'STATIK_PLAN_SORUNLU'
+  | 'STATIK_YUKLEYICI_YOK'
+  | 'STATIK_DOSYA_DEGISTI'
+  | 'STATIK_DOGRULAMA_FARKI';
 
 export class KomutHatasi extends Error {
   kod: KomutHataKodu;

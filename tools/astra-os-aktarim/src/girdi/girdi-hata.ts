@@ -7,7 +7,8 @@ export type GirdiHataKodu =
   | 'BOZUK_JSON'
   | 'SIFRELI_GIRDI'
   | 'GIRDI_BICIMI_TANINMADI'
-  | 'SEMA_GECERSIZ';
+  | 'SEMA_GECERSIZ'
+  | 'STATIK_KAYNAK_YOK';
 
 /* Anlamlı ama değersiz hata: `yol` yalnız bilinen şema adlarından (örn. 'koleksiyon.debts') kurulur, girdiden kopyalanmaz. */
 export class GirdiHatasi extends Error {

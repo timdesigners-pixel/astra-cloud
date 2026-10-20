@@ -102,10 +102,10 @@ const YARDIM_SATIRLARI: readonly string[] = [
   'KOMUT dogrula         kaynak ile hedef kontrol toplamlarini karsilastirir (fark varsa cikis kodu 1)',
   'KOMUT geri-al         --aktarim <uuid> veya --dalga a; kodsuz calisirsa yalniz sayim ve onay kodu verir',
   'KOMUT yetim-tara      eslesmesi olmayan aktarim satirlarini raporlar (--yetim-temizle onayli)',
-  'KOMUT statik-yukle    rezerve (T6 gorevinde yazilacak)',
-  'SECENEK --girdi <yol> --dalga a|b|c --ilgi <yol> --rapor <yol> --onay <kod> --aktarim <uuid>',
+  'KOMUT statik-yukle    --kaynak <yol> (varsayilan kuru: tarar, ONAY-statik-<12 hex> verir); --onay ile apps kovasina yukler (servis anahtari yalniz ortamdan)',
+  'SECENEK --girdi <yol> --kaynak <yol> --dalga a|b|c --ilgi <yol> --rapor <yol> --onay <kod> --aktarim <uuid>',
   'SECENEK --uygulama-durumlarini-sil --yetim-temizle --baslangic <ISO zaman> --json --sessiz --yardim',
-  'ORTAM ASTRA_SUPABASE_URL ASTRA_SUPABASE_ANON ASTRA_PIN (yalniz ad; PIN argumanla verilmez)',
+  'ORTAM ASTRA_SUPABASE_URL ASTRA_SUPABASE_ANON ASTRA_PIN ASTRA_SERVIS_ANAHTARI (yalniz ad; PIN ve anahtar argumanla verilmez; servis anahtari yalniz statik-yukle --onay)',
   'CIKIS 0 basarili, 1 dogrulama farki veya hata, 2 kullanim hatasi',
 ];
 

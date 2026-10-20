@@ -8,6 +8,9 @@ export type KomutAdi = (typeof KOMUTLAR)[number];
 
 export type Secenekler = {
   girdi: string | undefined;
+  /* statik-yukle: eski repo kökü ya da public/apps yolu (yalnız argüman). */
+  kaynak: string | undefined;
+  kova: string | undefined;
   dalga: Dalga | undefined;
   /* undefined: bayrak yok; '': bayrak var ama değer yok (ikisi de yazmayı engeller) */
   onay: string | undefined;
@@ -23,7 +26,7 @@ export type Secenekler = {
 
 export type ArgumanSonucu = { komut: KomutAdi; secenek: Secenekler };
 
-const DEGERLI = { '--girdi': 'girdi', '--dalga': 'dalga', '--ilgi': 'ilgi', '--rapor': 'rapor', '--aktarim': 'aktarim', '--baslangic': 'baslangic' } as const;
+const DEGERLI = { '--girdi': 'girdi', '--kaynak': 'kaynak', '--kova': 'kova', '--dalga': 'dalga', '--ilgi': 'ilgi', '--rapor': 'rapor', '--aktarim': 'aktarim', '--baslangic': 'baslangic' } as const;
 const MANTIKSAL = { '--uygulama-durumlarini-sil': 'uygulamaDurumlariniSil', '--yetim-temizle': 'yetimTemizle', '--json': 'json', '--sessiz': 'sessiz' } as const;
 /* Sır taşıyabilecek bayraklar: asla kabul edilmez (süreç listesinde görünür). */
 const YASAK_ONEK = ['--pin', '--parola', '--password', '--sifre', '--token', '--anahtar', '--key'] as const;
@@ -35,7 +38,7 @@ function hata(kod: KullanimHataKodu): never {
 
 export function argumanAyristir(argv: readonly string[]): ArgumanSonucu {
   const s: Secenekler = {
-    girdi: undefined, dalga: undefined, onay: undefined, ilgi: undefined, rapor: undefined, aktarim: undefined, baslangic: undefined,
+    girdi: undefined, kaynak: undefined, kova: undefined, dalga: undefined, onay: undefined, ilgi: undefined, rapor: undefined, aktarim: undefined, baslangic: undefined,
     uygulamaDurumlariniSil: false, yetimTemizle: false, json: false, sessiz: false,
   };
   /* Argümansız çağrı yardım gösterir (varsayılan komut kuru-calistir ise ancak bayrak verildiğinde devreye girer). */
@@ -86,6 +89,8 @@ export function argumanAyristir(argv: readonly string[]): ArgumanSonucu {
   }
 
   s.girdi = deger.girdi;
+  s.kaynak = deger.kaynak;
+  s.kova = deger.kova;
   s.ilgi = deger.ilgi;
   s.rapor = deger.rapor;
   s.aktarim = deger.aktarim;
@@ -101,6 +106,12 @@ export function argumanAyristir(argv: readonly string[]): ArgumanSonucu {
   if (komut === 'kuru-calistir' || komut === 'yaz' || komut === 'dogrula') {
     if (s.dalga === undefined) hata('DALGA_GEREKLI');
     if (s.girdi === undefined || s.girdi.trim() === '') hata('GIRDI_GEREKLI');
+  }
+  if (komut === 'statik-yukle') {
+    /* Kapsam dışı istekler nedeniyle reddedilir (sessizce yok sayılmaz): `dosyalar` kovası kopyası ve `ilgi` (H-4: menüden kaldırıldı). */
+    if (s.kova !== undefined && s.kova !== 'apps') hata(s.kova === 'dosyalar' ? 'KAPSAM_DISI_DOSYALAR_KOVASI' : 'KOVA_GECERSIZ');
+    if (s.ilgi !== undefined) hata('KAPSAM_DISI_ILGI');
+    if (s.kaynak === undefined || s.kaynak.trim() === '') hata('KAYNAK_GEREKLI');
   }
   if (komut === 'geri-al' && s.aktarim === undefined && s.dalga === undefined) hata('AKTARIM_GEREKLI');
   if (komut === 'yetim-tara' && s.yetimTemizle && s.baslangic === undefined) hata('BASLANGIC_GEREKLI');

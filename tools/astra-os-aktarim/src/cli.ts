@@ -15,11 +15,12 @@ import { KullanimHatasi } from './komut/komut-hata.ts';
 import { kuruCalistir } from './komut/kuru-calistir.ts';
 import { pinIste } from './komut/pin-iste.ts';
 import { planKur } from './komut/plan-kur.ts';
-import { statikYukle } from './komut/statik-yukle.ts';
+import { statikYukle, statikYukleCikisKodu, statikYukleSonucuYazdir } from './komut/statik-yukle.ts';
 import { yetimTara, yetimTaraSonucuYazdir } from './komut/yetim-tara.ts';
 import { yaz, yazSonucuYazdir } from './komut/yaz.ts';
 import { hedefRefKur } from './plan/plan-olustur-hesap.ts';
 import { OturumHatasi } from './yazici/oturum.ts';
+import { supabaseStatikYukleyiciAc } from './yazici/statik-yukleyici.ts';
 import { supabaseYaziciAc } from './yazici/supabase-yazici.ts';
 
 /* Gerçek bağımlılıklar: ayar → PIN (ortam değişkeni ya da TTY istemi) → TEK denemeli oturum → yazıcı. */
@@ -31,6 +32,8 @@ export function varsayilanBagimlilik(): Bagimlilik {
       if (pin === null) throw new OturumHatasi('PIN_YOK');
       return supabaseYaziciAc(ayar, pin);
     },
+    /* Servis anahtarı YALNIZ burada ve YALNIZ onay doğrulandıktan sonra okunur (fabrika o zaman çağrılır). */
+    statikYukleyiciKur: () => supabaseStatikYukleyiciAc(ayarOku({ servisAnahtari: true })),
     aracSurumu: ARAC_SURUMU,
     simdi: () => new Date(),
     uuidUret: () => randomUUID(),
@@ -45,8 +48,6 @@ export async function calistir(argv: readonly string[], bag: Bagimlilik): Promis
       yardimYazdir();
       return 0;
     }
-    if (komut === 'statik-yukle') statikYukle();
-
     const hedef = hedefOku(bag.ortam);
     const hedefRef = hedefRefKur(hedef.anaMakine);
     const planGirdisi = () => {
@@ -79,6 +80,15 @@ export async function calistir(argv: readonly string[], bag: Bagimlilik): Promis
         });
         geriAlSonucuYazdir(sonuc);
         return sonuc.hata === null ? 0 : 1;
+      }
+      case 'statik-yukle': {
+        /* argumanAyristir bu komut için kaynak'ı zorunlu kılar. */
+        if (s.kaynak === undefined) throw new KullanimHatasi('KAYNAK_GEREKLI');
+        const sonuc = await statikYukle({
+          kaynak: s.kaynak, onay: s.onay, hedef, aracSurumu: bag.aracSurumu, tara: bag.statikTara, yukleyiciKur: bag.statikYukleyiciKur,
+        });
+        statikYukleSonucuYazdir(sonuc);
+        return statikYukleCikisKodu(sonuc);
       }
       case 'yetim-tara': {
         const sonuc = await yetimTara({ baslangic: s.baslangic, temizle: s.yetimTemizle, onay: s.onay, hedefRef, yaziciKur: bag.yaziciKur });
