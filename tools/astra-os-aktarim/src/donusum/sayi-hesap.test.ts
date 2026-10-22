@@ -61,6 +61,73 @@ describe('trSayi', () => {
   });
 });
 
+describe('trSayi: baş grup 0 olan noktalı dize ondalıktır (binlik değil; 1000 kat büyütme hatası)', () => {
+  const ondalik: ReadonlyArray<[string, number]> = [
+    ['0.125', 0.125],
+    ['0.500', 0.5],
+    ['0.999', 0.999],
+    ['0.000', 0],
+    ['-0.123', -0.123],
+    ['+0.123', 0.123],
+    ['₺0.125', 0.125],
+    ['0.125 TL', 0.125],
+    ['00.123', 0.123], /* baş sıfırlı grup da binlik sayılmaz */
+    ['01.234', 1.234],
+    ['.125', 0.125],
+  ];
+  it.each(ondalik)('%j -> %d (ondalık)', (girdi, beklenen) => {
+    expect(trSayi(girdi)).toBe(beklenen);
+  });
+
+  const binlik: ReadonlyArray<[string, number]> = [
+    ['1.234', 1234],
+    ['12.345.678', 12345678],
+    ['10.250', 10250],
+    ['1.005', 1005],
+    ['100.000', 100000],
+    ['999.999', 999999],
+    ['-1.234', -1234],
+    ['₺1.234', 1234],
+    ['1.234.567', 1234567],
+  ];
+  it.each(binlik)('%j -> %d (binlik, değişmez)', (girdi, beklenen) => {
+    expect(trSayi(girdi)).toBe(beklenen);
+  });
+
+  it('sınır: 0 ile başlayan çok gruplu dize binlik olamaz ve ondalık da olamaz -> NaN', () => {
+    expect(trSayi('0.125.000')).toBeNaN();
+    expect(trSayi('0.123.456')).toBeNaN();
+    expect(trSayi('0,123,456')).toBeNaN();
+  });
+
+  it('sınır: karışık ayraçta baş grup 0 ise bozuk gruplama sayılır -> NaN (eski davranış 123.45 idi)', () => {
+    expect(trSayi('0.123,45')).toBeNaN();
+    expect(trSayi('0,123.45')).toBeNaN();
+  });
+
+  it('sınır: 4 haneli baş grup binlik değildir, ondalık okunur (1234.567)', () => {
+    expect(trSayi('1234.567')).toBe(1234.567);
+  });
+
+  it('ondalık metin kuruşa çevrilince 1000 kat sapmaz (0.125 -> 13 kuruş, 0.500 -> 50 kuruş)', () => {
+    expect(kurusaCevir(trSayi('0.125'))).toBe(13);
+    expect(kurusaCevir(trSayi('0.500'))).toBe(50);
+    expect(kurusaCevir(trSayi('0.999'))).toBe(100);
+    expect(kurusaCevir(trSayi('-0.123'))).toBe(kurusaCevir(-0.123));
+    expect(kurusaCevir(trSayi('1.005'))).toBe(100500); /* binlik: 1005 TL */
+  });
+
+  it('metin ve sayı biçimi aynı tutarı verir (0.125 dize === 0.125 sayı)', () => {
+    expect(trSayi('0.125')).toBe(trSayi(0.125));
+  });
+
+  it('tutarCoz da aynı kuralı izler', () => {
+    expect(tutarCoz('0.125')).toEqual({ tamam: true, deger: 0.125 });
+    expect(tutarCoz('1.005')).toEqual({ tamam: true, deger: 1005 });
+    expect(tutarCoz('0.125.000')).toEqual({ tamam: false, kod: 'GECERSIZ_TUTAR' });
+  });
+});
+
 describe('tutarCoz', () => {
   it('geçerli metinde tamam: true ve değeri döner', () => {
     expect(tutarCoz('1.234,56')).toEqual({ tamam: true, deger: 1234.56 });

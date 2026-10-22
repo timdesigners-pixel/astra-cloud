@@ -40,8 +40,9 @@ function sayimlariKur(satirlar: readonly EslesmeSatiri[]): GeriAlSayimi[] {
   for (const e of satirlar) {
     let s = harita.get(e.hedef_tablo);
     if (!s) harita.set(e.hedef_tablo, (s = { hedef_tablo: e.hedef_tablo, yazildi: 0, sahiplenildi: 0 }));
-    if (e.ekstra.durum === 'sahiplenildi') s.sahiplenildi += 1;
-    else s.yazildi += 1;
+    /* İzin listesi: yalnız açıkça 'yazildi' olanlar aracın yazdığı sayılır; bilinmeyen/eksik durum korunur (sahiplenildi gibi). */
+    if (e.ekstra.durum === 'yazildi') s.yazildi += 1;
+    else s.sahiplenildi += 1;
   }
   return [...harita.values()];
 }
@@ -77,7 +78,7 @@ export async function geriAl(g: GeriAlGirdisi): Promise<GeriAlSonucu> {
 
     /* 1) Hedef satırlar (yalnız aracın yazdıkları). */
     sonTablo = 'begeniler';
-    const gizlenecek = aktifler.filter((e) => e.hedef_tablo === 'begeniler' && e.ekstra.durum !== 'sahiplenildi' && e.hedef_id !== null).map((e) => e.hedef_id as string);
+    const gizlenecek = aktifler.filter((e) => e.hedef_tablo === 'begeniler' && e.ekstra.durum === 'yazildi' && e.hedef_id !== null).map((e) => e.hedef_id as string);
     if (gizlenecek.length > 0) await yazici.satirGizle('begeniler' satisfies EklemeTablosu, gizlenecek);
     sonuc.gizlenen_satir = gizlenecek.length;
 
@@ -87,7 +88,7 @@ export async function geriAl(g: GeriAlGirdisi): Promise<GeriAlSonucu> {
     if (g.uygulamaDurumlariniSil) {
       sonTablo = 'uygulama_durumu';
       for (const e of uygulamaEslesmeleri) {
-        if (e.ekstra.durum !== 'sahiplenildi' && e.hedef_ref !== null) {
+        if (e.ekstra.durum === 'yazildi' && e.hedef_ref !== null) {
           const ayrac = e.hedef_ref.indexOf('/');
           if (ayrac > 0) {
             await yazici.uygulamaDurumuSil(e.hedef_ref.slice(0, ayrac), e.hedef_ref.slice(ayrac + 1));

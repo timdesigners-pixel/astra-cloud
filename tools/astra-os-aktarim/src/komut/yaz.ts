@@ -1,6 +1,8 @@
 /* `yaz --onay ONAY-...`: planı yeniden üretir (çağıran), kodu `onayDogrula` ile karşılaştırır. Yanlış/boş/başka dalga kodu → HİÇBİR yazma yok:
    yazıcı fabrikası bile çağrılmaz (oturum açılmaz, PIN deneme hakkı yakılmaz).
    Sıra (plan §4.2): eşleşme oku → sahiplen → yaz → eşleşme yaz. Küçük yığın, sıralı. Hedefteki MEVCUT satır asla güncellenmez (yalnız insert ve eşleşme).
+   `uygulama_durumu` için upsert RPC'si vardır (insert-only değil): ezmemek için her yazmadan hemen önce anahtar yeniden okunur; arada belirmişse
+   yazılmaz, 'sahiplenildi' sayılır ve `yaris_atlanan` ile raporlanır. Yeniden okuma ile yazma arasındaki milisaniyelik pencere kapatılamaz (RPC atomik değil).
    İlk hatada durur ve o ana kadarki sayıları raporlar. */
 import { ilerlemeYazdir, olayYazdir } from '../cikti.ts';
 import { hataGuvenli, type GuvenliHata } from '../guvenlik/sir-koruma.ts';
@@ -31,6 +33,8 @@ export type YazSonucu = {
   sahiplenilen: number;
   atlanan_eslesme: number;
   belirsiz: number;
+  /* Yazmadan hemen önceki yeniden okumada hedefte belirmiş (kullanıcı/uygulama yazmış) anahtarlar: yazılmadı, sahiplenildi. */
+  yaris_atlanan: number;
   eslesme_yazilan: number;
   /* Hedef satırı yazıldı ama eşleşmesi yazılamadı olabilecek satır sayısı (R-3): `yetim-tara` ile incelenmeli. */
   yetim_olabilir: number;
@@ -66,7 +70,7 @@ export async function yaz(g: YazGirdisi): Promise<YazSonucu> {
   const kayitlar = g.plan.kayitlar();
   const yazilanSayilari = new Map<HedefTablo, number>();
   const sonuc: YazSonucu = {
-    aktarim_id: g.aktarimId, dalga: g.plan.dalga, yazilan: [], sahiplenilen: 0, atlanan_eslesme: 0, belirsiz: 0, eslesme_yazilan: 0, yetim_olabilir: 0, hata: null,
+    aktarim_id: g.aktarimId, dalga: g.plan.dalga, yazilan: [], sahiplenilen: 0, atlanan_eslesme: 0, belirsiz: 0, yaris_atlanan: 0, eslesme_yazilan: 0, yetim_olabilir: 0, hata: null,
   };
   /* Hedef satırı yazılmış ama eşleşmesi henüz yazılmamış satır sayısı (R-3 çökme penceresi). */
   let yazilmisEslesmesiz = 0;
@@ -149,6 +153,14 @@ export async function yaz(g: YazGirdisi): Promise<YazSonucu> {
       /* YAZ */
       if (k.tablo === 'uygulama_durumu') {
         sonTablo = 'uygulama_durumu';
+        /* Okuma-sonra-yaz yarışı: plan anındaki hedef durumu bayatlamış olabilir; yazmadan hemen önce yeniden oku. */
+        const simdiki = await yazici.uygulamaAnahtarlariOku(k.uygulama);
+        if (simdiki.includes(k.anahtar)) {
+          sonuc.yaris_atlanan += 1;
+          bekleyenEslesme.push({ mevcut: dizin.bul(k.koleksiyon, k.kaynak_id), girdi: eslesmeGirdisiKur(k, karar, 'sahiplenildi', null, g), yazildi: false });
+          if (bekleyenEslesme.length >= yigin) await eslesmeBosalt();
+          continue;
+        }
         /* Değer olduğu gibi (yeniden serileştirme yok, bayt sadakati). Eşleşme hemen ardından yazılır (çökme penceresi). */
         await yazici.uygulamaDurumuYaz(k.uygulama, k.anahtar, k.deger);
         sayArtir('uygulama_durumu');
@@ -181,5 +193,6 @@ export function yazSonucuYazdir(s: YazSonucu): void {
     kod: 'OZET',
     alanlar: { sahiplenilen: s.sahiplenilen, atlanan_eslesme: s.atlanan_eslesme, belirsiz: s.belirsiz, eslesme_yazilan: s.eslesme_yazilan, yetim_olabilir: s.yetim_olabilir },
   });
+  if (s.yaris_atlanan > 0) olayYazdir({ tur: 'UYARI', kod: 'YARIS_ATLANAN', alanlar: { sayi: s.yaris_atlanan } });
   if (s.hata !== null) olayYazdir({ tur: 'HATA', kod: 'YAZMA_DURDU', alanlar: { neden: s.hata.kod, durum: s.hata.durum ?? 0, tablo: s.hata.tablo ?? 'yok' } });
 }

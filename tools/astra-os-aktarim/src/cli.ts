@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ayarOku, hedefOku } from './ayar.ts';
+import { raporYoluDenetle } from './girdi/dosya-oku.ts';
 import { sessizAyarla, yardimYazdir } from './cikti.ts';
 import { ARAC_SURUMU } from './surum.ts';
 import { argumanAyristir } from './komut/arguman-hesap.ts';
@@ -47,6 +48,12 @@ export async function calistir(argv: readonly string[], bag: Bagimlilik): Promis
     if (komut === 'yardim') {
       yardimYazdir();
       return 0;
+    }
+    /* --rapor mevcut bir girdi dosyasının (ya da sembolik/sert bağlantısının) üzerine yazamaz; hiçbir iş başlamadan reddedilir. */
+    if (s.rapor !== undefined) {
+      const yolDurumu = raporYoluDenetle(s.rapor, [s.girdi, s.ilgi, s.kaynak]);
+      if (yolDurumu === 'CAKISIYOR') throw new KullanimHatasi('RAPOR_YOLU_CAKISIYOR');
+      if (yolDurumu === 'SEMBOLIK_BAGLANTI') throw new KullanimHatasi('RAPOR_SEMBOLIK_BAGLANTI');
     }
     const hedef = hedefOku(bag.ortam);
     const hedefRef = hedefRefKur(hedef.anaMakine);

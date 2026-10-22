@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { linkSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { CANARY_AD, CANARY_ANAHTAR, CANARY_DEGERLERI, CANARY_IBAN, canaryBul, sentetikSUret } from '@astra/ortak-test';
@@ -314,7 +314,7 @@ describe('calistir: beklenmeyen/oturum hataları', () => {
 });
 
 describe('calistir: statik-yukle', () => {
-  function statikKurulum() {
+  function statikKurulum(onceden?: Record<string, Uint8Array>) {
     const icerik = new Map<string, Uint8Array>();
     const dosyalar = STATIK_UYGULAMALAR.flatMap((u) =>
       ['hero.json', 'kucuk.json', 'detay/01.json'].map((g) => {
@@ -323,7 +323,7 @@ describe('calistir: statik-yukle', () => {
         return { bilgi: { yol: `${u}/${g}`, uygulama: u, boyut: bayt.byteLength, sha256: sha256HexBayt(bayt), json_gecerli: true }, oku: () => bayt };
       }),
     );
-    const yukleyici = bellekStatikYukleyiciKur();
+    const yukleyici = bellekStatikYukleyiciKur(onceden ? { onceden } : undefined);
     const yukleyiciKur = vi.fn(() => yukleyici);
     const { bag } = kurulum({ statikTara: () => ({ dosyalar, yoksayilan: 0, sorunlar: [] }), statikYukleyiciKur: yukleyiciKur });
     return { bag, yukleyici, yukleyiciKur, icerik };
@@ -341,6 +341,28 @@ describe('calistir: statik-yukle', () => {
     expect(yakala.satirlar[0]).toBe('HATA ONAY_UYUSMADI');
     expect(yukleyiciKur).not.toHaveBeenCalled();
     expect(yukleyici.yuklemeCagrisi).toBe(0);
+  });
+  it('hedefte FARKLI içerikli nesne varsa yükleme biter ama çıkış 1 olur (ezilmez; zincirli otomasyon başarı sanmasın)', async () => {
+    const { bag } = statikKurulum();
+    await calistir(['statik-yukle', '--kaynak', 'sahte'], bag);
+    const kod = onayKodu(yakala.metin(), 'ONAY-statik-');
+    const eski = new TextEncoder().encode('{"kullanici":"eski"}');
+    const k = statikKurulum({ [`${STATIK_UYGULAMALAR[0]}/hero.json`]: eski });
+    yakala.satirlar.length = 0;
+    expect(await calistir(['statik-yukle', '--kaynak', 'sahte', '--onay', kod], k.bag)).toBe(1);
+    expect(yakala.satirlar).toContain('UYARI NESNE_FARKLI sayi=1');
+    expect(Buffer.from(k.yukleyici.depo.get(`${STATIK_UYGULAMALAR[0]}/hero.json`)!).equals(Buffer.from(eski))).toBe(true);
+    expect(k.yukleyici.yuklenenYollar).toHaveLength(k.icerik.size - 1); /* diğerleri yine de yüklendi */
+  });
+  it('hedefte aynı içerikli nesneler (ikinci çalıştırma) çıkış 0 verir', async () => {
+    const { bag } = statikKurulum();
+    await calistir(['statik-yukle', '--kaynak', 'sahte'], bag);
+    const kod = onayKodu(yakala.metin(), 'ONAY-statik-');
+    const k1 = statikKurulum();
+    expect(await calistir(['statik-yukle', '--kaynak', 'sahte', '--onay', kod], k1.bag)).toBe(0);
+    const k2 = statikKurulum(Object.fromEntries(k1.yukleyici.depo));
+    expect(await calistir(['statik-yukle', '--kaynak', 'sahte', '--onay', kod], k2.bag)).toBe(0);
+    expect(k2.yukleyici.yuklenenYollar).toEqual([]);
   });
   it('doğru kodla yükler, çıkış 0', async () => {
     const { bag, yukleyici, icerik } = statikKurulum();
@@ -398,5 +420,76 @@ describe('varsayilanBagimlilik', () => {
     expect(b.uuidUret()).not.toBe(b.uuidUret());
     expect(b.simdi()).toBeInstanceOf(Date);
     expect(b.ortam).toBeUndefined();
+  });
+});
+
+describe('calistir: --rapor yolu denetimi (girdiyi/bağlantı hedefini ezmez)', () => {
+  const SENTETIK = 'SENTETIK-YEDEK-ICERIGI';
+  function dosya(ad: string, icerik = SENTETIK): string {
+    const yol = join(kok, ad);
+    writeFileSync(yol, icerik, 'utf8');
+    return yol;
+  }
+  async function cikis(argv: string[]) {
+    const k = kurulum();
+    const kod = await calistir(argv, k.bag);
+    return { kod, ...k };
+  }
+
+  it('--rapor = --girdi: çıkış 2, RAPOR_YOLU_CAKISIYOR, dosya bayt bayt aynı, yazıcı kurulmaz', async () => {
+    const girdi = dosya('yedek.json');
+    const { kod, fabrika } = await cikis(['kuru-calistir', '--dalga', 'a', '--girdi', girdi, '--rapor', girdi]);
+    expect(kod).toBe(2);
+    expect(yakala.satirlar[0]).toBe('HATA KULLANIM_HATASI neden=RAPOR_YOLU_CAKISIYOR');
+    expect(readFileSync(girdi, 'utf8')).toBe(SENTETIK);
+    expect(fabrika.cagri()).toBe(0);
+    expect(yakala.metin()).not.toContain(kok);
+  });
+  it('--rapor = --ilgi: çıkış 2 ve ilgi dosyası ezilmez', async () => {
+    const ilgi = dosya('ilgi.json', '[]');
+    const { kod } = await cikis(['kuru-calistir', ...TEMEL.slice(0, 4), '--ilgi', ilgi, '--rapor', ilgi]);
+    expect(kod).toBe(2);
+    expect(yakala.satirlar[0]).toBe('HATA KULLANIM_HATASI neden=RAPOR_YOLU_CAKISIYOR');
+    expect(readFileSync(ilgi, 'utf8')).toBe('[]');
+  });
+  it('--rapor, girdiye sert bağlantı: çıkış 2', async () => {
+    const girdi = dosya('yedek.json');
+    const sert = join(kok, 'sert-rapor.json');
+    linkSync(girdi, sert);
+    const { kod } = await cikis(['kuru-calistir', '--dalga', 'a', '--girdi', girdi, '--rapor', sert]);
+    expect(kod).toBe(2);
+    expect(yakala.satirlar[0]).toBe('HATA KULLANIM_HATASI neden=RAPOR_YOLU_CAKISIYOR');
+    expect(readFileSync(girdi, 'utf8')).toBe(SENTETIK);
+  });
+  it('--rapor sembolik bağlantı: çıkış 2, RAPOR_SEMBOLIK_BAGLANTI, hedef dosya ezilmez', async () => {
+    const girdi = dosya('yedek.json');
+    const hedef = dosya('baska-dosya.txt', 'KORUNAN');
+    const baglanti = join(kok, 'rapor-baglanti.json');
+    symlinkSync(hedef, baglanti);
+    const { kod } = await cikis(['kuru-calistir', ...TEMEL.slice(0, 2), '--girdi', girdi, '--rapor', baglanti]);
+    expect(kod).toBe(2);
+    expect(yakala.satirlar[0]).toBe('HATA KULLANIM_HATASI neden=RAPOR_SEMBOLIK_BAGLANTI');
+    expect(readFileSync(hedef, 'utf8')).toBe('KORUNAN');
+  });
+  it('statik-yukle: --rapor, --kaynak dizininin içinde ise çıkış 2 ve yükleyici kurulmaz', async () => {
+    const kaynak = join(kok, 'kaynak');
+    mkdirSync(kaynak);
+    const yukleyiciKur = vi.fn(() => bellekStatikYukleyiciKur());
+    const k = kurulum({ statikYukleyiciKur: yukleyiciKur });
+    expect(await calistir(['statik-yukle', '--kaynak', kaynak, '--rapor', join(kaynak, 'rapor.json')], k.bag)).toBe(2);
+    expect(yakala.satirlar[0]).toBe('HATA KULLANIM_HATASI neden=RAPOR_YOLU_CAKISIYOR');
+    expect(yukleyiciKur).not.toHaveBeenCalled();
+  });
+  it('olumlu: ayrı yeni dosyaya rapor yazılır ve girdi korunur (çıkış 0)', async () => {
+    const girdi = dosya('yedek.json');
+    const rapor = join(kok, 'rapor.json');
+    const { kod } = await cikis(['kuru-calistir', ...TEMEL.slice(0, 2), '--girdi', girdi, '--json', '--rapor', rapor]);
+    expect(kod).toBe(0);
+    expect(raporDogrula(JSON.parse(readFileSync(rapor, 'utf8'))).dalga).toBe('a');
+    expect(readFileSync(girdi, 'utf8')).toBe(SENTETIK);
+  });
+  it('olumlu: --rapor verilmezse denetim çalışmaz (girdi yolu önemsiz)', async () => {
+    const { kod } = await cikis(['kuru-calistir', ...TEMEL]);
+    expect(kod).toBe(0);
   });
 });

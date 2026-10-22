@@ -1,8 +1,9 @@
-/* Rapor şeması: BEYAZ LİSTE. Rapora yalnız dalga, tablo/koleksiyon adı, sayılar, rapor kodları ve kuruş toplamı girer.
+/* Rapor şeması: BEYAZ LİSTE. Rapora yalnız dalga, tablo/koleksiyon adı, sayılar, rapor kodları, kuruş toplamı ve eşlenmeyen uygulama anahtarı ADLARI girer.
    Kayıt değeri, ad, IBAN, dosya no ve kaynak kimliği şemada YOKTUR. `raporDogrula` bilinmeyen anahtarı ve desen dışı metni reddeder. */
 import { BILGI_KODLARI, NEDEN_KODLARI } from '../donusum/neden-kodu.ts';
+import { anahtarAdiGuvenliMi } from '../guvenlik/anahtar-adi-hesap.ts';
 import { KOLEKSIYON_ADLARI } from '../girdi/sema-ayristirici-hesap.ts';
-import { DALGALAR, HEDEF_TABLOLARI, type PlanOzeti } from '../plan/plan-tipleri.ts';
+import { DALGALAR, ESLENMEYEN_ANAHTAR_AZAMI, ESLENMEYEN_ANAHTAR_DESENI, HEDEF_TABLOLARI, type PlanOzeti } from '../plan/plan-tipleri.ts';
 
 /* Rapor = plan özeti (+ isteğe bağlı kısaltılmış hedef proje adı). */
 export type Rapor = PlanOzeti & { hedef_proje_kisa?: string };
@@ -61,7 +62,7 @@ function kumeden<T extends string>(v: unknown, kume: readonly T[], yol: string):
 export function raporDogrula(girdi: unknown): Rapor {
   const k = nesne(
     girdi,
-    ['dalga', 'arac_surumu', 'hedef_ref', 'onay_kodu', 'girdi_ozeti', 'hedef_tablolar', 'kontrol_toplamlari', 'sayaclar', 'atlanan', 'uyarilar', 'bilgi_kodlari', 'hedef_proje_kisa'],
+    ['dalga', 'arac_surumu', 'hedef_ref', 'onay_kodu', 'girdi_ozeti', 'hedef_tablolar', 'kontrol_toplamlari', 'sayaclar', 'atlanan', 'uyarilar', 'bilgi_kodlari', 'hedef_proje_kisa', 'eslenmeyen_anahtarlar'],
     'rapor',
     ['dalga', 'arac_surumu', 'hedef_ref', 'onay_kodu', 'girdi_ozeti', 'hedef_tablolar', 'kontrol_toplamlari', 'sayaclar', 'atlanan', 'uyarilar', 'bilgi_kodlari'],
   );
@@ -101,6 +102,16 @@ export function raporDogrula(girdi: unknown): Rapor {
     uyarilar: dizi(k.uyarilar, 'uyarilar').map((v) => kodSatiri(v, 'uyarilar')),
     bilgi_kodlari: dizi(k.bilgi_kodlari, 'bilgi_kodlari').map((v) => kumeden(v, BILGI_KODLARI, 'bilgi_kodlari')),
   };
+  if (k.eslenmeyen_anahtarlar !== undefined) {
+    const adlar = dizi(k.eslenmeyen_anahtarlar, 'eslenmeyen_anahtarlar');
+    if (adlar.length > ESLENMEYEN_ANAHTAR_AZAMI) throw new RaporHatasi('eslenmeyen_anahtarlar');
+    /* planOlustur ile aynı ortak kural (guvenlik/anahtar-adi-hesap.ts): IBAN/dosya no benzeri rakamlı ad listelenmez. */
+    rapor.eslenmeyen_anahtarlar = adlar.map((v) => {
+      const ad = desenli(v, ESLENMEYEN_ANAHTAR_DESENI, 'eslenmeyen_anahtarlar');
+      if (!anahtarAdiGuvenliMi(ad)) throw new RaporHatasi('eslenmeyen_anahtarlar');
+      return ad;
+    });
+  }
   if (k.hedef_proje_kisa !== undefined) rapor.hedef_proje_kisa = desenli(k.hedef_proje_kisa, PROJE_KISA_DESENI, 'hedef_proje_kisa');
   return rapor;
 }

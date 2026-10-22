@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { inspect } from 'node:util';
-import { CANARY_ANAHTAR, CANARY_IBAN, CANARY_PAROLA, canaryBul, sentetikSUret } from '@astra/ortak-test';
+import { CANARY_ABONE_NO, CANARY_AD, CANARY_ANAHTAR, CANARY_IBAN, CANARY_PAROLA, canaryBul, sentetikSUret } from '@astra/ortak-test';
 import { ARAC_SURUMU } from '../surum.ts';
 import { ILGI_BEKLENEN_KURUS, ilgiUrunleri, semaKur, sentetikPlanKur, TEST_ANA_MAKINE } from '../test-destek.ts';
 import { Plan } from './plan.ts';
 import { ONAY_KODU_DESENI, onayDogrula } from './onay-kodu-hesap.ts';
 import { hedefRefKur, planOlustur } from './plan-olustur-hesap.ts';
-import { PlanHatasi } from './plan-tipleri.ts';
+import { ESLENMEYEN_ANAHTAR_AZAMI, ESLENMEYEN_ANAHTAR_DESENI, PlanHatasi } from './plan-tipleri.ts';
 
 function kod(secenek: Parameters<typeof sentetikPlanKur>[0] = {}): string {
   return sentetikPlanKur(secenek).plan.onay_kodu;
@@ -262,5 +262,137 @@ describe('hedefRefKur', () => {
     expect(r).not.toContain('abcd');
     expect(hedefRefKur('ABCD1234.supabase.co ')).toBe(r);
     expect(hedefRefKur('abcd1235.supabase.co')).not.toBe(r);
+  });
+});
+
+describe('planOlustur: eslenmeyen_anahtarlar (yalnız AD; değer asla)', () => {
+  const DEGER = 'ESLENMEYEN-DEGER-CANARY-8841';
+  function eslenmeyenPlan(adlar: readonly string[], deger: string = DEGER) {
+    const d = sentetikSUret();
+    for (const ad of adlar) Object.defineProperty(d.diger.apps, ad, { value: deger, enumerable: true, configurable: true, writable: true });
+    return sentetikPlanKur({ s: d }).plan;
+  }
+  const sayi = (plan: ReturnType<typeof eslenmeyenPlan>) => plan.ozet.atlanan.find((a) => a.koleksiyon === 'apps' && a.neden_kodu === 'ANAHTAR_ESLENMEDI')?.sayi ?? 0;
+
+  it('eşlenmeyen anahtar adları sıralı ve tekil listelenir; atlanan sayacı da korunur', () => {
+    const plan = eslenmeyenPlan(['zeta-ayar', 'Alfa_1.v2', 'orta-ayar']);
+    expect(plan.ozet.eslenmeyen_anahtarlar).toEqual(['Alfa_1.v2', 'orta-ayar', 'zeta-ayar']);
+    expect(sayi(plan)).toBe(3);
+  });
+
+  it('girdi sırası listeyi ve onay kodunu değiştirmez', () => {
+    const a = eslenmeyenPlan(['b-ayar', 'a-ayar', 'c-ayar']);
+    const b = eslenmeyenPlan(['c-ayar', 'a-ayar', 'b-ayar']);
+    expect(a.ozet.eslenmeyen_anahtarlar).toEqual(b.ozet.eslenmeyen_anahtarlar);
+    expect(a.onay_kodu).toBe(b.onay_kodu);
+  });
+
+  it('DEĞER asla özete girmez (canary): ne özette, ne onay kodunda, ne inspect çıktısında', () => {
+    const plan = eslenmeyenPlan(['yeni-ayar'], CANARY_PAROLA);
+    expect(JSON.stringify(plan.ozet)).not.toContain(CANARY_PAROLA);
+    expect(canaryBul(JSON.stringify(plan.ozet))).toEqual([]);
+    expect(canaryBul(inspect(plan, { showHidden: true, depth: 8 }))).toEqual([]);
+    const p2 = eslenmeyenPlan(['yeni-ayar'], DEGER);
+    expect(JSON.stringify(p2.ozet)).not.toContain(DEGER);
+    expect(p2.onay_kodu).toBe(plan.onay_kodu); /* değer farkı kodu etkilemez: değer plana girmiyor */
+  });
+
+  it('alan YALNIZ doluysa vardır: eşlenmeyen yoksa anahtar hiç yoktur ve onay kodu değişmez', () => {
+    const temel = sentetikPlanKur().plan;
+    expect('eslenmeyen_anahtarlar' in temel.ozet).toBe(false);
+    expect(Object.keys(temel.ozet).sort()).toEqual(['arac_surumu', 'atlanan', 'bilgi_kodlari', 'dalga', 'girdi_ozeti', 'hedef_ref', 'hedef_tablolar', 'kontrol_toplamlari', 'onay_kodu', 'sayaclar', 'uyarilar']);
+    expect(eslenmeyenPlan([]).onay_kodu).toBe(temel.onay_kodu);
+  });
+
+  it('eşlenmeyen anahtar eklemek onay kodunu değiştirir; farklı ad kümesi farklı kod verir', () => {
+    const temel = sentetikPlanKur().plan.onay_kodu;
+    const a = eslenmeyenPlan(['yeni-ayar']).onay_kodu;
+    const b = eslenmeyenPlan(['baska-ayar']).onay_kodu;
+    expect(a).not.toBe(temel);
+    expect(b).not.toBe(a);
+  });
+
+  it('dalga b/c planlarında alan yoktur', () => {
+    for (const dalga of ['b', 'c'] as const) expect('eslenmeyen_anahtarlar' in sentetikPlanKur({ dalga }).plan.ozet).toBe(false);
+  });
+
+  describe('ad deseni ^[A-Za-z0-9_.-]{1,80}$', () => {
+    it('desene uyan sınır adlar listelenir (1 ve 80 karakter, nokta/tire/alt çizgi)', () => {
+      const ad80 = 'a'.repeat(80);
+      const plan = eslenmeyenPlan(['x', ad80, 'a.b-c_d']);
+      expect(plan.ozet.eslenmeyen_anahtarlar).toEqual(['a.b-c_d', ad80, 'x']);
+    });
+
+    it('81 karakter, boşluk, Türkçe karakter, eğik çizgi, tırnak ve satır sonu içeren adlar listelenmez ama sayılır', () => {
+      const kotu = ['a'.repeat(81), 'bosluk var', 'türkçe-ç', 'yol/ad', 'tirnak"ad', 'satir\nsonu', '', ' ', CANARY_AD, '<script>'];
+      const plan = eslenmeyenPlan([...kotu, 'gecerli-ad']);
+      expect(plan.ozet.eslenmeyen_anahtarlar).toEqual(['gecerli-ad']);
+      expect(sayi(plan)).toBe(kotu.length + 1);
+      for (const k of kotu) expect(ESLENMEYEN_ANAHTAR_DESENI.test(k)).toBe(false);
+    });
+
+    it('hiç geçerli ad yoksa alan hiç eklenmez (boş dizi değil)', () => {
+      const plan = eslenmeyenPlan(['bosluk var', 'ç']);
+      expect('eslenmeyen_anahtarlar' in plan.ozet).toBe(false);
+      expect(sayi(plan)).toBe(2);
+    });
+  });
+
+  describe('8+ ardışık rakam içeren ad listelenmez (IBAN, abone no, telefon, dosya no benzeri)', () => {
+    it.each([
+      ['8 haneli', 'kullanici-12345678'],
+      ['uzun rakam dizisi', 'abone-9990007770001'],
+      ['yalnız rakam', '1234567890'],
+      ['IBAN benzeri', CANARY_IBAN],
+      ['canary abone no', CANARY_ABONE_NO],
+    ])('%s: %s', (_ad, ad) => {
+      const plan = eslenmeyenPlan([ad, 'temiz-ad']);
+      expect(plan.ozet.eslenmeyen_anahtarlar).toEqual(['temiz-ad']);
+      expect(sayi(plan)).toBe(2);
+      expect(canaryBul(JSON.stringify(plan.ozet))).toEqual([]);
+    });
+
+    it('sınır: 7 ardışık rakam listelenir; toplam rakam < 12 ve ardışık değilse (araya harf/tire) listelenir; ayraçlı 12+ rakam elenir', () => {
+      const plan = eslenmeyenPlan(['abc-1234567', '1234-5678-1234', 'a1b2c3d4e5f6g7h8', 'TR33-0006-1005-1978-6457-8413-26']);
+      expect(plan.ozet.eslenmeyen_anahtarlar).toEqual(['a1b2c3d4e5f6g7h8', 'abc-1234567']);
+    });
+
+    it('sınır: tam 8 rakam elenir, 7 rakam kalır', () => {
+      expect(eslenmeyenPlan(['x12345678']).ozet.eslenmeyen_anahtarlar).toBeUndefined();
+      expect(eslenmeyenPlan(['x1234567']).ozet.eslenmeyen_anahtarlar).toEqual(['x1234567']);
+    });
+  });
+
+  describe('en çok ESLENMEYEN_ANAHTAR_AZAMI (100)', () => {
+    const adlar = (n: number) => Array.from({ length: n }, (_, i) => `ayar-${String(i).padStart(3, '0')}`);
+
+    it('azami değer 100', () => {
+      expect(ESLENMEYEN_ANAHTAR_AZAMI).toBe(100);
+    });
+    it('tam 100 ad hepsi listelenir', () => {
+      expect(eslenmeyenPlan(adlar(100)).ozet.eslenmeyen_anahtarlar).toHaveLength(100);
+    });
+    it('101 ve 150 ad: ilk 100 (sıralı) listelenir, sayaç gerçek sayıyı korur', () => {
+      const p101 = eslenmeyenPlan(adlar(101));
+      expect(p101.ozet.eslenmeyen_anahtarlar).toEqual(adlar(100));
+      expect(sayi(p101)).toBe(101);
+      const p150 = eslenmeyenPlan(adlar(150));
+      expect(p150.ozet.eslenmeyen_anahtarlar).toEqual(adlar(100));
+      expect(sayi(p150)).toBe(150);
+    });
+  });
+
+  it('eşlenmeyen dışındaki atlanma nedenleri (değer metin değil, çok uzun anahtar) adı listelemez', () => {
+    const d = sentetikSUret({ uzunAnahtar: true });
+    (d.diger.apps as Record<string, unknown>)['tr-fav'] = 5; /* DEGER_METIN_DEGIL */
+    const plan = sentetikPlanKur({ s: d }).plan;
+    expect(plan.ozet.atlanan.map((a) => a.neden_kodu)).toEqual(expect.arrayContaining(['DEGER_METIN_DEGIL', 'ANAHTAR_COK_UZUN']));
+    expect('eslenmeyen_anahtarlar' in plan.ozet).toBe(false);
+  });
+
+  it('özet dondurulmuştur ve eslenmeyen_anahtarlar dizisi dışarıdan değiştirilemez', () => {
+    const plan = eslenmeyenPlan(['yeni-ayar']);
+    expect(Object.isFrozen(plan.ozet)).toBe(true);
+    expect(() => { (plan.ozet as { eslenmeyen_anahtarlar?: string[] }).eslenmeyen_anahtarlar = []; }).toThrow();
   });
 });

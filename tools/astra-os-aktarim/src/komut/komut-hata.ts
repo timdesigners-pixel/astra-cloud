@@ -14,6 +14,9 @@ export type KullanimHataKodu =
   | 'BASLANGIC_GEREKLI'
   | 'BASLANGIC_GECERSIZ'
   | 'KAYNAK_GEREKLI'
+  /* --rapor, girdi dosyasının üzerine yazacaktı ya da sembolik bağlantı: yazılmadan reddedilir. */
+  | 'RAPOR_YOLU_CAKISIYOR'
+  | 'RAPOR_SEMBOLIK_BAGLANTI'
   | 'KOVA_GECERSIZ'
   /* statik-yukle kapsamı dışı: `dosyalar` kovası kaynak depoda yok (kova→kova kopyası ayrı iştir); `ilgi` H-4 ile menüden kaldırıldı. */
   | 'KAPSAM_DISI_DOSYALAR_KOVASI'

@@ -161,6 +161,27 @@ describe('statikYukle: yükleme', () => {
     yakala.satirlar.length = 0;
     statikYukleSonucuYazdir(s);
     expect(yakala.satirlar).toContain('UYARI NESNE_FARKLI sayi=1');
+    expect(statikYukleCikisKodu(s)).toBe(1); /* hata yok ama hedefte farklı nesne kaldı */
+  });
+
+  it('çıkış kodu: nesne_farkli > 0 ise 1; 0 ise ve hata yoksa 0 (sınır 0/1)', async () => {
+    const t = sahteTarama();
+    const temiz = await statikYukle(girdi(t, { onay: planKodu(t), yukleyiciKur: () => bellekStatikYukleyiciKur() }));
+    expect(temiz.hata).toBeNull();
+    expect([temiz.nesne_farkli, statikYukleCikisKodu(temiz)]).toEqual([0, 0]);
+    expect(statikYukleCikisKodu({ ...temiz, nesne_farkli: 1 })).toBe(1);
+    expect(statikYukleCikisKodu({ ...temiz, nesne_farkli: 8 })).toBe(1);
+    expect(statikYukleCikisKodu({ ...temiz, nesne_ayni: 8, nesne_var: 8, nesne_farkli: 0 })).toBe(0); /* aynı içerik başarıdır */
+  });
+
+  it('hem hata hem nesne_farkli varsa yine 1; kuru çalıştırmada nesne_farkli 0 olduğundan 0 kalır', async () => {
+    const t = sahteTarama();
+    const kuru = await statikYukle(girdi(t));
+    expect([kuru.kuru, kuru.nesne_farkli, statikYukleCikisKodu(kuru)]).toEqual([true, 0, 0]);
+    const y = bellekStatikYukleyiciKur({ onceden: { 'oynatma-listelerim/hero.json': kodla('{"x":1}') }, yuklemeHatasi: { sira: 3, kod: 'DEPO_DOLU' } });
+    const s = await statikYukle(girdi(t, { onay: planKodu(t), yukleyiciKur: () => y }));
+    expect(s.hata).not.toBeNull();
+    expect(statikYukleCikisKodu(s)).toBe(1);
   });
 
   it('geri indirilen içerik bozuksa STATIK_DOGRULAMA_FARKI ile DURUR (sonraki dosyalar yüklenmez)', async () => {

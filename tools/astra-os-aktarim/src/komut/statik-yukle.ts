@@ -2,7 +2,7 @@
    VARSAYILAN kuru çalıştırmadır (ağ ve kimlik YOK): beyaz listeyi tarar, sayı/boyut/sha256 özeti ve onay kodu üretir.
    Yükleme yalnız doğru kodla: plan yeniden üretilip koda karşı doğrulanır; yanlış/boş kodda yükleyici fabrikası (servis anahtarı okuma dahil) HİÇ çağrılmaz.
    Mevcut nesne ezilmez (`upsert:false`); yüklenen her nesne genel adresten geri indirilip boyut + sha256 doğrulanır; ilk hatada durulur.
-   Servis rolü yalnız bu komutta ve yalnız Storage içindir (veritabanı çağrısı yok). Çıktı: yalnız sayı ve sabit kod. */
+   Çıkış kodu 1: ilk hata ya da hedefte FARKLI içerikli nesne (ezilmez, elle incelenmeli). Servis rolü yalnız bu komutta ve yalnız Storage içindir (veritabanı çağrısı yok). Çıktı: yalnız sayı ve sabit kod. */
 import { STATIK_AZAMI_BAYT, statikOnayDogrula, statikPlanOlustur, type StatikPlan } from '../donusum/statik-plan-hesap.ts';
 import { ilerlemeYazdir, olayYazdir } from '../cikti.ts';
 import { statikTara, type StatikTaramaSonucu } from '../girdi/statik-tara.ts';
@@ -87,9 +87,10 @@ export async function statikYukle(g: StatikYukleGirdisi): Promise<StatikYukleSon
   return sonuc;
 }
 
-/* Çıkış kodu: kuru çalıştırmada sorun varsa 1; yüklemede hata varsa 1. */
+/* Çıkış kodu: kuru çalıştırmada sorun varsa 1; yüklemede hata varsa 1; hedefte farklı içerikli nesne kaldıysa 1 (zincirli otomasyon eski içeriği başarı sanmasın). */
 export function statikYukleCikisKodu(s: StatikYukleSonucu): 0 | 1 {
   if (s.hata !== null) return 1;
+  if (s.nesne_farkli > 0) return 1;
   return s.kuru && s.plan.sorunlar.length > 0 ? 1 : 0;
 }
 

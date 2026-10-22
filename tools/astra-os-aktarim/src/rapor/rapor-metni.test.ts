@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { CANARY_AD, canaryBul } from '@astra/ortak-test';
+import { CANARY_AD, CANARY_PAROLA, canaryBul, sentetikSUret } from '@astra/ortak-test';
 import { sessizAyarla } from '../cikti.ts';
 import { ciktiYakala, sentetikPlanKur, type CiktiYakalayici } from '../test-destek.ts';
 import { raporJsonu, raporMetni } from './rapor-metni.ts';
@@ -65,6 +65,52 @@ describe('raporMetni', () => {
   });
   it('canary değer içermez', () => {
     expect(canaryBul(raporMetni(rapor()))).toEqual([]);
+  });
+});
+
+describe('raporMetni / raporJsonu: eslenmeyen_anahtarlar', () => {
+  function eslenmeyenRapor(adlar: Record<string, string>): Rapor {
+    const d = sentetikSUret();
+    Object.assign(d.diger.apps, adlar);
+    return { ...sentetikPlanKur({ s: d }).plan.ozet, hedef_proje_kisa: 'abcd...' };
+  }
+
+  it('her ad için "ESLENMEYEN_ANAHTAR <ad>" satırı yazar (sıra korunur)', () => {
+    const satirlar = raporMetni(eslenmeyenRapor({ 'zeta-ayar': 'v', 'alfa-ayar': 'v' })).split('\n');
+    expect(satirlar.filter((x) => x.startsWith('ESLENMEYEN_ANAHTAR'))).toEqual(['ESLENMEYEN_ANAHTAR alfa-ayar', 'ESLENMEYEN_ANAHTAR zeta-ayar']);
+  });
+  it('satırlar ATLANAN satırlarından sonra, UYARI satırlarından önce gelir', () => {
+    const satirlar = raporMetni(eslenmeyenRapor({ 'yeni-ayar': 'v' })).split('\n');
+    const ilk = satirlar.findIndex((x) => x.startsWith('ESLENMEYEN_ANAHTAR'));
+    expect(satirlar[ilk - 1]).toMatch(/^ATLANAN /);
+    expect(satirlar[ilk + 1]).toMatch(/^UYARI /);
+    expect(satirlar.findIndex((x) => x.startsWith('ATLANAN apps ANAHTAR_ESLENMEDI'))).toBeLessThan(ilk);
+  });
+  it('alan yoksa hiç ESLENMEYEN_ANAHTAR satırı yoktur (metin biçimi değişmez)', () => {
+    expect(raporMetni(rapor())).not.toContain('ESLENMEYEN_ANAHTAR');
+  });
+  it('boş dizi satır üretmez', () => {
+    expect(raporMetni({ ...rapor(), eslenmeyen_anahtarlar: [] })).not.toContain('ESLENMEYEN_ANAHTAR');
+  });
+  it('DEĞER metinde ve JSON çıktıda ASLA yoktur (canary)', () => {
+    const r = eslenmeyenRapor({ 'yeni-ayar': CANARY_PAROLA });
+    expect(raporMetni(r)).not.toContain(CANARY_PAROLA);
+    expect(raporJsonu(r)).not.toContain(CANARY_PAROLA);
+    expect(canaryBul(raporMetni(r) + raporJsonu(r))).toEqual([]);
+  });
+  it('JSON alanı taşır ve geri okununca şemadan geçer', () => {
+    const r = eslenmeyenRapor({ 'yeni-ayar': 'v' });
+    const json = JSON.parse(raporJsonu(r)) as Record<string, unknown>;
+    expect(json.eslenmeyen_anahtarlar).toEqual(['yeni-ayar']);
+    expect(raporDogrula(json)).toEqual(r);
+  });
+  it('JSON: alan yoksa anahtar da yoktur', () => {
+    expect('eslenmeyen_anahtarlar' in (JSON.parse(raporJsonu(rapor())) as object)).toBe(false);
+  });
+  it('şemaya uymayan ad (desen dışı) metin/JSON üretimini durdurur', () => {
+    const kotu = { ...rapor(), eslenmeyen_anahtarlar: ['bosluk var'] };
+    expect(() => raporMetni(kotu)).toThrowError(RaporHatasi);
+    expect(() => raporJsonu(kotu)).toThrowError(RaporHatasi);
   });
 });
 

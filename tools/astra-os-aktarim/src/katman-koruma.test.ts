@@ -172,11 +172,15 @@ describe('katman koruma: tek çıktı kapısı (cikti.ts)', () => {
   it('doğrudan dosya akışı yazımı (writeFile/appendFile/createWriteStream) yalnız cikti.ts içindedir', () => {
     expect(ihlaller(digerleri, /\b(?:writeFileSync|writeFile|appendFileSync|appendFile|createWriteStream)\b/)).toEqual([]);
   });
+  it('düşük düzey yazma (writeSync/writevSync/yazma kipli openSync) ve fchmodSync yalnız cikti.ts içindedir', () => {
+    expect(ihlaller(digerleri, /\b(?:writeSync|writevSync|fchmodSync|fchownSync|ftruncateSync|truncateSync)\b|\bopenSync\([^)]*['"`](?:[wa]|r\+)[x+]?['"`]/)).toEqual([]);
+  });
 });
 
 describe('katman koruma: process.env yalnız ayar.ts içinde', () => {
   it('başka hiçbir üretim dosyasında yoktur', () => {
     expect(ihlaller(DOSYALAR, /process\.env/)).toEqual(['ayar.ts']);
+    expect(ihlaller(DOSYALAR, /from\s*['"](?:node:)?process['"]/)).toEqual([]);
   });
   it('.env dosyası okunmaz, dotenv kullanılmaz', () => {
     expect(ihlaller(DOSYALAR, /dotenv|['"`][^'"`]*\.env(?:\.[a-z]+)?['"`]/)).toEqual([]);
@@ -202,10 +206,14 @@ describe('katman koruma: ağ yalnız yazici/ içinde', () => {
 
 describe('katman koruma: dosya sistemi yalnız girdi/ ve cikti.ts içinde', () => {
   it('node:fs içe aktaran dosyalar beyaz listededir', () => {
+    /* Öneksiz 'fs', 'fs/promises' ve dinamik/require biçimleri de yakalanır (yalnız node:fs değil). */
+    const fsDeseni = /(?:from|import|require)\s*\(?\s*['"`](?:node:)?fs(?:\/promises)?['"`]/;
+    expect(DOSYALAR.filter((d) => fsDeseni.test(d.kod)).map((d) => d.goreli).sort()).toEqual(['cikti.ts', 'girdi/dosya-oku.ts', 'girdi/statik-tara.ts']);
     expect(DOSYALAR.filter((d) => /node:fs/.test(d.kod)).map((d) => d.goreli).sort()).toEqual(['cikti.ts', 'girdi/dosya-oku.ts', 'girdi/statik-tara.ts']);
   });
   it('sembolik bağlantı izlenmez, silme/taşıma/kopyalama çağrısı yoktur', () => {
-    expect(ihlaller(DOSYALAR, /\b(?:unlinkSync|unlink|rmSync|rm|rmdirSync|renameSync|copyFileSync|cpSync|symlinkSync|chmodSync)\(/)).toEqual([]);
+    /* Yol tabanlı chmod/chown yasak; fd tabanlı fchmodSync yalnız cikti.ts'te (yukarıdaki test). */
+    expect(ihlaller(DOSYALAR, /\b(?:unlinkSync|unlink|rmSync|rm|rmdirSync|renameSync|copyFileSync|cpSync|symlinkSync|chmodSync|lchmodSync|chownSync|lchownSync|linkSync)\(/)).toEqual([]);
   });
 });
 

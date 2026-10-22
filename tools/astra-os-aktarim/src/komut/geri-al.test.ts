@@ -188,6 +188,100 @@ describe('geriAl: --uygulama-durumlarini-sil', () => {
   });
 });
 
+describe('geriAl: seçim izin listesidir (yalnız durum === "yazildi" aracın yazdığı sayılır; bilinmeyen durum korunur)', () => {
+  const BILINMEYENLER: ReadonlyArray<[string, Record<string, unknown>]> = [
+    ['durum alanı yok', {}],
+    ['durum null', { durum: null }],
+    ['beklenmeyen durum metni', { durum: 'bilinmeyen' }],
+    ['büyük harfli YAZILDI', { durum: 'YAZILDI' }],
+    ['boşluklu "yazildi "', { durum: 'yazildi ' }],
+    ['metin olmayan durum', { durum: 1 }],
+  ];
+
+  function yazilmisBegeni(depo: BellekDeposu) {
+    return depo.eslesme.find((e) => e.hedef_tablo === 'begeniler' && e.ekstra.durum === 'yazildi')!;
+  }
+  function yazilmisUygulama(depo: BellekDeposu) {
+    return depo.eslesme.find((e) => e.hedef_tablo === 'uygulama_durumu' && e.ekstra.durum === 'yazildi')!;
+  }
+
+  it.each(BILINMEYENLER)('%s: sayımda sahiplenildi gibi sayılır (yazildi azalır, sahiplenildi artar), toplam değişmez', async (_ad, ekstra) => {
+    const depo = await yazilmisDepo();
+    yazilmisBegeni(depo).ekstra = ekstra;
+    yazilmisUygulama(depo).ekstra = ekstra;
+    const s = await geriAl(girdi(depo).g);
+    expect(s.secilen).toBe(22);
+    expect([...s.sayimlar].sort((a, b) => a.hedef_tablo.localeCompare(b.hedef_tablo))).toEqual([
+      { hedef_tablo: 'begeniler', yazildi: 4, sahiplenildi: 2 },
+      { hedef_tablo: 'uygulama_durumu', yazildi: 14, sahiplenildi: 2 },
+    ]);
+  });
+
+  it.each(BILINMEYENLER)('%s: beğeni satırı gizlenmez (eşleşmesi yine de gizlenir)', async (_ad, ekstra) => {
+    const depo = await yazilmisDepo();
+    const e = yazilmisBegeni(depo);
+    e.ekstra = ekstra;
+    const kod = await kuruKod(depo);
+    const s = await geriAl(girdi(depo, { onay: kod }).g);
+    expect(s.hata).toBeNull();
+    expect(s.gizlenen_satir).toBe(4);
+    expect(depo.begeniler.find((b) => b.id === e.hedef_id)!.silindi_at).toBeNull();
+    expect(depo.begeniler.filter((b) => b.silindi_at !== null)).toHaveLength(4);
+    expect(s.gizlenen_eslesme).toBe(6);
+  });
+
+  it.each(BILINMEYENLER)('%s: uygulama anahtarı --uygulama-durumlarini-sil ile SİLİNMEZ', async (_ad, ekstra) => {
+    const depo = await yazilmisDepo();
+    const e = yazilmisUygulama(depo);
+    e.ekstra = ekstra;
+    const [uygulama, anahtar] = [e.hedef_ref!.slice(0, e.hedef_ref!.indexOf('/')), e.hedef_ref!.slice(e.hedef_ref!.indexOf('/') + 1)];
+    const onay = await kuruKod(depo, { uygulamaDurumlariniSil: true });
+    const { g, f } = girdi(depo, { uygulamaDurumlariniSil: true, onay });
+    const s = await geriAl(g);
+    expect(s.hata).toBeNull();
+    expect(s.silinen_anahtar).toBe(14);
+    expect(f.uretilen[0]!.cagriSayisi('uygulamaDurumuSil')).toBe(14);
+    expect(depo.uygulamaDurumu.get(uygulama)!.has(anahtar)).toBe(true);
+  });
+
+  it('sayım ile işlem aynı listeden gelir: onay kodundaki sayım gerçekte silinen anahtar sayısına eşittir', async () => {
+    const depo = await yazilmisDepo();
+    yazilmisUygulama(depo).ekstra = { durum: 'bilinmeyen' };
+    const kuru = await geriAl(girdi(depo, { uygulamaDurumlariniSil: true }).g);
+    const sayilanYazildi = kuru.sayimlar.find((x) => x.hedef_tablo === 'uygulama_durumu')!.yazildi;
+    const s = await geriAl(girdi(depo, { uygulamaDurumlariniSil: true, onay: kuru.onay_kodu }).g);
+    expect(s.silinen_anahtar).toBe(sayilanYazildi);
+  });
+
+  it('bilinmeyen duruma çevirmek onay kodunu değiştirir (eski kod geçmez)', async () => {
+    const depo = await yazilmisDepo();
+    const once = await kuruKod(depo);
+    yazilmisBegeni(depo).ekstra = {};
+    expect(await kuruKod(depo)).not.toBe(once);
+    await expect(geriAl(girdi(depo, { onay: once }).g)).rejects.toMatchObject({ kod: 'ONAY_UYUSMADI' });
+  });
+
+  it('olumlu: tüm durumlar "yazildi" ise davranış değişmez (5 beğeni gizlenir, 15 anahtar silinir)', async () => {
+    const depo = await yazilmisDepo();
+    const onay = await kuruKod(depo, { uygulamaDurumlariniSil: true });
+    const s = await geriAl(girdi(depo, { uygulamaDurumlariniSil: true, onay }).g);
+    expect([s.gizlenen_satir, s.silinen_anahtar]).toEqual([5, 15]);
+  });
+
+  it('sınır: hiçbir eşleşmenin durumu "yazildi" değilse hiçbir hedef satıra dokunulmaz', async () => {
+    const depo = await yazilmisDepo();
+    for (const e of depo.eslesme) e.ekstra = {};
+    const onay = await kuruKod(depo, { uygulamaDurumlariniSil: true });
+    const { g, f } = girdi(depo, { uygulamaDurumlariniSil: true, onay });
+    const s = await geriAl(g);
+    expect([s.gizlenen_satir, s.silinen_anahtar, s.hata]).toEqual([0, 0, null]);
+    expect(f.uretilen[0]!.cagriSayisi('satirGizle')).toBe(0);
+    expect(f.uretilen[0]!.cagriSayisi('uygulamaDurumuSil')).toBe(0);
+    expect(depo.begeniler.every((b) => b.silindi_at === null)).toBe(true);
+    expect([...depo.uygulamaDurumu.values()].reduce((t, m) => t + m.size, 0)).toBe(17);
+  });
+});
+
 describe('geriAl: hata yolu', () => {
   it('beğeni gizlerken hata: eşleşmelere HİÇ dokunulmaz (güvenli sıra); canary sızmaz', async () => {
     const depo = await yazilmisDepo();

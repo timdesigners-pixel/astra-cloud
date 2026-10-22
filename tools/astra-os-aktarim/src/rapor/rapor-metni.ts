@@ -23,6 +23,7 @@ export function raporMetni(girdi: Rapor): string {
   for (const k of r.kontrol_toplamlari) s.push(`KONTROL ${k.ad} kurus=${k.kurus_toplami} (${kurusMetni(k.kurus_toplami)})`);
   for (const k of r.sayaclar) s.push(`SAYAC ${k.ad}=${k.sayi}`);
   for (const k of r.atlanan) s.push(`ATLANAN ${k.koleksiyon} ${k.neden_kodu} x${k.sayi}`);
+  for (const ad of r.eslenmeyen_anahtarlar ?? []) s.push(`ESLENMEYEN_ANAHTAR ${ad}`);
   for (const k of r.uyarilar) s.push(`UYARI ${k.koleksiyon} ${k.neden_kodu} x${k.sayi}`);
   for (const b of r.bilgi_kodlari) s.push(`BILGI ${b}`);
   return s.join('\n');

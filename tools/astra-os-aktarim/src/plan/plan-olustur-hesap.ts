@@ -4,10 +4,11 @@ import { ilgiDonustur } from '../donusum/ilgi-hesap.ts';
 import type { BilgiKodu, KodluKayit } from '../donusum/neden-kodu.ts';
 import { uygulamaDonustur } from '../donusum/uygulama-hesap.ts';
 import type { SemaSonucu } from '../girdi/sema-ayristirici-hesap.ts';
+import { anahtarAdiGuvenliMi } from '../guvenlik/anahtar-adi-hesap.ts';
 import { sha256Hex } from '../guvenlik/ozet.ts';
 import { Plan } from './plan.ts';
 import { begeniFiyatToplami, girdiOzetiKur, hedefTablolariKur, kodSayilariKur } from './plan-ozet-hesap.ts';
-import { DALGALAR, PlanHatasi, type Dalga, type PlanKaydi, type PlanOzetiTaslagi, type Sayac } from './plan-tipleri.ts';
+import { DALGALAR, ESLENMEYEN_ANAHTAR_AZAMI, ESLENMEYEN_ANAHTAR_DESENI, PlanHatasi, type Dalga, type PlanKaydi, type PlanOzetiTaslagi, type Sayac } from './plan-tipleri.ts';
 
 export type PlanGirdisi = {
   dalga: Dalga;
@@ -56,6 +57,12 @@ export function planOlustur(girdi: PlanGirdisi): Plan {
     bilgi.push('DALGA_DONUSTURUCU_YOK');
   }
 
+  /* Kaybolan anahtarı kullanıcı görebilsin: yalnız AD (değer değil). Ad desene uymazsa ya da IBAN/uzun rakam dizisi gibiyse listelenmez (sayısı atlanan'da kalır). */
+  const eslenmeyenler = [...new Set(atlananlar.filter((a) => a.neden_kodu === 'ANAHTAR_ESLENMEDI').map((a) => a.kaynak_id))]
+    .filter((ad) => ESLENMEYEN_ANAHTAR_DESENI.test(ad) && anahtarAdiGuvenliMi(ad))
+    .sort()
+    .slice(0, ESLENMEYEN_ANAHTAR_AZAMI);
+
   const taslak: PlanOzetiTaslagi = {
     dalga: girdi.dalga,
     arac_surumu: girdi.aracSurumu,
@@ -67,6 +74,7 @@ export function planOlustur(girdi: PlanGirdisi): Plan {
     atlanan: kodSayilariKur(atlananlar),
     uyarilar: kodSayilariKur(uyarilar),
     bilgi_kodlari: [...new Set(bilgi)].sort(),
+    ...(eslenmeyenler.length > 0 ? { eslenmeyen_anahtarlar: eslenmeyenler } : {}),
   };
   return new Plan(girdi.dalga, taslak, { kayitlar, atlananlar, uyarilar });
 }

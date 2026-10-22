@@ -10,7 +10,9 @@ ASTRA-OS verisini astra-cloud (Supabase) tarafına aktaran komut satırı aracı
 - Kimlik bilgisi yalnız **ortam değişkeninden** (PIN için ayrıca etkileşimli terminalde yankısız istemden) okunur; argümana, dosyaya, rapora yazılmaz. `--pin`, `--parola`, `--token` gibi bayraklar reddedilir.
 - Oturum **kullanıcı oturumudur** (PIN → `pin-giris` → authenticated JWT); servis rolü anahtarı yalnız `statik-yukle --onay` komutunda (Storage, veritabanı çağrısı yok) kullanılır. Jeton yalnız bellekte durur.
 - PIN ile giriş **tek denemedir**, otomatik yeniden deneme yoktur (sunucu art arda yanlış denemede hesabı kilitler). Yanlış PIN'de kalan deneme sayısı yazılır.
-- Hedefteki mevcut satır **asla güncellenmez**; yalnız ekleme, eşleşme yazma ve `silindi_at` ile gizleme yapılır.
+- Hedefteki mevcut satır **güncellenmez**; yalnız ekleme, eşleşme yazma ve `silindi_at` ile gizleme yapılır. **İki istisna/sınır:**
+  (1) `geri-al --uygulama-durumlarini-sil` `uygulama_durumu` anahtarlarını **fiziksel siler** (aşağıya bakın).
+  (2) `uygulama_durumu` yazımı sunucuda upsert RPC'sidir (insert-only değil). Araç her anahtarı yazmadan hemen önce yeniden okur; arada belirmişse **yazmaz**, `sahiplenildi` işaretler ve `UYARI YARIS_ATLANAN` bildirir. Yeniden okuma ile RPC çağrısı arasındaki milisaniyelik pencere kapatılamaz (atomik insert-only RPC için yeni migration gerekir; kapsam dışı bırakıldı). Bu yüzden **yazma sürerken Control Layer uygulamalarını açmayın** (köprü otomatik kaydeder).
 - Her ağ isteği 30 sn zaman aşımına tabidir; ilk hatada yazma durur ve o ana kadarki sayılar raporlanır.
 
 ## Önkoşul: 0027 migration'ı ÖNCE uygulanmalı
@@ -32,7 +34,8 @@ ASTRA-OS verisini astra-cloud (Supabase) tarafına aktaran komut satırı aracı
 - Girdi (uygulama yedek JSON'u ya da `astra_kasa_duz.durum` çıktısı) ve `--ilgi` dosyası gerçek kişisel finans verisi içerir. Dosyaları **depo DIŞINDA** tutun (ör. `~/gecici/`), depoya koymayın.
 - Araç dosyayı kopyalamaz, geçici dosya yazmaz, silmez. **İşiniz bitince dosyaları güvenle silin** (ve indirdiyseniz kopyalarını/geçmişini temizleyin).
 - Şifreli kasa gövdesi (`v:1|2`) kabul edilmez (`SIFRELI_GIRDI`); araç şifre çözmez.
-- `--rapor <yol>` dosyası yalnız doğrulanmış, değersiz rapordur (0600 izinli); yine de depoya koymayın.
+- `--rapor <yol>` dosyası yalnız doğrulanmış, değersiz rapordur (0600 izinli); yine de depoya koymayın. Rapor yolu `--girdi`/`--ilgi`/`--kaynak` ile aynı dosya (sembolik/sert bağlantı çözülmüş hâliyle) ya da `--kaynak` dizini içindeyse `RAPOR_YOLU_CAKISIYOR`, hedef sembolik bağlantıysa `RAPOR_SEMBOLIK_BAGLANTI` ile (çıkış 2) iş başlamadan reddedilir. Var olan bir önceki rapor dosyası yeniden çalıştırmada üzerine yazılır.
+- **Eşlenmeyen anahtarlar (açık sınır):** `apps` içinde bilinen listede olmayan anahtarlar yazılmaz; raporda `ATLANAN apps ANAHTAR_ESLENMEDI xN` yanında anahtar **adları** `ESLENMEYEN_ANAHTAR <ad>` satırlarıyla listelenir (değer asla; en çok 100, yalnız `[A-Za-z0-9_.-]{1,80}` adlar). **Rakam filtresi:** IBAN/dosya no sızmasın diye ardışık 8+ rakam içeren ya da ayraçlar (`- _ . boşluk`) çıkarıldığında toplam rakam sayısı 12 veya fazla olan adlar listelenmez (yalnız `x N` sayısında kalır; ortak kural `src/guvenlik/anahtar-adi-hesap.ts`, plan ve rapor doğrulayıcı aynı kuralı kullanır). Sınır: ayraçlarla bölünmüş 12'den az rakamlı adlar (`a1234-5678`) listelenir; bu kural muhafazakârdır ve harflerle bölünmüş uzun kimlikleri tam yakalamayabilir (son savunma `cikti.ts` IBAN deseni). Listelenmeyen bir anahtarı bulmak için girdi dosyanızda aynı sayıdaki bilinmeyen anahtarı elle arayın. Bilinen liste eksiktir: spec `karsilama` için 12 anahtar der, kodda 10 vardır (kalan 2 adı belirsiz, tahmin edilmedi) ve `kutuphane` uygulamasının anahtarları hiç yoktur. Bu anahtarlar girdide varsa **aktarılmaz**; kuru çalıştırma çıktısını okuyup eksikleri elle değerlendirin.
 
 ## Çalıştırma rehberi — dalga a
 
@@ -63,7 +66,7 @@ Komutlar kökten: `pnpm --filter @astra/aktarim aktar <komut> [seçenekler]` (No
    pnpm --filter @astra/aktarim aktar geri-al --aktarim <uuid>            # ya da --dalga a
    pnpm --filter @astra/aktarim aktar geri-al --aktarim <uuid> --onay ONAY-geri-xxxxxxxxxxxx
    ```
-   `<uuid>`: `yaz` çıktısındaki `aktarim_id`. Eşleşmeler ve aracın yazdığı satırlar `silindi_at` ile gizlenir (fiziksel silme yok). **Sahiplenilen satırlara dokunulmaz.** `uygulama_durumu` anahtarları kullanıcı verisi olabileceğinden bayraksız silinmez; yalnız `--uygulama-durumlarini-sil` ile ve yalnız aracın kendi yazdığı anahtarlar silinir. Geri alındıktan sonra aynı kodla yeniden `yaz` satırları yeniden oluşturur (eşleşme güncellenir).
+   `<uuid>`: `yaz` çıktısındaki `aktarim_id`. Eşleşmeler ve aracın yazdığı `begeniler` satırları `silindi_at` ile gizlenir (soft delete). **Sahiplenilen satırlara dokunulmaz**; seçim izin listesidir: yalnız eşleşmesi açıkça `durum=yazildi` olanlar aracın yazdığı sayılır, durumu eksik/bilinmeyen olan korunur. `uygulama_durumu` anahtarları kullanıcı verisi olabileceğinden bayraksız silinmez. **`--uygulama-durumlarini-sil` ile aracın yazdığı (`yazildi`) anahtarlar FİZİKSEL silinir (`uygulama_durumu_sil`, geri dönüşsüz; bu bayrak için soft delete yoktur).** Anahtarın değeri aktarımdan sonra uygulamada düzenlenmiş olsa bile silinir: araç değer özeti saklamadığı için değişikliği tespit EDEMEZ. Bayrağı kullanmadan önce uygulamalardaki güncel veriyi yedekleyin. Geri alındıktan sonra aynı kodla yeniden `yaz` satırları yeniden oluşturur (eşleşme güncellenir).
 
 ## Çalıştırma rehberi — statik yükleme (`statik-yukle`)
 
@@ -83,7 +86,7 @@ Oynatma Listelerim (`oynatma-listelerim`) ve Pinterest Panolarım (`pinterest-pa
    pnpm --filter @astra/aktarim aktar statik-yukle --kaynak ~/astra-os --onay ONAY-statik-xxxxxxxxxxxx
    unset ASTRA_SERVIS_ANAHTARI          # İŞ BİTİNCE hemen; gerekirse terminali kapatın
    ```
-   Yanlış ya da boş kodda **hiçbir yükleme yapılmaz** (servis anahtarı bile okunmaz). Yükleme `upsert:false` iledir: hedefte aynı yolda nesne varsa **ezilmez**, `NESNE_VAR` sayılır; boyut/sha256 farklıysa ayrıca `NESNE_FARKLI` uyarısı verilir (araç yine yazmaz; elle inceleyin). Yüklenen her nesne genel adresten geri indirilip boyut + sha256 doğrulanır; fark ya da hata olursa **ilk hatada durur** ve o ana kadarki sayılar yazılır (`STATIK_YUKLE_YARIM`, çıkış 1). Yeniden çalıştırmak güvenlidir (yüklenenler `NESNE_VAR/ayni` sayılır).
+   Yanlış ya da boş kodda **hiçbir yükleme yapılmaz** (servis anahtarı bile okunmaz). Yükleme `upsert:false` iledir: hedefte aynı yolda nesne varsa **ezilmez**, `NESNE_VAR` sayılır; boyut/sha256 farklıysa ayrıca `NESNE_FARKLI` uyarısı verilir ve **çıkış kodu 1** olur (araç yine yazmaz; elle inceleyin). Yüklenen her nesne genel adresten geri indirilip boyut + sha256 doğrulanır; fark ya da hata olursa **ilk hatada durur** ve o ana kadarki sayılar yazılır (`STATIK_YUKLE_YARIM`, çıkış 1). Yeniden çalıştırmak güvenlidir (yüklenenler `NESNE_VAR/ayni` sayılır).
 4. **Doğrulayın**: `YUKLENEN dogrulanan` = `dosya`; `NESNE_VAR farkli=0`. İsterseniz genel adresten bir dosyayı tarayıcıda açın.
 5. **Anahtarı kaldırın**: `unset ASTRA_SERVIS_ANAHTARI`; gerekirse Supabase panelinden anahtarı yenileyin.
 

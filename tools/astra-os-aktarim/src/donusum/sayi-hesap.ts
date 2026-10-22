@@ -20,7 +20,8 @@ function temizle(ham: string): { negatif: boolean; govde: string } | null {
 
 function binlikGruplariGecerli(parcalar: string[]): boolean {
   if (parcalar.length < 2) return true;
-  if (!/^\d{1,3}$/.test(parcalar[0]!)) return false;
+  /* Baş grup 0 ile başlayamaz: '0.125' binlik değil ondalıktır (1000 kat büyütme hatası). */
+  if (!/^[1-9]\d{0,2}$/.test(parcalar[0]!)) return false;
   return parcalar.slice(1).every((p) => /^\d{3}$/.test(p));
 }
 
@@ -56,7 +57,7 @@ export function trSayi(girdi: unknown): number {
     }
   } else if (nokta) {
     const parca = g.split('.');
-    if (parca.length > 2 || /^\d{1,3}(\.\d{3})+$/.test(g)) {
+    if (parca.length > 2 || /^[1-9]\d{0,2}(\.\d{3})+$/.test(g)) {
       if (!binlikGruplariGecerli(parca)) return NaN;
       duz = parca.join('');
     } else {

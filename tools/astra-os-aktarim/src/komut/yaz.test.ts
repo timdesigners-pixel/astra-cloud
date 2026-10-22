@@ -3,7 +3,7 @@ import { CANARY_AD, CANARY_IBAN, CANARY_PAROLA, canaryBul, sentetikSUret } from 
 import { KomutHatasi } from './komut-hata.ts';
 import { VARSAYILAN_YIGIN, yaz, yazSonucuYazdir } from './yaz.ts';
 import { bellekDeposuKur } from '../yazici/bellek-yazici.ts';
-import { AKTARIM_1, ciktiYakala, sentetikPlanKur, yazCalistir, yaziciFabrikasi, type CiktiYakalayici } from '../test-destek.ts';
+import { AKTARIM_1, AKTARIM_2, ciktiYakala, sentetikPlanKur, yazCalistir, yaziciFabrikasi, type CiktiYakalayici } from '../test-destek.ts';
 
 const s = sentetikSUret();
 
@@ -76,7 +76,7 @@ describe('yaz: başarılı yazma', () => {
     const { sonuc, yazici } = await yazCalistir(plan, depo);
     expect(sonuc).toEqual({
       aktarim_id: AKTARIM_1, dalga: 'a', yazilan: [{ tablo: 'begeniler', sayi: 6 }, { tablo: 'uygulama_durumu', sayi: 16 }],
-      sahiplenilen: 0, atlanan_eslesme: 0, belirsiz: 0, eslesme_yazilan: 22, yetim_olabilir: 0, hata: null,
+      sahiplenilen: 0, atlanan_eslesme: 0, belirsiz: 0, yaris_atlanan: 0, eslesme_yazilan: 22, yetim_olabilir: 0, hata: null,
     });
     expect(depo.begeniler).toHaveLength(6);
     expect(depo.eslesme).toHaveLength(22);
@@ -144,6 +144,127 @@ describe('yaz: başarılı yazma', () => {
     expect(yazici.cagriSayisi('satirGizle')).toBe(0);
     expect(yazici.cagriSayisi('uygulamaDurumuSil')).toBe(0);
     expect(yazici.cagriSayisi('eslesmeGuncelle')).toBe(0);
+  });
+});
+
+describe('yaz: okuma-sonra-yaz yarışı (yazmadan hemen önce anahtar yeniden okunur)', () => {
+  const KULLANICI_DEGERI = 'YARIS-KULLANICI-DEGERI';
+
+  /* İlk okumalar (plan anı) bittikten sonra hedefe `uygulama/anahtar` yazar: "kullanıcı o sırada uygulamayı açtı" benzetimi. */
+  function yarisliYaziciKur(depo: ReturnType<typeof bellekDeposuKur>, plan: ReturnType<typeof sentetikPlanKur>['plan'], hedefler: ReadonlyArray<{ uygulama: string; anahtar: string }>) {
+    const f = yaziciFabrikasi(depo);
+    const uygulamaSayisi = new Set(plan.kayitlar().flatMap((k) => (k.tablo === 'uygulama_durumu' ? [k.uygulama] : []))).size;
+    const yaziciKur = async () => {
+      const y = await f.fabrika();
+      const orijinal = y.uygulamaAnahtarlariOku.bind(y);
+      let okuma = 0;
+      y.uygulamaAnahtarlariOku = async (uygulama: string) => {
+        okuma += 1;
+        const sonuc = await orijinal(uygulama);
+        if (okuma === uygulamaSayisi) {
+          for (const h of hedefler) {
+            if (!depo.uygulamaDurumu.has(h.uygulama)) depo.uygulamaDurumu.set(h.uygulama, new Map());
+            depo.uygulamaDurumu.get(h.uygulama)!.set(h.anahtar, KULLANICI_DEGERI);
+          }
+        }
+        return sonuc;
+      };
+      return y;
+    };
+    return { f, yaziciKur };
+  }
+  function ilkUygulamaKaydi(plan: ReturnType<typeof sentetikPlanKur>['plan'], sira = 0) {
+    const k = plan.kayitlar().filter((x) => x.tablo === 'uygulama_durumu')[sira]!;
+    if (k.tablo !== 'uygulama_durumu') throw new Error('uygulama kaydı bekleniyordu');
+    return { uygulama: k.uygulama, anahtar: k.anahtar };
+  }
+
+  it('plan anından sonra belirmiş anahtar EZİLMEZ: yazılmaz, sahiplenildi sayılır, yaris_atlanan=1', async () => {
+    const { plan } = sentetikPlanKur();
+    const depo = bellekDeposuKur();
+    const h = ilkUygulamaKaydi(plan);
+    const { f, yaziciKur } = yarisliYaziciKur(depo, plan, [h]);
+    const sonuc = await yaz({ plan, onay: plan.onay_kodu, aktarimId: AKTARIM_1, yaziciKur });
+    expect(sonuc.hata).toBeNull();
+    expect(sonuc.yaris_atlanan).toBe(1);
+    expect(sonuc.sahiplenilen).toBe(0); /* plan anındaki sahiplenme ayrı sayılır */
+    expect(depo.uygulamaDurumu.get(h.uygulama)!.get(h.anahtar)).toBe(KULLANICI_DEGERI);
+    expect(sonuc.yazilan).toEqual([{ tablo: 'begeniler', sayi: 6 }, { tablo: 'uygulama_durumu', sayi: 15 }]);
+    expect(f.uretilen[0]!.cagriSayisi('uygulamaDurumuYaz')).toBe(15);
+  });
+
+  it('yarışta atlanan anahtar için eşleşme "sahiplenildi" yazılır (geri-al bunu aracın yazdığı sanmaz)', async () => {
+    const { plan } = sentetikPlanKur();
+    const depo = bellekDeposuKur();
+    const h = ilkUygulamaKaydi(plan);
+    const { yaziciKur } = yarisliYaziciKur(depo, plan, [h]);
+    const sonuc = await yaz({ plan, onay: plan.onay_kodu, aktarimId: AKTARIM_1, yaziciKur });
+    const e = depo.eslesme.filter((x) => x.hedef_tablo === 'uygulama_durumu' && x.hedef_ref === `${h.uygulama}/${h.anahtar}`);
+    expect(e).toHaveLength(1);
+    expect(e[0]!.ekstra.durum).toBe('sahiplenildi');
+    expect(sonuc.eslesme_yazilan).toBe(22);
+    expect(sonuc.yetim_olabilir).toBe(0);
+    expect(depo.eslesme.filter((x) => x.hedef_tablo === 'uygulama_durumu' && x.ekstra.durum === 'yazildi')).toHaveLength(15);
+  });
+
+  it('birden çok yarış: hepsi atlanır ve sayılır (3 anahtar -> yaris_atlanan=3)', async () => {
+    const { plan } = sentetikPlanKur();
+    const depo = bellekDeposuKur();
+    const hedefler = [0, 4, 9].map((i) => ilkUygulamaKaydi(plan, i));
+    const { yaziciKur } = yarisliYaziciKur(depo, plan, hedefler);
+    const sonuc = await yaz({ plan, onay: plan.onay_kodu, aktarimId: AKTARIM_1, yaziciKur });
+    expect(sonuc.yaris_atlanan).toBe(3);
+    expect(sonuc.yazilan.find((x) => x.tablo === 'uygulama_durumu')!.sayi).toBe(13);
+    for (const h of hedefler) expect(depo.uygulamaDurumu.get(h.uygulama)!.get(h.anahtar)).toBe(KULLANICI_DEGERI);
+  });
+
+  it('yarış yoksa yaris_atlanan=0 ve her anahtar yazılır (olumsuz kontrol)', async () => {
+    const { plan } = sentetikPlanKur();
+    const depo = bellekDeposuKur();
+    const { yaziciKur } = yarisliYaziciKur(depo, plan, []);
+    const sonuc = await yaz({ plan, onay: plan.onay_kodu, aktarimId: AKTARIM_1, yaziciKur });
+    expect(sonuc.yaris_atlanan).toBe(0);
+    expect(sonuc.yazilan.find((x) => x.tablo === 'uygulama_durumu')!.sayi).toBe(16);
+  });
+
+  it('yeniden okuma yazmadan ÖNCE yapılır: her uygulama_durumu yazmasından önce bir okuma vardır', async () => {
+    const { plan } = sentetikPlanKur();
+    const depo = bellekDeposuKur();
+    const f = yaziciFabrikasi(depo);
+    const olaylar: string[] = [];
+    await yaz({ plan, onay: plan.onay_kodu, aktarimId: AKTARIM_1, yaziciKur: async () => {
+      const y = await f.fabrika();
+      const oku = y.uygulamaAnahtarlariOku.bind(y);
+      const yaz_ = y.uygulamaDurumuYaz.bind(y);
+      y.uygulamaAnahtarlariOku = async (u: string) => { olaylar.push('oku'); return oku(u); };
+      y.uygulamaDurumuYaz = async (u: string, a: string, d: string) => { olaylar.push('yaz'); return yaz_(u, a, d); };
+      return y;
+    } });
+    const ilkYaz = olaylar.indexOf('yaz');
+    expect(ilkYaz).toBeGreaterThan(0);
+    for (let i = 0; i < olaylar.length; i++) if (olaylar[i] === 'yaz') expect(olaylar[i - 1]).toBe('oku');
+    expect(olaylar.filter((x) => x === 'yaz')).toHaveLength(16);
+  });
+
+  it('yarış sonrası yeniden çalıştırma da kullanıcı değerini ezmez (idempotent)', async () => {
+    const { plan } = sentetikPlanKur();
+    const depo = bellekDeposuKur();
+    const h = ilkUygulamaKaydi(plan);
+    const { yaziciKur } = yarisliYaziciKur(depo, plan, [h]);
+    await yaz({ plan, onay: plan.onay_kodu, aktarimId: AKTARIM_1, yaziciKur });
+    const ikinci = await yazCalistir(plan, depo, { aktarimId: AKTARIM_2 });
+    expect(ikinci.sonuc.hata).toBeNull();
+    expect(ikinci.sonuc.yaris_atlanan).toBe(0);
+    expect(depo.uygulamaDurumu.get(h.uygulama)!.get(h.anahtar)).toBe(KULLANICI_DEGERI);
+  });
+
+  it('canary ve kullanıcı değeri sonuç nesnesine sızmaz', async () => {
+    const { plan } = sentetikPlanKur();
+    const depo = bellekDeposuKur();
+    const { yaziciKur } = yarisliYaziciKur(depo, plan, [ilkUygulamaKaydi(plan)]);
+    const sonuc = await yaz({ plan, onay: plan.onay_kodu, aktarimId: AKTARIM_1, yaziciKur });
+    expect(JSON.stringify(sonuc)).not.toContain(KULLANICI_DEGERI);
+    expect(canaryBul(JSON.stringify(sonuc))).toEqual([]);
   });
 });
 
@@ -249,9 +370,25 @@ describe('yazSonucuYazdir', () => {
     ]);
   });
 
+  it('yaris_atlanan > 0 ise UYARI YARIS_ATLANAN sayi=N yazar (OZET\'ten sonra)', () => {
+    yazSonucuYazdir({
+      aktarim_id: AKTARIM_1, dalga: 'a', yazilan: [], sahiplenilen: 0, atlanan_eslesme: 0, belirsiz: 0, yaris_atlanan: 2, eslesme_yazilan: 0, yetim_olabilir: 0, hata: null,
+    });
+    const i = yakala.satirlar.findIndex((x) => x.startsWith('SONUC OZET'));
+    expect(yakala.satirlar[i + 1]).toBe('UYARI YARIS_ATLANAN sayi=2');
+    expect(yakala.satirlar.filter((x) => x.includes('YARIS_ATLANAN'))).toHaveLength(1);
+  });
+
+  it('yaris_atlanan = 0 ise UYARI satırı yoktur (çıktı biçimi değişmez)', async () => {
+    const { sonuc } = await yazCalistir(sentetikPlanKur().plan, bellekDeposuKur());
+    yakala.satirlar.length = 0;
+    yazSonucuYazdir(sonuc);
+    expect(yakala.satirlar.some((x) => x.includes('YARIS_ATLANAN') || x.startsWith('UYARI'))).toBe(false);
+  });
+
   it('hatalı sonuçta YAZ_YARIM ve YAZMA_DURDU yazar', () => {
     yazSonucuYazdir({
-      aktarim_id: AKTARIM_1, dalga: 'a', yazilan: [], sahiplenilen: 0, atlanan_eslesme: 0, belirsiz: 0, eslesme_yazilan: 0, yetim_olabilir: 0,
+      aktarim_id: AKTARIM_1, dalga: 'a', yazilan: [], sahiplenilen: 0, atlanan_eslesme: 0, belirsiz: 0, yaris_atlanan: 0, eslesme_yazilan: 0, yetim_olabilir: 0,
       hata: { kod: '23505', durum: null, tablo: null },
     });
     expect(yakala.satirlar[0]).toBe(`SONUC YAZ_YARIM aktarim_id=${AKTARIM_1} dalga=a`);

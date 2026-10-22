@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CANARY_AD, CANARY_DOSYA_NO, CANARY_IBAN, canaryBul } from '@astra/ortak-test';
+import { CANARY_AD, CANARY_DOSYA_NO, CANARY_IBAN, canaryBul, sentetikSUret } from '@astra/ortak-test';
 import { sentetikPlanKur } from '../test-destek.ts';
 import { RaporHatasi, raporDogrula, type Rapor } from './rapor-sema.ts';
 
@@ -143,5 +143,69 @@ describe('RaporHatasi: değer taşımaz', () => {
         expect(h.message).toMatch(/^RAPOR_SEMA_GECERSIZ yol=[A-Za-z_.]+$/);
       }
     }
+  });
+});
+
+describe('raporDogrula: eslenmeyen_anahtarlar (isteğe bağlı; yalnız desenli AD)', () => {
+  const adlar = (n: number) => Array.from({ length: n }, (_, i) => `ayar-${String(i).padStart(3, '0')}`);
+  const sayfa = (liste: unknown) => degistir((r) => (r.eslenmeyen_anahtarlar = liste));
+
+  it('alan yoksa çıktıda da yoktur (mevcut rapor biçimi değişmez)', () => {
+    expect('eslenmeyen_anahtarlar' in raporDogrula(gecerliRapor())).toBe(false);
+  });
+  it('geçerli ad listesi kabul edilir ve YENİ dizi olarak döner', () => {
+    const girdi = ['Alfa_1.v2', 'ayar-x'];
+    const d = raporDogrula(sayfa(girdi));
+    expect(d.eslenmeyen_anahtarlar).toEqual(girdi);
+    expect(d.eslenmeyen_anahtarlar).not.toBe(girdi);
+  });
+  it('8+ ardışık rakam içeren ad reddedilir; 7 rakam kabul edilir (planOlustur filtresiyle aynı)', () => {
+    expect(yolAl(sayfa(['ayar-12345678']))).toBe('eslenmeyen_anahtarlar');
+    expect(yolAl(sayfa(['ok', 'x123456789012']))).toBe('eslenmeyen_anahtarlar');
+    expect(raporDogrula(sayfa(['ayar-1234567'])).eslenmeyen_anahtarlar).toEqual(['ayar-1234567']);
+    expect(raporDogrula(sayfa(['a1234-5678'])).eslenmeyen_anahtarlar).toEqual(['a1234-5678']);
+  });
+  it('ayraçlı (tire/alt çizgi/nokta) IBAN benzeri ad reddedilir', () => {
+    for (const ad of ['TR33-0006-1005-1978-6457-8413-26', 'TR33_0006_1005_1978_6457_8413_26', 'TR33.0006.1005.1978.6457.8413.26']) {
+      expect(yolAl(sayfa([ad])), ad).toBe('eslenmeyen_anahtarlar');
+    }
+  });
+  it('boş dizi geçerlidir', () => {
+    expect(raporDogrula(sayfa([])).eslenmeyen_anahtarlar).toEqual([]);
+  });
+  it('sınır: tam 100 ad kabul, 101 ad reddedilir', () => {
+    expect(raporDogrula(sayfa(adlar(100))).eslenmeyen_anahtarlar).toHaveLength(100);
+    expect(yolAl(sayfa(adlar(101)))).toBe('eslenmeyen_anahtarlar');
+  });
+  it('sınır: 80 karakterlik ad kabul, 81 karakterlik ad reddedilir', () => {
+    expect(() => raporDogrula(sayfa(['a'.repeat(80)]))).not.toThrow();
+    expect(yolAl(sayfa(['a'.repeat(81)]))).toBe('eslenmeyen_anahtarlar');
+  });
+  it.each([[''], ['bosluk var'], ['türkçe-ç'], ['yol/ad'], ['satir\nsonu'], [CANARY_AD], [CANARY_DOSYA_NO], ['<b>']])('desen dışı ad %j reddedilir', (ad) => {
+    expect(yolAl(sayfa(['gecerli', ad]))).toBe('eslenmeyen_anahtarlar');
+  });
+  it.each([[5], [null], [{}], [['ic', 'ice']], [true]])('metin olmayan öğe %j reddedilir', (oge) => {
+    expect(yolAl(sayfa([oge]))).toBe('eslenmeyen_anahtarlar');
+  });
+  it.each([['metin'], [{}], [5], [null]])('dizi olmayan değer %j reddedilir', (deger) => {
+    expect(yolAl(sayfa(deger))).toBe('eslenmeyen_anahtarlar');
+  });
+  it('reddedilen değer hata mesajına sızmaz', () => {
+    try {
+      raporDogrula(sayfa([CANARY_IBAN + ' ' + CANARY_AD]));
+      expect.unreachable();
+    } catch (e) {
+      expect(canaryBul((e as RaporHatasi).message)).toEqual([]);
+      expect((e as RaporHatasi).message).toMatch(/^RAPOR_SEMA_GECERSIZ yol=[A-Za-z_.]+$/);
+    }
+  });
+  it('alan kök beyaz listede olduğundan yasak anahtarlar yine reddedilir', () => {
+    expect(yolAl(degistir((r) => { r.eslenmeyen_anahtarlar = ['a']; r.deger = 'x'; }))).toBe('rapor.deger');
+  });
+  it('plan özetinden gelen alan şemadan geçer (uçtan uca)', () => {
+    const d = sentetikSUret();
+    d.diger.apps['yeni-ayar'] = 'DEGER';
+    const ozet = sentetikPlanKur({ s: d }).plan.ozet;
+    expect(raporDogrula(ozet).eslenmeyen_anahtarlar).toEqual(['yeni-ayar']);
   });
 });

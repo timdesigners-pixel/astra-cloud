@@ -80,12 +80,12 @@ describe('(1) iki kez yaz: ikincisinde yeni = 0', () => {
 });
 
 describe('(2) yazma yarıda kesilir → yeniden çalıştırma yalnız eksikleri yazar', () => {
-  it('N. yazıcı çağrısında hata (N = 1…60): yeniden çalıştırma her seferinde kontrol çalıştırmasıyla AYNI duruma varır, çift satır yok', async () => {
+  it('N. yazıcı çağrısında hata (N = 1…100): yeniden çalıştırma her seferinde kontrol çalıştırmasıyla AYNI duruma varır, çift satır yok', async () => {
     const kontrol = await kontrolDurumu();
     let hataliCalisma = 0;
     let yetimGorulen = 0;
     let temizCalisma = 0;
-    for (let n = 1; n <= 60; n++) {
+    for (let n = 1; n <= 100; n++) { /* yazmadan önceki yeniden okumalar (yarış koruması) çağrı sayısını artırdı: 60 → 100 */
       const depo = bellekDeposuKur();
       const f = yaziciFabrikasi(depo);
       let ilkSonuc: Awaited<ReturnType<typeof yazCalistir>>['sonuc'] | null = null;

@@ -42,7 +42,12 @@ export type PlanOzetiTaslagi = {
   atlanan: KodSatiri[];
   uyarilar: KodSatiri[];
   bilgi_kodlari: BilgiKodu[];
+  /* ANAHTAR_ESLENMEDI ile atlanan uygulama anahtarlarının ADLARI (değer yok; yalnız ESLENMEYEN_ANAHTAR_DESENI'ne uyanlar, en çok ESLENMEYEN_ANAHTAR_AZAMI).
+     Yalnız doluysa bulunur (boşken alan hiç yoktur: onay kodu ve rapor biçimi değişmez). */
+  eslenmeyen_anahtarlar?: string[];
 };
+export const ESLENMEYEN_ANAHTAR_DESENI = /^[A-Za-z0-9_.-]{1,80}$/;
+export const ESLENMEYEN_ANAHTAR_AZAMI = 100;
 export type PlanOzeti = PlanOzetiTaslagi & { onay_kodu: string };
 
 export type PlanVerisi = { kayitlar: readonly PlanKaydi[]; atlananlar: readonly KodluKayit[]; uyarilar: readonly KodluKayit[] };
