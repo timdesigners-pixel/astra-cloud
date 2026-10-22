@@ -12,6 +12,16 @@ const AY = new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' });
 const aySonra = (k: number) => AY.format(new Date(new Date().getFullYear(), new Date().getMonth() + k, 1));
 const sureYaz = (ay: number | null) => (ay === null ? 'kapanmıyor' : ay === 0 ? 'borç yok' : `${ay} ay · ${aySonra(ay)}`);
 
+async function simulasyonBorclari() {
+  const columns = ['ad', 'yon', 'durum', 'guncel_borc', 'faiz_orani'];
+  try { return await kayitlariGetir('borclar', [...columns, 'asgari_odeme'], {}, 'ad'); }
+  catch (error) {
+    // Keep the existing live simulator usable while migration 0028 is pending.
+    if ((error as { code?: string }).code !== '42703') throw error;
+    return kayitlariGetir('borclar', columns, {}, 'ad');
+  }
+}
+
 type Satir = SimBorc & { dahil: boolean };
 
 /* Borçsuzluğa en kısa yol: son kapanan borç yolun uzunluğunu belirler; günlük faiz kanaması sıralamayı belirler. */
@@ -100,13 +110,13 @@ export function simulasyonSayfasi(kok: HTMLElement) {
   void (async () => {
     try {
       const [borclar, odemeler] = await Promise.all([
-        kayitlariGetir('borclar', ['ad', 'yon', 'durum', 'guncel_borc', 'faiz_orani'], {}, 'ad'),
+        simulasyonBorclari(),
         kayitlariGetir('odemeler', ['borc_id', 'tutar', 'durum'], { durum: 'bekliyor' }, 'vade_tarihi'),
       ]);
       const satirlar: Satir[] = borclar.filter(b => b.yon !== 'alacakli' && b.durum !== 'kapandi' && Number(b.guncel_borc) > 0).map(b => {
         const o = odemeler.filter(x => x.borc_id === b.id);
         return { id: b.id, ad: String(b.ad), bakiye: Number(b.guncel_borc), faizYillik: Number(b.faiz_orani ?? 0),
-          min: o.length ? Math.round((o.reduce((t, x) => t + Number(x.tutar), 0) / o.length) * 100) / 100 : 0, dahil: true };
+          min: o.length ? Math.round((o.reduce((t, x) => t + Number(x.tutar), 0) / o.length) * 100) / 100 : Number(b.asgari_odeme || 0), dahil: true };
       });
       if (!satirlar.length) { kart.replaceChildren(el('p', 'bos', 'Açık borç yok. Borçlar menüsünden borç ekleyince burada senaryo çalıştırabilirsin.')); return; }
 

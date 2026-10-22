@@ -4,6 +4,19 @@ export type SurumKaydi = { surum: string; tarih: string; baslik: string; eklenen
 
 export const SURUM_GECMISI: SurumKaydi[] = [
   {
+    surum: 'v15.9.0', tarih: '2026-10-22', baslik: 'Astra OS aktarım önizlemesi ve finans / hukuk kayıtları',
+    eklenenler: [
+      'Sistem Ayarları: ortak Astra OS paketini sunucuda önizleme ve canlı kayıtlara aktarma',
+      'Finans, icra, dava ve kütüphane kayıtları için tek işlemde yazma, çakışma denetimi ve tekrar önleme',
+      'Borç simülasyonunda aktarılan asgari ödeme tutarlarını kullanma',
+    ],
+    yapilanlar: [
+      'Mevcut komut satırı aktarım aracı korunur; kişisel depo verileri web derlemesine eklenmez',
+      'Yeni veritabanı göçü uygulanmadan da mevcut borç simülasyonu çalışır',
+      'Gerçek canlı aktarım için 0028 göçü ve kullanıcının PIN oturumu gerekir',
+    ],
+  },
+  {
     surum: 'v15.8.1', tarih: '2026-10-20', baslik: 'İlgi Çekici Ürünler menüden kalktı, sayı okuma düzeltmesi',
     eklenenler: [],
     yapilanlar: [
