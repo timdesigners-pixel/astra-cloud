@@ -11,6 +11,7 @@ import { istemciAl } from '../../veri/istemci';
 import { ayarYaz } from '../../veri/karsilama';
 import { panelGetir, panelSifirla, type Panel } from '../../veri/panel';
 import { YEDEK_TABLOLARI } from './yedek-tablolari';
+import { aktarimPaneli } from './astra-aktarim';
 
 const SAYFA = 1000;
 
@@ -54,6 +55,7 @@ export function sistemSayfasi(kok: HTMLElement) {
   const kart = el('div', 'sistem');
   kok.replaceChildren(kart);
   let panel: Panel | null = null, hata = '', indiriliyor = false;
+  const aktarim = aktarimPaneli();
 
   const bolum = (baslik: string, ...cocuk: (Node | string)[]) => {
     const s = el('section', 'card sistem-bolum'); s.appendChild(el('h2', '', baslik)); s.append(...cocuk); return s;
@@ -103,7 +105,7 @@ export function sistemSayfasi(kok: HTMLElement) {
       liste('Eklenenler', k.eklenenler); liste('Yapılanlar', k.yapilanlar);
       gecmis.appendChild(d);
     });
-    kart.replaceChildren(gorunum, yedek, kontrol, hakkinda, gecmis);
+    kart.replaceChildren(gorunum, yedek, aktarim, kontrol, hakkinda, gecmis);
   }
 
   async function yedekAl() {
