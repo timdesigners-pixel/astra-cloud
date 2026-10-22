@@ -13,9 +13,11 @@ export function aktarimPaneli(): HTMLElement {
   const preview = el('button', 'btn', 'Sunucuda önizle'); preview.type = 'button'; preview.disabled = true;
   const apply = el('button', 'btn primary', 'Paketi canlı kayıtlara aktar'); apply.type = 'button'; apply.disabled = true;
   const status = el('p', 'bos'); status.setAttribute('role', 'status');
+  const notes = el('ul', 'bos');
   let packet: Paket | null = null, busy = false;
   file.addEventListener('change', () => {
     packet = null; apply.disabled = true; preview.disabled = !file.files?.length;
+    notes.replaceChildren();
     status.textContent = 'Önce sunucu önizlemesini çalıştırın.';
   });
   async function run(dry: boolean) {
@@ -28,6 +30,13 @@ export function aktarimPaneli(): HTMLElement {
         const parsed = JSON.parse(await selected.text()) as Paket;
         if (parsed.format !== 'astra-os-transfer' || parsed.version !== 1 || !Array.isArray(parsed.records) || !Array.isArray(parsed.library)) throw new Error('Paket biçimi geçersiz.');
         packet = parsed;
+        notes.replaceChildren();
+        const warnings = new Map<string, number>();
+        for (const warning of (parsed.warnings || []).slice(0, 100)) {
+          const text = String(warning).slice(0, 500);
+          warnings.set(text, (warnings.get(text) || 0) + 1);
+        }
+        for (const [text, count] of warnings) notes.appendChild(el('li', '', text + (count > 1 ? ` (${count} kayıt)` : '')));
       }
       if (!packet) throw new Error('Önizleme yapılmadı.');
       const { data, error } = await istemciAl().rpc('astra_os_aktar', { p_paket: packet, p_onizleme: dry });
@@ -48,6 +57,6 @@ export function aktarimPaneli(): HTMLElement {
   }
   preview.addEventListener('click', () => void run(true));
   apply.addEventListener('click', () => void run(false));
-  section.append(file, preview, apply, status);
+  section.append(file, preview, apply, status, notes);
   return section;
 }
