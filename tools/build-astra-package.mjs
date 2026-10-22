@@ -39,7 +39,7 @@ for (const row of legal.LEGAL_SEED) {
 for (const row of legal.CASE_SEED) {
   if (!row.es?.trim()) { warnings.push('Dosya numarası eksik dava arşivde korundu.'); continue; }
   const kind = ['hukuk', 'ceza', 'cbs'].includes(row.t) ? row.t : 'hukuk';
-  add('dava', kind + '|' + row.es, { dosya_no: row.es, tur: kind, mahkeme: row.mh || '', konu: row.ad || '', asama: row.as || '', notlar: row.nt || '' });
+  add('dava', kind + '|' + row.es, { dosya_no: row.es, tur: kind, mahkeme: row.mh || '', konu: row.ad || '', asama: String(row.as || '').slice(0,40), notlar: [row.nt || '', String(row.as || '').length > 40 ? 'Kaynak aşama: ' + row.as : ''].filter(Boolean).join('\n').slice(0,4000) });
 }
 for (const row of migrations.TOHUM_GELIR || []) {
   if (row.cur && !/^(TRY|TL|₺)$/i.test(row.cur)) { warnings.push('TRY dışı gelir dönüştürülmeden arşivde korundu.'); continue; }

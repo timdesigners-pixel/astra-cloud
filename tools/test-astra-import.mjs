@@ -14,7 +14,7 @@ await db.exec(`
   create table public.borclar(id uuid primary key default gen_random_uuid(), sahip_id uuid, ad text not null, tur text not null,
     anapara numeric check(anapara>=0), guncel_borc numeric, faiz_orani numeric, notlar text);
   create table public.icra_dosyalari(id uuid primary key default gen_random_uuid(), sahip_id uuid, dosya_no_hash text, icra_dairesi text, guncel_toplam_borc numeric);
-  create table public.davalar(id uuid primary key default gen_random_uuid(), sahip_id uuid, dosya_no_hash text, mahkeme text, tur text);
+  create table public.davalar(id uuid primary key default gen_random_uuid(), sahip_id uuid, dosya_no_hash text, mahkeme text, tur text, asama text check(length(asama)<=40));
   create table public.gelirler(id uuid primary key default gen_random_uuid(), sahip_id uuid, ad text, tur text, tutar numeric check(tutar>=0), gun smallint check(gun between 1 and 31), baslangic date, bitis date, notlar text);
   create table public.giderler(id uuid primary key default gen_random_uuid(), sahip_id uuid, ad text, tur text, tutar numeric check(tutar>=0), gun smallint check(gun between 1 and 31), notlar text);
   create table public.zihin_sayfalari(id uuid primary key default gen_random_uuid(), sahip_id uuid, baslik text, alan text, kategori text, icerik text, etiketler text[]);
@@ -26,8 +26,8 @@ await db.exec(`
     return jsonb_build_object('id',result_id); end $$;
   create function public.dava_kaydet(uuid,int,text,text,jsonb) returns jsonb language plpgsql as $$
   declare result_id uuid;
-  begin insert into public.davalar(sahip_id,dosya_no_hash,mahkeme,tur)
-    values(auth.uid(),encode(extensions.hmac($3 || '|' || coalesce(nullif(btrim($5->>'mahkeme'),''),'') || '|' || upper(btrim($4)),private.alan_anahtari(),'sha256'),'hex'),$5->>'mahkeme',$3) returning id into result_id;
+  begin insert into public.davalar(sahip_id,dosya_no_hash,mahkeme,tur,asama)
+    values(auth.uid(),encode(extensions.hmac($3 || '|' || coalesce(nullif(btrim($5->>'mahkeme'),''),'') || '|' || upper(btrim($4)),private.alan_anahtari(),'sha256'),'hex'),$5->>'mahkeme',$3,$5->>'asama') returning id into result_id;
     return jsonb_build_object('id',result_id); end $$;
   create function public.uygulama_durumu_yaz(text,text,text) returns void language sql as $$
     insert into public.test_archive values(auth.uid(),$1,$2,$3) on conflict(owner_id,app,key) do nothing $$;
