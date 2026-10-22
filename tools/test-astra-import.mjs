@@ -27,12 +27,13 @@ await db.exec(`
   create function public.dava_kaydet(uuid,int,text,text,jsonb) returns jsonb language plpgsql as $$
   declare result_id uuid;
   begin insert into public.davalar(sahip_id,dosya_no_hash,mahkeme,tur)
-    values(auth.uid(),encode(extensions.hmac(upper(btrim($4)),private.alan_anahtari(),'sha256'),'hex'),$5->>'mahkeme',$3) returning id into result_id;
+    values(auth.uid(),encode(extensions.hmac($3 || '|' || coalesce(nullif(btrim($5->>'mahkeme'),''),'') || '|' || upper(btrim($4)),private.alan_anahtari(),'sha256'),'hex'),$5->>'mahkeme',$3) returning id into result_id;
     return jsonb_build_object('id',result_id); end $$;
   create function public.uygulama_durumu_yaz(text,text,text) returns void language sql as $$
     insert into public.test_archive values(auth.uid(),$1,$2,$3) on conflict(owner_id,app,key) do nothing $$;
 `);
 await db.exec(fs.readFileSync(new URL('../supabase/migrations/0028_astra_os_aktarim.sql',import.meta.url),'utf8'));
+await db.exec(fs.readFileSync(new URL('../supabase/migrations/0029_astra_dava_kimligi.sql',import.meta.url),'utf8'));
 const owner1='00000000-0000-4000-8000-000000000001',owner2='00000000-0000-4000-8000-000000000002';
 await db.query('insert into auth.users values($1),($2)',[owner1,owner2]);
 const owner = value => db.query("select set_config('request.jwt.claim.sub',$1,false)",[value]);
@@ -55,6 +56,13 @@ assert.equal((await db.query('select count(*)::int n from public.giderler')).row
 await owner(owner2);
 assert.equal((await call(packet,false)).yeni,2);
 assert.equal((await db.query('select count(*)::int n from public.borclar')).rows[0].n,2);
+// A pre-existing case must match the production RPC's composite hash, not only its number.
+const legalPacket={format:'astra-os-transfer',version:1,records:[{kind:'dava',key:'dava:existing',data:{tur:'hukuk',mahkeme:'Sentetik Mahkeme',dosya_no:'2026/999'}}],library:[]};
+await db.query('select public.dava_kaydet(null,null,$1,$2,$3::jsonb)',['hukuk','2026/999',JSON.stringify({mahkeme:'Sentetik Mahkeme'})]);
+assert.equal((await call(legalPacket)).yeni,0);
+assert.equal((await call(legalPacket)).atlanacak,1);
+assert.equal((await call(legalPacket,false)).yeni,0);
+assert.equal((await db.query('select count(*)::int n from public.davalar')).rows[0].n,1);
 const invalid=structuredClone(packet);invalid.records.push(invalid.records[0]);
 await assert.rejects(()=>call(invalid,false),/kimliği geçersiz/);
 console.log('PASS: PostgreSQL import function, authentication, dry-run, atomic rollback, retry, preservation of live changes and owner isolation. Crypto and existing legal RPCs use synthetic stand-ins.');

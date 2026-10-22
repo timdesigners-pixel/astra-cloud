@@ -4,6 +4,11 @@ export type SurumKaydi = { surum: string; tarih: string; baslik: string; eklenen
 
 export const SURUM_GECMISI: SurumKaydi[] = [
   {
+    surum: 'v15.9.1', tarih: '2026-10-22', baslik: 'Büyük kütüphanelerde eksiksiz kayıt okuma',
+    eklenenler: [],
+    yapilanlar: ['Kayıtlar 1.000 satırlık sayfalarla ve kararlı kimlik sırasıyla okunur; büyük kütüphaneler ilk sayfada kesilmez'],
+  },
+  {
     surum: 'v15.9.0', tarih: '2026-10-22', baslik: 'Astra OS aktarım önizlemesi ve finans / hukuk kayıtları',
     eklenenler: [
       'Sistem Ayarları: ortak Astra OS paketini sunucuda önizleme ve canlı kayıtlara aktarma',

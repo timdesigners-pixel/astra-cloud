@@ -1,3 +1,9 @@
+# v15.9.1
+
+Dava eşleştirmesi mevcut kayıt RPC’sinin tür / mahkeme / dosya kimliğiyle aynı özeti kullanır; önizlemede mevcut davalar doğru tanınır. 0029 veritabanı göçü eklenmiştir.
+
+Kütüphane dahil kayıt listeleri artık ilk 1.000 satırla sınırlanmaz. Büyük listeler filtreleri koruyarak, kimlikle kararlı sıralanmış sayfalar halinde okunur. 4.207 kayıt, sonraki sayfa hatası ve boş liste testleri eklendi.
+
 Astra Cloud 15.9.0
 
 - Preserves the latest GitHub main branch and its existing migration CLI and tests.
