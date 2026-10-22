@@ -3,6 +3,7 @@
 export type SurumKaydi = { surum: string; tarih: string; baslik: string; eklenenler: string[]; yapilanlar: string[] };
 
 export const SURUM_GECMISI: SurumKaydi[] = [
+  { surum: 'v15.9.2', tarih: '2026-10-22', baslik: 'Kaynak dava aşamalarını alan sınırlarına uyarlama', eklenenler: [], yapilanlar: ['40 karakteri aşan kaynak aşamalar kısa alana uyarlanır; tam metin dava notlarında ve şifreli arşivde korunur'] },
   {
     surum: 'v15.9.1', tarih: '2026-10-22', baslik: 'Büyük kütüphanelerde eksiksiz kayıt okuma',
     eklenenler: [],

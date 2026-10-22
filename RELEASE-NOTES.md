@@ -1,3 +1,7 @@
+# v15.9.2
+
+Astra OS dava aşamaları 40 karakterlik veritabanı alanına uyarlanır; tam aşama metni dava notlarında ve kaynak arşivde korunur. SQL testindeki dava RPC örneği de üretimdeki aşama sınırını uygular.
+
 # v15.9.1
 
 Dava eşleştirmesi mevcut kayıt RPC’sinin tür / mahkeme / dosya kimliğiyle aynı özeti kullanır; önizlemede mevcut davalar doğru tanınır. 0029 veritabanı göçü eklenmiştir.
